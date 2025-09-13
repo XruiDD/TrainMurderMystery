@@ -3,10 +3,15 @@ package dev.doctor4t.trainmurdermystery.game;
 import dev.doctor4t.trainmurdermystery.cca.TrainMurderMysteryComponents;
 import dev.doctor4t.trainmurdermystery.cca.WorldGameComponent;
 import dev.doctor4t.trainmurdermystery.index.TrainMurderMysteryItems;
+import net.minecraft.block.Blocks;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.world.GameMode;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,8 +55,16 @@ public class GameLoop {
         TrainMurderMysteryComponents.TRAIN.get(world).setTrainSpeed(130);
         WorldGameComponent gameComponent = TrainMurderMysteryComponents.GAME.get(world);
 
-        List<ServerPlayerEntity> fullPlayerPool = new ArrayList<>(world.getPlayers().stream().filter(serverPlayerEntity -> !serverPlayerEntity.isInCreativeMode() && !serverPlayerEntity.isSpectator()).toList());
-        List<ServerPlayerEntity> rolePlayerPool = new ArrayList<>(fullPlayerPool);
+        List<ServerPlayerEntity> playerPool = new ArrayList<>(world.getPlayers().stream().filter(serverPlayerEntity -> !serverPlayerEntity.isInCreativeMode() && !serverPlayerEntity.isSpectator()).toList());
+
+        // limit the game to 14 players, put players 15 to n in spectator mode
+        Collections.shuffle(playerPool);
+        while (playerPool.size() > 14) {
+            playerPool.getFirst().changeGameMode(GameMode.SPECTATOR);
+            playerPool.removeFirst();
+        }
+
+        List<ServerPlayerEntity> rolePlayerPool = new ArrayList<>(playerPool);
 
         // clear items, clear previous game data
         for (ServerPlayerEntity serverPlayerEntity : rolePlayerPool) {
@@ -64,9 +77,9 @@ public class GameLoop {
         Collections.shuffle(rolePlayerPool);
         for (int i = 0; i < hitmanCount; i++) {
             ServerPlayerEntity player = rolePlayerPool.getFirst();
+            rolePlayerPool.removeFirst();
             player.giveItemStack(new ItemStack(TrainMurderMysteryItems.KNIFE));
             gameComponent.addHitman(player);
-            rolePlayerPool.remove(player);
         }
 
         // select detectives
@@ -74,9 +87,9 @@ public class GameLoop {
         Collections.shuffle(rolePlayerPool);
         for (int i = 0; i < detectiveCount; i++) {
             ServerPlayerEntity player = rolePlayerPool.getFirst();
+            rolePlayerPool.removeFirst();
             player.giveItemStack(new ItemStack(TrainMurderMysteryItems.REVOLVER));
             gameComponent.addDetective(player);
-            rolePlayerPool.remove(player);
         }
 
         // select targets
@@ -84,9 +97,18 @@ public class GameLoop {
         Collections.shuffle(rolePlayerPool);
         for (int i = 0; i < targetCount; i++) {
             ServerPlayerEntity player = rolePlayerPool.getFirst();
-            player.giveItemStack(new ItemStack(TrainMurderMysteryItems.ROOM_KEY));
+            rolePlayerPool.removeFirst();
+            player.giveItemStack(new ItemStack(Blocks.TARGET.asItem()));
             gameComponent.addTarget(player);
-            rolePlayerPool.remove(player);
+        }
+
+        // select rooms
+        Collections.shuffle(playerPool);
+        for (int i = 0; i < playerPool.size(); i++) {
+            ItemStack itemStack = new ItemStack(TrainMurderMysteryItems.ROOM_KEY);
+            int roomNumber = (int) Math.floor((double) (i + 2) / 2);
+            itemStack.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, component -> new LoreComponent(Text.literal("Room "+ roomNumber).getWithStyle(Style.EMPTY.withItalic(false).withColor(0xFF8C00))));
+            playerPool.get(i).giveItemStack(itemStack);
         }
 
         gameComponent.setRunning(true);

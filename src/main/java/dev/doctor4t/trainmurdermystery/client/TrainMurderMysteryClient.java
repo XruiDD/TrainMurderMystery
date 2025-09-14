@@ -1,5 +1,6 @@
 package dev.doctor4t.trainmurdermystery.client;
 
+import com.google.common.collect.Maps;
 import dev.doctor4t.ratatouille.client.util.OptionLocker;
 import dev.doctor4t.ratatouille.client.util.ambience.AmbienceUtil;
 import dev.doctor4t.ratatouille.client.util.ambience.BackgroundAmbience;
@@ -7,6 +8,7 @@ import dev.doctor4t.trainmurdermystery.TrainMurderMystery;
 import dev.doctor4t.trainmurdermystery.cca.TrainMurderMysteryComponents;
 import dev.doctor4t.trainmurdermystery.client.model.TrainMurderMysteryEntityModelLayers;
 import dev.doctor4t.trainmurdermystery.client.render.block_entity.SmallDoorBlockEntityRenderer;
+import dev.doctor4t.trainmurdermystery.client.render.entity.PlayerBodyEntityRenderer;
 import dev.doctor4t.trainmurdermystery.client.util.TMMItemTooltips;
 import dev.doctor4t.trainmurdermystery.index.*;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -17,7 +19,9 @@ import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import net.minecraft.client.render.entity.EmptyEntityRenderer;
@@ -30,9 +34,12 @@ import net.minecraft.util.math.BlockPos;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public class TrainMurderMysteryClient implements ClientModInitializer {
     private static float trainSpeed;
+
+    public static final Map<UUID, PlayerListEntry> PLAYER_ENTRIES_CACHE = Maps.<UUID, PlayerListEntry>newHashMap();
 
     public static boolean shouldDisableHudAndDebug() {
         MinecraftClient client = MinecraftClient.getInstance();
@@ -117,6 +124,15 @@ public class TrainMurderMysteryClient implements ClientModInitializer {
 
         // Item tooltips
         TMMItemTooltips.addTooltips();
+
+        // Cache player entries
+        ClientTickEvents.START_WORLD_TICK.register(clientWorld -> {
+            for (AbstractClientPlayerEntity player : clientWorld.getPlayers()) {
+                if (!PLAYER_ENTRIES_CACHE.containsKey(player.getUuid())) {
+                    PLAYER_ENTRIES_CACHE.put(player.getUuid(), MinecraftClient.getInstance().getNetworkHandler().getPlayerListEntry(player.getUuid()));
+                }
+            }
+        });
     }
 
     public static boolean isSkyVisibleAdjacent(ClientPlayerEntity player) {

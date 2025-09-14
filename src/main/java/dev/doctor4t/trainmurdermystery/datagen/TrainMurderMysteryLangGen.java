@@ -18,6 +18,8 @@ public class TrainMurderMysteryLangGen extends FabricLanguageProvider {
     @Override
     public void generateTranslations(RegistryWrapper.WrapperLookup wrapperLookup, TranslationBuilder builder) {
         builder.add(TrainMurderMysteryEntities.SEAT, "Seat");
+        builder.add(TrainMurderMysteryEntities.PLAYER_BODY, "Body");
+        builder.add(TrainMurderMysteryEntities.PLAYER_BODY_SLIM, "Body");
 
         builder.add(TrainMurderMysteryBlocks.STAINLESS_STEEL_VENT_SHAFT, "Stainless Steel Vent Shaft");
         builder.add(TrainMurderMysteryBlocks.STAINLESS_STEEL_VENT_HATCH, "Stainless Steel Vent Hatch");

@@ -1,4 +1,4 @@
-package dev.doctor4t.trainmurdermystery.mixin.client;
+package dev.doctor4t.trainmurdermystery.mixin.client.ui;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;

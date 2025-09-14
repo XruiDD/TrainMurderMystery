@@ -1,4 +1,4 @@
-package dev.doctor4t.trainmurdermystery.mixin.client;
+package dev.doctor4t.trainmurdermystery.mixin.client.scenery;
 
 import dev.doctor4t.trainmurdermystery.client.TrainMurderMysteryClient;
 import dev.doctor4t.trainmurdermystery.index.TrainMurderMysteryParticles;

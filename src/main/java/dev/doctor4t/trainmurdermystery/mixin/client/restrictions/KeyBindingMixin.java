@@ -1,4 +1,4 @@
-package dev.doctor4t.trainmurdermystery.mixin.client;
+package dev.doctor4t.trainmurdermystery.mixin.client.restrictions;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import dev.doctor4t.trainmurdermystery.client.TrainMurderMysteryClient;
@@ -22,7 +22,7 @@ public abstract class KeyBindingMixin {
                     this.equals(MinecraftClient.getInstance().options.commandKey) ||
                     this.equals(MinecraftClient.getInstance().options.jumpKey) ||
                     this.equals(MinecraftClient.getInstance().options.playerListKey) ||
-                    this.equals(MinecraftClient.getInstance().options.togglePerspectiveKey) ||
+//                    this.equals(MinecraftClient.getInstance().options.togglePerspectiveKey) ||
                     this.equals(MinecraftClient.getInstance().options.advancementsKey);
         }
         return false;

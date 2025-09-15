@@ -2,6 +2,7 @@ package dev.doctor4t.trainmurdermystery.item;
 
 import dev.doctor4t.trainmurdermystery.TrainMurderMystery;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
+import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.index.TrainMurderMysteryEntities;
 import dev.doctor4t.trainmurdermystery.index.TrainMurderMysterySounds;
 import net.minecraft.entity.LivingEntity;
@@ -43,7 +44,7 @@ public class KnifeItem extends Item {
 
                 user.swingHand(Hand.MAIN_HAND);
                 killedPlayer.playSound(TrainMurderMysterySounds.ITEM_KNIFE_STAB, 1.0f, 1.0f);
-                if (!attacker.isCreative()) attacker.getItemCooldownManager().set(this, 3600); // 3 minutes
+                if (!attacker.isCreative()) attacker.getItemCooldownManager().set(this, GameConstants.KNIFE_COOLDOWN);
             }
 
         }

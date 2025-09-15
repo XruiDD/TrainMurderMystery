@@ -43,20 +43,6 @@ public class KeyItem extends Item {
                     if (player.isCreative() && player.isSneaking()) {
                         entity.setKeyName(roomName);
                         return ActionResult.SUCCESS;
-                    } else {
-                        if (roomName.equals(entity.getKeyName()) || entity.getKeyName().equals("")) {
-                            SmallDoorBlock.toggleDoor(state, world, entity, lowerPos);
-                            if (!world.isClient)
-                                world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, TrainMurderMysterySounds.ITEM_KEY_DOOR, SoundCategory.BLOCKS, 1f, 1f);
-                            return ActionResult.SUCCESS;
-                        } else {
-                            if (!world.isClient) {
-                                world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, TrainMurderMysterySounds.BLOCK_DOOR_LOCKED, SoundCategory.BLOCKS, 1f, 1f);
-                            } else {
-                                player.sendMessage(Text.translatable("tip.door.requires_different_key"), true);
-                            }
-                            return ActionResult.FAIL;
-                        }
                     }
                 }
             }

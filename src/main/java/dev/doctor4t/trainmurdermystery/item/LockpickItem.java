@@ -1,7 +1,9 @@
 package dev.doctor4t.trainmurdermystery.item;
 
 import dev.doctor4t.trainmurdermystery.block.SmallDoorBlock;
+import dev.doctor4t.trainmurdermystery.block_entity.DoorBlockEntity;
 import dev.doctor4t.trainmurdermystery.block_entity.SmallDoorBlockEntity;
+import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.index.TrainMurderMysterySounds;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.enums.DoubleBlockHalf;
@@ -31,16 +33,14 @@ public class LockpickItem extends Item {
         if (state.getBlock() instanceof SmallDoorBlock) {
             BlockPos lowerPos = state.get(SmallDoorBlock.HALF) == DoubleBlockHalf.LOWER ? pos : pos.down();
             if (world.getBlockEntity(lowerPos) instanceof SmallDoorBlockEntity entity) {
-                // Sneaking creative player with key sets the door to require a key with the same name
-                ItemStack mainHandStack = player.getMainHandStack();
-                LoreComponent loreComponent = mainHandStack.get(DataComponentTypes.LORE);
-                if (loreComponent != null) {
-                    if (!entity.getKeyName().equals("")) {
-                        SmallDoorBlock.toggleDoor(state, world, entity, lowerPos);
-                        if (!world.isClient)
-                            world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, TrainMurderMysterySounds.ITEM_LOCKPICK_DOOR, SoundCategory.BLOCKS, 1f, 1f);
-                        return ActionResult.SUCCESS;
-                    }
+                if (player.isSneaking()) {
+                    entity.setJammed(GameConstants.JAMMED_DOOR_TIME);
+
+                    if (!player.isCreative()) player.getItemCooldownManager().set(this, GameConstants.LOCKPICK_JAM_COOLDOWN);
+
+                    if (!world.isClient)
+                        world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, TrainMurderMysterySounds.ITEM_LOCKPICK_DOOR, SoundCategory.BLOCKS, 1f, 1f);
+                    return ActionResult.SUCCESS;
                 }
             }
 

@@ -183,6 +183,7 @@ public class TrainMurderMysteryLangGen extends FabricLanguageProvider {
         builder.add(TrainMurderMysteryBlocks.ELEVATOR_BUTTON, "Elevator Button");
         builder.add(TrainMurderMysteryBlocks.GOLD_ORNAMENT, "Golden Ornament");
         builder.add(TrainMurderMysteryBlocks.SMALL_GLASS_DOOR, "Small Glass Door");
+        builder.add(TrainMurderMysteryBlocks.SMALL_WOOD_DOOR, "Small Wood Door");
         builder.add(TrainMurderMysteryBlocks.NAVY_STEEL, "Navy Steel");
         builder.add(TrainMurderMysteryBlocks.NAVY_STEEL_PANEL, "Navy Steel Panel");
         builder.add(TrainMurderMysteryBlocks.NAVY_STEEL_TILES, "Navy Steel Tiles");
@@ -218,7 +219,7 @@ public class TrainMurderMysteryLangGen extends FabricLanguageProvider {
         builder.add("tip.knife.tooltip1", "Right-click to use, hold for a second and get close to your victim!");
         builder.add("tip.knife.tooltip2", "After a kill, cannot be used for 3 minutes.");
         builder.add("tip.knife.tooltip3", "Can also be used to push players off the train with an attack (no cooldown).");
-        builder.add("tip.knife.cooldown", "Thirst satiated! Cannot kill for %s");
+        builder.add("tip.cooldown", "On cooldown: %s");
         builder.add("tip.lockpick.tooltip1", "Use on any door to open.");
         builder.add("tip.lockpick.tooltip2", "Sneak-use on a door to lock it for 1 minute.");
 

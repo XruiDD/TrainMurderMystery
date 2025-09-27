@@ -94,8 +94,8 @@ public class TMM implements ModInitializer {
 // TORECORD: - Sleeping task requiring you to sleep for 8s
 // TORECORD: - Get some fresh air reduced to going walking outside for 8s
 // TODO: - Change mood down effect from speed to: (to prevent players being able to innocent each other on an easily observable change)
-// TODO:    - Not seeing bodies at mid mood + a little more shake
-// TODO:    - Randomly seeing players as psycho + random items in hands + even more shake + blinking
+// TODO:    - Mid mood: Imagining random items in other player's hands (changes every so often) + a little more shake
+// TODO:    - Low mood: Randomly seeing players as psycho + not seeing bodies + even more shake
 
 // TORECORD: Fixing the detective
 // TORECORD: New name display system to allow anyone to know player's names
@@ -149,3 +149,4 @@ public class TMM implements ModInitializer {
 
 // TODO:
 // - Item shop sounds
+// - Disable feature renderers on psychos

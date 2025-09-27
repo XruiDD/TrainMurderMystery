@@ -37,20 +37,26 @@ public class CameraMixin {
 
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
             int age = player.age;
+            float v = (1 + (1 - TMMClient.moodComponent.getMood())) * 2.5f;
             float amplitude = .0025f;
             float strength = 0.5f;
+
+            float yawOffset = 0;
+            float pitchOffset = 0;
 
             if (TMM.isSkyVisibleAdjacent(player)) {
                 amplitude = .01f;
                 strength = 1f;
 
                 if (TMM.isExposedToWind(player)) {
-                    float yawOffset = 1.5f * randomizeOffset(10);
-                    float pitchOffset = 1.5f * randomizeOffset(-10);
-                    camera.setRotation(camera.getYaw() + yawOffset, camera.getPitch() + pitchOffset);
+                    yawOffset = 1.5f * randomizeOffset(10);
+                    pitchOffset = 1.5f * randomizeOffset(-10);
                 }
             }
 
+            amplitude *= v;
+
+            camera.setRotation(camera.getYaw() + yawOffset, camera.getPitch() + pitchOffset);
             camera.setPos(camera.getPos().add(0, Math.sin((age + tickDelta) * strength) / 2f * amplitude, Math.cos((age + tickDelta) * strength) * amplitude));
         }
     }

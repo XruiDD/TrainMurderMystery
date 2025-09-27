@@ -8,6 +8,7 @@ import dev.doctor4t.ratatouille.client.util.ambience.BlockEntityAmbience;
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.block_entity.SprinklerBlockEntity;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
+import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
 import dev.doctor4t.trainmurdermystery.cca.TMMComponents;
 import dev.doctor4t.trainmurdermystery.cca.TrainWorldComponent;
 import dev.doctor4t.trainmurdermystery.client.gui.StoreRenderer;
@@ -65,6 +66,7 @@ public class TMMClient implements ClientModInitializer {
     private static boolean prevGameRunning;
     public static GameWorldComponent gameComponent;
     public static TrainWorldComponent trainComponent;
+    public static PlayerMoodComponent moodComponent;
 
     public static final Map<UUID, PlayerListEntry> PLAYER_ENTRIES_CACHE = Maps.newHashMap();
 
@@ -179,6 +181,7 @@ public class TMMClient implements ClientModInitializer {
         ClientTickEvents.START_WORLD_TICK.register(clientWorld -> {
             gameComponent = TMMComponents.GAME.get(clientWorld);
             trainComponent = TMMComponents.TRAIN.get(clientWorld);
+            moodComponent = PlayerMoodComponent.KEY.get(MinecraftClient.getInstance().player);
         });
 
         // Lock options

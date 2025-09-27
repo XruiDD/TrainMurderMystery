@@ -4,6 +4,7 @@ import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
 import dev.doctor4t.trainmurdermystery.cca.TMMComponents;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
+import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.font.TextRenderer;
@@ -85,15 +86,15 @@ public class MoodRenderer {
         if (hitman) {
             mood = MOOD_KILLER;
         } else {
-            if (moodRender < 0.2f) {
+            if (moodRender < GameConstants.DEPRESSIVE_MOOD_THRESHOLD) {
                 mood = MOOD_DEPRESSIVE;
-            } else if (moodRender < 0.55f) {
+            } else if (moodRender < GameConstants.MID_MOOD_THRESHOLD) {
                 mood = MOOD_MID;
             }
             if (arrowProgress < 0.1f) {
-                if (oldMood >= 0.2f && moodRender < 0.2f) {
+                if (oldMood >= GameConstants.DEPRESSIVE_MOOD_THRESHOLD && moodRender < GameConstants.DEPRESSIVE_MOOD_THRESHOLD) {
                     arrowProgress = -1f;
-                } else if (oldMood >= 0.55f && moodRender < 0.55f) {
+                } else if (oldMood >= GameConstants.MID_MOOD_THRESHOLD && moodRender < GameConstants.MID_MOOD_THRESHOLD) {
                     arrowProgress = -1f;
                 }
             }

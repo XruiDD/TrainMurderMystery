@@ -3,7 +3,10 @@ package dev.doctor4t.trainmurdermystery.cca;
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
+import dev.doctor4t.trainmurdermystery.index.TMMItems;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -19,17 +22,23 @@ import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 import static dev.doctor4t.trainmurdermystery.TMM.isSkyVisibleAdjacent;
 
 public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
+    public static final Item[] PSYCHOSIS_ITEM_POOL = {
+            TMMItems.KNIFE, TMMItems.REVOLVER, TMMItems.GRENADE, TMMItems.POISON_VIAL, TMMItems.SCORPION, TMMItems.LOCKPICK, TMMItems.CROWBAR, TMMItems.BODY_BAG, TMMItems.NOTE
+    };
+
     public static final ComponentKey<PlayerMoodComponent> KEY = ComponentRegistry.getOrCreate(TMM.id("mood"), PlayerMoodComponent.class);
     private final PlayerEntity player;
     public final Map<Task, TrainTask> tasks = new HashMap<>();
     public final Map<Task, Integer> timesGotten = new HashMap<>();
     private int nextTaskTimer = 0;
     private float mood = 1f;
+    private final HashMap<UUID, ItemStack> psychosisItems = new HashMap<>();
 
     public PlayerMoodComponent(PlayerEntity player) {
         this.player = player;
@@ -52,6 +61,22 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
         if (!TMMComponents.GAME.get(this.player.getWorld()).isRunning() || !TMMClient.isPlayerAliveAndInSurvival())
             return;
         if (!this.tasks.isEmpty()) this.setMood(this.mood - this.tasks.size() * GameConstants.MOOD_DRAIN);
+
+        if (isLowerThanDepressed()) {
+
+        } else if (isLowerThanMid()) {
+            // imagine random items for players
+            if (psychosisItems.isEmpty() || player.getWorld().getTime() % GameConstants.ITEM_PSYCHOSIS_REROLL_TIME == 0) {
+                psychosisItems.clear();
+                for (PlayerEntity playerEntity : this.player.getWorld().getPlayers()) {
+                    if (!playerEntity.equals(this.player) && playerEntity.getRandom().nextFloat() < GameConstants.ITEM_PSYCHOSIS_CHANCE) {
+                        psychosisItems.put(playerEntity.getUuid(), PSYCHOSIS_ITEM_POOL[playerEntity.getRandom().nextInt(PSYCHOSIS_ITEM_POOL.length)].getDefaultStack());
+                    }
+                }
+            }
+        } else {
+            if (!psychosisItems.isEmpty()) psychosisItems.clear();
+        }
     }
 
     @Override
@@ -124,6 +149,18 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
 
     public void drinkCocktail() {
         if (this.tasks.get(Task.DRINK) instanceof DrinkTask drinkTask) drinkTask.fulfilled = true;
+    }
+
+    public boolean isLowerThanMid() {
+        return this.mood < GameConstants.MID_MOOD_THRESHOLD;
+    }
+
+    public boolean isLowerThanDepressed() {
+        return this.mood < GameConstants.DEPRESSIVE_MOOD_THRESHOLD;
+    }
+
+    public HashMap<UUID, ItemStack> getPsychosisItems() {
+        return psychosisItems;
     }
 
     @Override

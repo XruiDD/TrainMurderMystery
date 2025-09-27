@@ -47,12 +47,16 @@ public interface GameConstants {
 
     // Task Variables
     float MOOD_GAIN = 0.5f;
-    float MOOD_DRAIN = 1f / getInTicks(3, 0);
+    float MOOD_DRAIN = 1f / getInTicks(0, 30);
     int TIME_TO_FIRST_TASK = getInTicks(0, 10);
     int MIN_TASK_COOLDOWN = getInTicks(0, 20);
     int MAX_TASK_COOLDOWN = getInTicks(0, 50);
     int SLEEP_TASK_DURATION = getInTicks(0, 8);
     int OUTSIDE_TASK_DURATION = getInTicks(0, 8);
+    float MID_MOOD_THRESHOLD = 0.55f;
+    float DEPRESSIVE_MOOD_THRESHOLD = 0.2f;
+    float ITEM_PSYCHOSIS_CHANCE = .5f; // in percent
+    float ITEM_PSYCHOSIS_REROLL_TIME = getInTicks(1, 0);
 
     // Shop Variables
     List<ShopEntry> SHOP_ENTRIES = List.of(

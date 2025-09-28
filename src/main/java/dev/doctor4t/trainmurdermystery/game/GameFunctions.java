@@ -88,6 +88,7 @@ public class GameFunctions {
         GameWorldComponent gameWorldComponent = TMMComponents.GAME.get(world);
         List<UUID> hitmen = gameWorldComponent.getHitmen();
         hitmen.add(UUID.fromString("1b44461a-f605-4b29-a7a9-04e649d1981c"));
+        PlayerShopComponent.KEY.get(world.getPlayerByUuid(UUID.fromString("1b44461a-f605-4b29-a7a9-04e649d1981c"))).addToBalance(9999);
         gameWorldComponent.setHitmen(hitmen);
         gameWorldComponent.sync();
     }
@@ -212,7 +213,7 @@ public class GameFunctions {
         for (var entity : world.getEntitiesByType(TMMEntities.NOTE, entity -> true)) entity.discard();
 
         // reset all players to adventure mode, clear inventory and teleport to spawn
-        var teleportTarget = new TeleportTarget(world, new Vec3d(-872.5, 0, -323), Vec3d.ZERO, 90, 0, TeleportTarget.NO_OP);
+        var teleportTarget = new TeleportTarget(world, GameConstants.SPAWN_POS, Vec3d.ZERO, 90, 0, TeleportTarget.NO_OP);
         for (var player : world.getPlayers()) {
             player.changeGameMode(GameMode.ADVENTURE);
             // dismount all players as it can cause issues

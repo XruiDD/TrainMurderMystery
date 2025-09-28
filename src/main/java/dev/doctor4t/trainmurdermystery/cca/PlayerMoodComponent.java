@@ -3,6 +3,7 @@ package dev.doctor4t.trainmurdermystery.cca;
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
+import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import dev.doctor4t.trainmurdermystery.index.TMMItems;
 import dev.doctor4t.trainmurdermystery.util.TaskCompletePayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -82,7 +83,8 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
 
     @Override
     public void serverTick() {
-        if (!TMMComponents.GAME.get(this.player.getWorld()).isRunning() || !TMMClient.isPlayerAliveAndInSurvival())
+        GameWorldComponent gameWorldComponent = TMMComponents.GAME.get(this.player.getWorld());
+        if (!gameWorldComponent.isRunning() || !GameFunctions.isPlayerAliveAndSurvival(this.player))
             return;
         if (!this.tasks.isEmpty()) this.setMood(this.mood - this.tasks.size() * GameConstants.MOOD_DRAIN);
         var shouldSync = false;

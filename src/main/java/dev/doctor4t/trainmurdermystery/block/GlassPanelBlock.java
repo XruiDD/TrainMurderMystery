@@ -113,4 +113,9 @@ public class GlassPanelBlock extends FacingBlock {
     protected boolean canPathfindThrough(BlockState state, NavigationType type) {
         return false;
     }
+
+    @Override
+    protected int getOpacity(BlockState state, BlockView world, BlockPos pos) {
+        return 15;
+    }
 }

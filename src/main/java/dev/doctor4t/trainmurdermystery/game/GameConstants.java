@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -27,7 +28,6 @@ public interface GameConstants {
 
     // Items
     Map<Item, Integer> ITEM_COOLDOWNS = new HashMap<>();
-
     static void init() {
         ITEM_COOLDOWNS.put(TMMItems.KNIFE, getInTicks(1, 0));
         ITEM_COOLDOWNS.put(TMMItems.REVOLVER, getInTicks(0, 10));
@@ -52,11 +52,12 @@ public interface GameConstants {
     int DECOMPOSING_TIME = getInTicks(4, 0);
 
     // Game areas
+    Vec3d SPAWN_POS = new Vec3d(-573, 0, -323);
     Box READY_AREA = new Box(-981, -1, -364, -813, 3, -358);
     BlockPos PLAY_POS = new BlockPos(-19, 122, -539);
     Consumer<ServerPlayerEntity> SPECTATOR_TP = serverPlayerEntity -> serverPlayerEntity.teleport(serverPlayerEntity.getServerWorld(), -68, 133, -535.5, -90, 15);
     Box PLAY_AREA = new Box(-140, 118, -535.5f - 15, 230, 200, -535.5f + 15);
-    Box BACKUP_TRAIN_LOCATION = new Box(-57, 64, -531, 177, 74, -540);
+    Box BACKUP_TRAIN_LOCATION = new Box(-57, 64, -531, 177, 74, -541);
     Box TRAIN_LOCATION = BACKUP_TRAIN_LOCATION.offset(0, 55, 0);
 
     // Task Variables

@@ -90,7 +90,7 @@ public interface TMMBlocks {
     Block HULL_GLASS = registrar.createWithItem("hull_glass", new PrivacyGlassBlock(AbstractBlock.Settings.copy(Blocks.BLACK_STAINED_GLASS).strength(-1.0f, 3600000.0f)), TMMItems.BUILDING_GROUP);
     Block RHOMBUS_HULL_GLASS = registrar.createWithItem("rhombus_hull_glass", new StainedGlassBlock(DyeColor.BLACK, AbstractBlock.Settings.copy(Blocks.BLACK_STAINED_GLASS).strength(-1.0f, 3600000.0f)), TMMItems.BUILDING_GROUP);
     Block RHOMBUS_GLASS = registrar.createWithItem("rhombus_glass", new StainedGlassBlock(DyeColor.BLACK, AbstractBlock.Settings.copy(Blocks.BLACK_STAINED_GLASS)), TMMItems.BUILDING_GROUP);
-    Block GOLDEN_GLASS_PANEL = registrar.createWithItem("golden_glass_panel", new GlassPanelBlock(AbstractBlock.Settings.create().strength(0.3f).sounds(BlockSoundGroup.GLASS).nonOpaque().allowsSpawning(Blocks::never)), TMMItems.DECORATION_GROUP);
+    Block GOLDEN_GLASS_PANEL = registrar.createWithItem("golden_glass_panel", new GlassPanelBlock(AbstractBlock.Settings.create().strength(0.3f).sounds(BlockSoundGroup.GLASS).allowsSpawning(Blocks::never)), TMMItems.DECORATION_GROUP);
     Block PRIVACY_GLASS_PANEL = registrar.createWithItem("privacy_glass_panel", new PrivacyGlassPanelBlock(AbstractBlock.Settings.create().strength(0.3f).sounds(BlockSoundGroup.GLASS).nonOpaque().allowsSpawning(Blocks::never)), TMMItems.DECORATION_GROUP);
     Block CULLING_GLASS = registrar.createWithItem("culling_glass", new CullingGlassBlock(AbstractBlock.Settings.create().solid().strength(-1.0f, 3600000.0f).allowsSpawning(Blocks::never).sounds(BlockSoundGroup.GLASS)), TMMItems.DECORATION_GROUP);
 

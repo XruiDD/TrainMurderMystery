@@ -74,7 +74,7 @@ public class WorldBlackoutComponent implements AutoSyncedComponent, ServerTickin
             }
         }
         if (this.world instanceof ServerWorld serverWorld) for (var player : serverWorld.getPlayers()) {
-            player.networkHandler.sendPacket(new PlaySoundS2CPacket(Registries.SOUND_EVENT.getEntry(TMMSounds.BLACKOUT_START), SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 1.0f, 0.9f + serverWorld.getRandom().nextFloat() * 0.2f, player.getRandom().nextLong()));
+            player.networkHandler.sendPacket(new PlaySoundS2CPacket(Registries.SOUND_EVENT.getEntry(TMMSounds.AMBIENT_BLACKOUT), SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 100f, 1f, player.getRandom().nextLong()));
         }
         return true;
     }

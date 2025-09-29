@@ -39,12 +39,11 @@ public interface TMMSounds {
     SoundEvent AMBIENT_TRAIN_OUTSIDE = registrar.create("ambient.train.outside");
     SoundEvent AMBIENT_PSYCHO_DRONE = registrar.create("ambient.psycho_drone");
     SoundEvent AMBIENT_TRAIN_HORN = registrar.create("ambient.train.horn");
+    SoundEvent AMBIENT_BLACKOUT = registrar.create("ambient.blackout");
 
     // Shop
-    SoundEvent BUY_ITEM = registrar.create("shop.buy_item");
-    SoundEvent BUY_FAIL = registrar.create("shop.buy_fail");
-    SoundEvent BALANCE_CLICK = registrar.create("shop.balance_click");
-    SoundEvent BLACKOUT_START = registrar.create("shop.blackout_start");
+    SoundEvent UI_SHOP_BUY = registrar.create("ui.shop.buy");
+    SoundEvent UI_SHOP_BUY_FAIL = registrar.create("ui.shop.buy_fail");
 
     static void initialize() {
         registrar.registerEntries();

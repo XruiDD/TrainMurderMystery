@@ -91,17 +91,6 @@ public class TMM implements ModInitializer {
     }
 }
 
-// TORECORD: Fixing the mood system
-// TORECORD: Better tasks: mood goes down gradually, completing tasks is a single action to bring it back up
-//  (new task system is more meant to make players vulnerable to the killer in a different way from splitting them up)
-// TORECORD: - Get a snack from restaurant task (food platter block + food items)
-// TORECORD: - Get a drink from the bar task (drink tray block + custom drink items)
-// TORECORD: - Sleeping task requiring you to sleep for 8s
-// TORECORD: - Get some fresh air reduced to going walking outside for 8s
-// TORECORD: - Change mood down effect from speed to: (to prevent players being able to innocent each other on an easily observable change)
-// TORECORD:    - Mid mood: Imagining random items in other player's hands (changes every so often) + a little more shake
-// TORECORD:    - Low mood: Dead bodies disappear after 10s + even more shake
-
 // TORECORD: Fixing the detective
 // TORECORD: New name display system to allow anyone to know player's names
 // TORECORD: Remove revolver bullet count but make detectives drop the gun on innocent kill
@@ -140,11 +129,23 @@ public class TMM implements ModInitializer {
 // TORECORD: - Firecracker (luring people, shooting the gun in spectator often led to people rushing in from curiosity, allowing the killer to manipulate players)
 // TORECORD: - Body bag (can be used to clean up a kill, but very expensive)
 // TORECORD: - Note (allows the killer to leave messages, fun for encouraging the roleplay aspect)
+// TORECORD: Timer for killer
+// TORECORD: Instinct shows you more info (items)
+
+// TORECORD: Fixing the passenger mood system
+// TORECORD: Better tasks: mood goes down gradually, completing tasks is a single action to bring it back up
+//  (new task system is more meant to make players vulnerable to the killer in a different way from splitting them up)
+// TORECORD: - Get a snack from restaurant task (food platter block + food items)
+// TORECORD: - Get a drink from the bar task (drink tray block + custom drink items)
+// TORECORD: - Sleeping task requiring you to sleep for 8s
+// TORECORD: - Get some fresh air reduced to going walking outside for 8s
+// TORECORD: - Change mood down effect from speed to: (to prevent players being able to innocent each other on an easily observable change)
+// TORECORD:    - Mid mood: Imagining random items in other player's hands (changes every so often) + a little more shake
+// TORECORD:    - Low mood: Dead bodies disappear after 10s + even more shake
+// TORECORD: Killer can see mood of players with instinct to gaslight them
 
 // TORECORD: Fixing the map
-// TODO: Rearrange the train cars to prevent all POIs being separated by all the sleeping cars
-// TODO: Add light barrier blocks to the whole train
-// TORECORD: Add barrier panel blocks to the lobby
+// done: Rearrange the train cars to prevent all POIs being separated by all the sleeping cars
 
 // TORECORD: Polish
 // TODO: Train chimney smoke + ringable horn, triggers game start in lobby and end of game
@@ -153,11 +154,9 @@ public class TMM implements ModInitializer {
 
 // TODO: Item shop sounds
 // TODO: more knife knockback
-// TODO: Timer for killer
 // TODO: Bed at the back for 14+ players games
-// TODO: Killers can see the mood of players
 // TODO: Fix poison visual not getting removed
 // TODO: psycho mode can shrug off one bullet
 // TODO: add command to reset role weighting
-// TODO: fix name and sticky note render over each other if your cursor sees both
-// TODO: note with instructions at the start of the game
+// TODO: fix name and note render over each other if your cursor sees both
+// TODO: small video tutorial on how to play

@@ -77,7 +77,7 @@ public class TrainMurderMysteryLangGen extends FabricLanguageProvider {
 
         builder.add("game.win.killers", "The killers reached their kill count, they win!");
         builder.add("game.win.passengers", "All killers were eliminated: the passengers win!");
-        builder.add("game.win.time", "The killers have run out of time: the passengers win!");
+        builder.add("game.win.time", "The killers ran out of time: the passengers win!");
 
         builder.add("key.trainmurdermystery.instinct", "Instinct");
         builder.add("category.trainmurdermystery.keybinds", "Train Murder Mystery");

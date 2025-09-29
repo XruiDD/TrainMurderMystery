@@ -333,5 +333,24 @@
 			"trainmurdermystery:ambient/psycho_drone"
 		],
 		"subtitle": "subtitles.ambient.psycho_drone"
+	},
+	"ambient.blackout": {
+		"sounds": [
+			"trainmurdermystery:ambient/blackout"
+		],
+		"subtitle": "subtitles.ambient.blackout"
+	},
+
+	"ui.shop.buy": {
+		"sounds": [
+			"trainmurdermystery:ui/shop_buy"
+		],
+		"subtitle": "subtitles.ui.shop.buy"
+	},
+	"ui.shop.buy_fail": {
+		"sounds": [
+			"trainmurdermystery:ui/shop_buy_fail"
+		],
+		"subtitle": "subtitles.ui.shop.buy_fail"
 	}
 }

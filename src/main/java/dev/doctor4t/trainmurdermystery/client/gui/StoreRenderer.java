@@ -2,12 +2,10 @@ package dev.doctor4t.trainmurdermystery.client.gui;
 
 import dev.doctor4t.trainmurdermystery.cca.PlayerShopComponent;
 import dev.doctor4t.trainmurdermystery.cca.TMMComponents;
-import dev.doctor4t.trainmurdermystery.index.TMMSounds;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.NotNull;
 
@@ -100,8 +98,7 @@ public class StoreRenderer {
         public void render(@NotNull TextRenderer renderer, @NotNull DrawContext context, int colour, float delta) {
             if (MathHelper.floor(this.lastValue) != MathHelper.floor(this.value)) {
                 var player = MinecraftClient.getInstance().player;
-                if (player != null)
-                    player.getWorld().playSound(player, player.getX(), player.getY(), player.getZ(), TMMSounds.BALANCE_CLICK, SoundCategory.PLAYERS, 0.1f, 1 + this.lastValue - this.value, player.getRandom().nextLong());
+//                if (player != null)player.getWorld().playSound(player, player.getX(), player.getY(), player.getZ(), TMMSounds.BALANCE_CLICK, SoundCategory.PLAYERS, 0.1f, 1 + this.lastValue - this.value, player.getRandom().nextLong());
             }
             var value = MathHelper.lerp(delta, this.lastValue, this.value);
             var digit = MathHelper.floor(value) % 10;

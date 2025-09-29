@@ -128,13 +128,6 @@ public class GameFunctions {
             GameConstants.SPECTATOR_TP.accept(player);
         }
 
-        // limit the game to 14 players, put players 15 to n in spectator mode
-        Collections.shuffle(playerPool);
-        while (playerPool.size() > 14) {
-            playerPool.getFirst().changeGameMode(GameMode.SPECTATOR);
-            playerPool.removeFirst();
-        }
-
         // clear items, clear previous game data
         for (var serverPlayerEntity : playerPool) {
             serverPlayerEntity.getInventory().clear();
@@ -166,6 +159,8 @@ public class GameFunctions {
 
             // give pamphlet
             ItemStack letter = new ItemStack(TMMItems.LETTER);
+
+            // TODO: Don't give a room key to brokies and tell them they can sleep on the fucking library bed
 
             letter.set(DataComponentTypes.ITEM_NAME, Text.translatable(letter.getTranslationKey() + ".pamphlet"));
             int letterColor = 0xC5AE8B;

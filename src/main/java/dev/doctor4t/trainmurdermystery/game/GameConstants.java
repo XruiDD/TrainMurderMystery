@@ -76,9 +76,9 @@ public interface GameConstants {
     // Shop Variables
     List<ShopEntry> SHOP_ENTRIES = List.of(
             new ShopEntry(TMMItems.KNIFE.getDefaultStack(), 10, ShopEntry.Type.WEAPON),
-            new ShopEntry(TMMItems.REVOLVER.getDefaultStack(), 300, ShopEntry.Type.WEAPON),
+            new ShopEntry(TMMItems.REVOLVER.getDefaultStack(), 250, ShopEntry.Type.WEAPON),
             new ShopEntry(TMMItems.GRENADE.getDefaultStack(), 400, ShopEntry.Type.WEAPON),
-            new ShopEntry(TMMItems.PSYCHO_MODE.getDefaultStack(), 400, ShopEntry.Type.WEAPON) {
+            new ShopEntry(TMMItems.PSYCHO_MODE.getDefaultStack(), 300, ShopEntry.Type.WEAPON) {
                 @Override
                 public boolean onBuy(@NotNull PlayerEntity player) {
                     return PlayerShopComponent.usePsychoMode(player);
@@ -86,10 +86,10 @@ public interface GameConstants {
             },
             new ShopEntry(TMMItems.POISON_VIAL.getDefaultStack(), 100, ShopEntry.Type.POISON),
             new ShopEntry(TMMItems.SCORPION.getDefaultStack(), 50, ShopEntry.Type.POISON),
-            new ShopEntry(TMMItems.FIRECRACKER.getDefaultStack(), 20, ShopEntry.Type.TOOL),
-            new ShopEntry(TMMItems.LOCKPICK.getDefaultStack(), 75, ShopEntry.Type.TOOL),
-            new ShopEntry(TMMItems.CROWBAR.getDefaultStack(), 50, ShopEntry.Type.TOOL),
-            new ShopEntry(TMMItems.BODY_BAG.getDefaultStack(), 500, ShopEntry.Type.TOOL),
+            new ShopEntry(TMMItems.FIRECRACKER.getDefaultStack(), 10, ShopEntry.Type.TOOL),
+            new ShopEntry(TMMItems.LOCKPICK.getDefaultStack(), 50, ShopEntry.Type.TOOL),
+            new ShopEntry(TMMItems.CROWBAR.getDefaultStack(), 25, ShopEntry.Type.TOOL),
+            new ShopEntry(TMMItems.BODY_BAG.getDefaultStack(), 400, ShopEntry.Type.TOOL),
             new ShopEntry(TMMItems.BLACKOUT.getDefaultStack(), 200, ShopEntry.Type.TOOL) {
                 @Override
                 public boolean onBuy(@NotNull PlayerEntity player) {
@@ -110,8 +110,8 @@ public interface GameConstants {
     // Timers
     int PSYCHO_TIMER = getInTicks(0, 30);
     int FIRECRACKER_TIMER = getInTicks(0, 30);
-    int BLACKOUT_MIN_DURATION = getInTicks(0, 10);
-    int BLACKOUT_MAX_DURATION = getInTicks(0, 12);
+    int BLACKOUT_MIN_DURATION = getInTicks(0, 15);
+    int BLACKOUT_MAX_DURATION = getInTicks(0, 20);
 
     static int getInTicks(int minutes, int seconds) {
         return (minutes * 60 + seconds) * 20;

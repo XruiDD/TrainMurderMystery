@@ -7,6 +7,7 @@ import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Arm;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,15 +32,15 @@ public class BipedEntityModelMixin<T extends LivingEntity> {
 
     @Inject(method = "positionRightArm", at = @At("TAIL"))
     private void tmm$holdRevolverRightArm(T entity, CallbackInfo ci) {
-        if (isHoldingRevolver(entity)) {
+        if (isHoldingRevolver(entity) && entity.getMainArm() == Arm.RIGHT) {
             holdRevolver(this.rightArm, this.leftArm, this.head, true);
         }
     }
 
     @Inject(method = "positionLeftArm", at = @At("TAIL"))
     private void tmm$tmm$holdRevolverLeftArm(T entity, CallbackInfo ci) {
-        if (isHoldingRevolver(entity)) {
-//            holdRevolver(this.rightArm, this.leftArm, this.head, false);
+        if (isHoldingRevolver(entity) && entity.getMainArm() != Arm.RIGHT) {
+            holdRevolver(this.rightArm, this.leftArm, this.head, false);
         }
     }
 

@@ -71,7 +71,7 @@ public interface GameConstants {
     float MID_MOOD_THRESHOLD = 0.55f;
     float DEPRESSIVE_MOOD_THRESHOLD = 0.2f;
     float ITEM_PSYCHOSIS_CHANCE = .5f; // in percent
-    float ITEM_PSYCHOSIS_REROLL_TIME = getInTicks(1, 0);
+    int ITEM_PSYCHOSIS_REROLL_TIME = 200;
 
     // Shop Variables
     List<ShopEntry> SHOP_ENTRIES = List.of(

@@ -33,7 +33,7 @@ import static dev.doctor4t.trainmurdermystery.TMM.isSkyVisibleAdjacent;
 
 public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
     public static final Item[] PSYCHOSIS_ITEM_POOL = {
-            TMMItems.KNIFE, TMMItems.REVOLVER, TMMItems.GRENADE, TMMItems.POISON_VIAL, TMMItems.SCORPION, TMMItems.LOCKPICK, TMMItems.CROWBAR, TMMItems.BODY_BAG
+            TMMItems.LETTER, TMMItems.FIRECRACKER, TMMItems.KNIFE, TMMItems.REVOLVER, TMMItems.GRENADE, TMMItems.POISON_VIAL, TMMItems.SCORPION, TMMItems.LOCKPICK, TMMItems.CROWBAR, TMMItems.BODY_BAG
     };
 
     public static final ComponentKey<PlayerMoodComponent> KEY = ComponentRegistry.getOrCreate(TMM.id("mood"), PlayerMoodComponent.class);
@@ -56,6 +56,7 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
         this.tasks.clear();
         this.timesGotten.clear();
         this.nextTaskTimer = GameConstants.TIME_TO_FIRST_TASK;
+        this.psychosisItems.clear();
         this.setMood(1f);
         this.sync();
     }
@@ -67,12 +68,9 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
 
         if (this.isLowerThanMid()) {
             // imagine random items for players
-            if (this.psychosisItems.isEmpty() || this.player.getWorld().getTime() % GameConstants.ITEM_PSYCHOSIS_REROLL_TIME == 0) {
-                this.psychosisItems.clear();
-                for (var playerEntity : this.player.getWorld().getPlayers()) {
-                    if (!playerEntity.equals(this.player) && playerEntity.getRandom().nextFloat() < GameConstants.ITEM_PSYCHOSIS_CHANCE) {
-                        this.psychosisItems.put(playerEntity.getUuid(), PSYCHOSIS_ITEM_POOL[playerEntity.getRandom().nextInt(PSYCHOSIS_ITEM_POOL.length)].getDefaultStack());
-                    }
+            for (var playerEntity : this.player.getWorld().getPlayers()) {
+                if (!playerEntity.equals(this.player) && this.player.getWorld().getRandom().nextInt(GameConstants.ITEM_PSYCHOSIS_REROLL_TIME) == 0) {
+                    this.psychosisItems.put(playerEntity.getUuid(), playerEntity.getRandom().nextFloat() < GameConstants.ITEM_PSYCHOSIS_CHANCE ? PSYCHOSIS_ITEM_POOL[playerEntity.getRandom().nextInt(PSYCHOSIS_ITEM_POOL.length)].getDefaultStack() : playerEntity.getMainHandStack());
                 }
             }
         } else {
@@ -139,11 +137,13 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
     }
 
     public float getMood() {
-        return TMMComponents.GAME.get(this.player.getWorld()).isKiller(this.player) ? 1 : this.mood;
+        GameWorldComponent gameWorldComponent = TMMComponents.GAME.get(this.player.getWorld());
+        return gameWorldComponent.isKiller(this.player) || gameWorldComponent.isDiscoveryMode() ? 1 : this.mood;
     }
 
     public void setMood(float mood) {
-        this.mood = TMMComponents.GAME.get(this.player.getWorld()).isKiller(this.player) ? 1 : Math.clamp(mood, 0, 1);
+        GameWorldComponent gameWorldComponent = TMMComponents.GAME.get(this.player.getWorld());
+        this.mood = gameWorldComponent.isKiller(this.player) || gameWorldComponent.isDiscoveryMode() ? 1 : Math.clamp(mood, 0, 1);
     }
 
     public void eatFood() {

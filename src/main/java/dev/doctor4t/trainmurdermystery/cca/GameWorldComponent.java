@@ -268,14 +268,21 @@ public class GameWorldComponent implements AutoSyncedComponent, ClientTickingCom
                 }
 
                 // check killer win condition: kill count reached
-                GameFunctions.WinStatus winStatus = killsLeft <= 0 ? GameFunctions.WinStatus.KILLERS : GameFunctions.WinStatus.NONE;
+                GameFunctions.WinStatus winStatus = GameFunctions.WinStatus.NONE;
 
-                // check passenger win condition (all killers are dead)
-                if (!discoveryMode && winStatus == GameFunctions.WinStatus.NONE) {
-                    winStatus = GameFunctions.WinStatus.PASSENGERS;
-                    for (UUID player : this.getKillers()) {
-                        if (!GameFunctions.isPlayerEliminated(serverWorld.getPlayerByUuid(player))) {
-                            winStatus = GameFunctions.WinStatus.NONE;
+                if (!discoveryMode) {
+                    // check killer win condition (kill count reached)
+                    if (killsLeft <= 0) {
+                        winStatus = GameFunctions.WinStatus.KILLERS;
+                    }
+
+                    // check passenger win condition (all killers are dead)
+                    if (winStatus == GameFunctions.WinStatus.NONE) {
+                        winStatus = GameFunctions.WinStatus.PASSENGERS;
+                        for (UUID player : this.getKillers()) {
+                            if (!GameFunctions.isPlayerEliminated(serverWorld.getPlayerByUuid(player))) {
+                                winStatus = GameFunctions.WinStatus.NONE;
+                            }
                         }
                     }
                 }
@@ -283,12 +290,11 @@ public class GameWorldComponent implements AutoSyncedComponent, ClientTickingCom
                 // check if out of time
                 if (winStatus == GameFunctions.WinStatus.NONE && !GameTimeComponent.KEY.get(serverWorld).hasTime()) winStatus = GameFunctions.WinStatus.TIME;
 
-                if (discoveryMode) {
-                    winStatus = winStatus == GameFunctions.WinStatus.TIME ? GameFunctions.WinStatus.TIME : GameFunctions.WinStatus.NONE;
+                // stop game if ran out of time on discovery mode
+                if (discoveryMode && winStatus == GameFunctions.WinStatus.TIME) GameFunctions.stopGame(serverWorld);
 
-                    // stop game if ran out of time on discovery mode
-                    if (winStatus == GameFunctions.WinStatus.TIME) GameFunctions.stopGame(serverWorld);
-                } else if (winStatus != GameFunctions.WinStatus.NONE && this.gameStatus == GameStatus.ACTIVE) { // win display
+                // game end on win and display
+                if (winStatus != GameFunctions.WinStatus.NONE && this.gameStatus == GameStatus.ACTIVE) {
                     GameRoundEndComponent.KEY.get(serverWorld).setRoundEndData(serverWorld.getPlayers(), winStatus);
                     for (ServerPlayerEntity player : serverWorld.getPlayers()) {
                         if (winStatus == GameFunctions.WinStatus.TIME && this.isKiller(player)) GameFunctions.killPlayer(player, true, null);

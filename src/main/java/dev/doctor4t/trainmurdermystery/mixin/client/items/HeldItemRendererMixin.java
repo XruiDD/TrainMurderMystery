@@ -68,26 +68,4 @@ public class HeldItemRendererMixin {
         }
         return original;
     }
-
-    @WrapMethod(method = "renderItem(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/json/ModelTransformationMode;ZLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V")
-    public void tmm$hideNoteAndRenderPsychosisItems(LivingEntity entity, ItemStack stack, ModelTransformationMode renderMode, boolean leftHanded, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, Operation<Void> original) {
-        ItemStack newStack = stack;
-
-        if (!renderMode.isFirstPerson()) {
-
-            if (newStack.isOf(TMMItems.NOTE)) {
-                newStack = ItemStack.EMPTY;
-            }
-
-            if (TMMClient.moodComponent != null && TMMClient.moodComponent.isLowerThanMid()) { // make sure it's only the main hand item that's being replaced
-                HashMap<UUID, ItemStack> psychosisItems = TMMClient.moodComponent.getPsychosisItems();
-                UUID uuid = entity.getUuid();
-                if (psychosisItems.containsKey(uuid)) {
-                    newStack = psychosisItems.get(uuid);
-                }
-            }
-        }
-
-        original.call(entity, newStack, renderMode, leftHanded, matrices, vertexConsumers, light);
-    }
 }

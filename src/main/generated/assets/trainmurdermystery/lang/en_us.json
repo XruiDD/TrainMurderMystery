@@ -223,7 +223,7 @@
   "game.win.time": "The killers ran out of time: the passengers win!",
   "item.trainmurdermystery.bat": "Bat",
   "item.trainmurdermystery.blackout": "Blackout",
-  "item.trainmurdermystery.blackout.tooltip": "Turn off all lights aboard for 15 to 20 seconds\nActivated instantly on purchase, 5 minute cooldown",
+  "item.trainmurdermystery.blackout.tooltip": "Turn off all lights aboard for 15 to 20 seconds\nUse your instinct [left-alt] to see your targets in the dark\nActivated instantly on purchase, 5 minute cooldown",
   "item.trainmurdermystery.body_bag": "Body Bag",
   "item.trainmurdermystery.body_bag.tooltip": "Use on a dead body to bag it up and remove it\nSingle use, 5 minute cooldown",
   "item.trainmurdermystery.champagne": "Champagne",

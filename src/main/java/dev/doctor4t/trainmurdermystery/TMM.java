@@ -165,5 +165,15 @@ public class TMM implements ModInitializer {
 // TORECORD: Game start and end messages
 // TORECORD: Initial discovery mode
 
+// Second round of tweaks
+// TODO: Killer blackout night vision
+// TODO: Adjust item prices
+// TODO: Killer demo?
+// TODO: Fix role weighting
+// TODO: Make killers have to kill all innocents?
+// TODO: Notes for every civilian?
+// TODO: bug: the bug where the screen never fades back in after the game ends, and then the second time the voice never connects, needing two relogs (not sure how to fix that)
+// TODO: Watermark?
+
 // POST VIDEO
-// TODO: Ability to customize time of day for supporters + snow density
+// TORECORD: Ability to customize time of day for supporters + snow density

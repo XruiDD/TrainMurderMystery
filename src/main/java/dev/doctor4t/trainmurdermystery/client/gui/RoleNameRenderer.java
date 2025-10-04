@@ -33,7 +33,11 @@ public class RoleNameRenderer {
         if (ProjectileUtil.getCollision(player, entity -> entity instanceof PlayerEntity, range) instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() instanceof PlayerEntity target) {
             nametagAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 4, nametagAlpha, 1f);
             nametag = target.getDisplayName();
-            targetRole = component.isKiller(target) ? TrainRole.KILLER : TrainRole.BYSTANDER;
+            if (component.isKiller(target)) {
+                targetRole = TrainRole.KILLER;
+            } else {
+                targetRole = TrainRole.BYSTANDER;
+            }
             var shouldObfuscate = PlayerPsychoComponent.KEY.get(target).getPsychoTicks() > 0;
             nametag = shouldObfuscate ? Text.literal("urscrewed" + "X".repeat(player.getRandom().nextInt(8))).styled(style -> style.withFormatting(Formatting.OBFUSCATED, Formatting.DARK_RED)) : nametag;
         } else {

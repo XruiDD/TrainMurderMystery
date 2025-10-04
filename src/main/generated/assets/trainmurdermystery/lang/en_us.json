@@ -258,6 +258,7 @@
   "itemGroup.trainmurdermystery.decoration": "TrainMurderMystery: Decoration & Functional",
   "itemGroup.trainmurdermystery.equipment": "TrainMurderMystery: Equipment",
   "key.trainmurdermystery.instinct": "Instinct",
+  "lobby.players.count": "Players boarded: %s / %s",
   "subtitles.block.cargo_box.close": "Cargo Box closes",
   "subtitles.block.cargo_box.open": "Cargo Box opens",
   "subtitles.block.door.toggle": "Door operates",

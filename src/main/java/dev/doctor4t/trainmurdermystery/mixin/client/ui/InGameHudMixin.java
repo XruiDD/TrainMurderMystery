@@ -46,6 +46,7 @@ public class InGameHudMixin {
         RoundTextRenderer.renderHud(renderer, player, context);
         if (MinecraftClient.getInstance().currentScreen == null) StoreRenderer.renderHud(renderer, player, context, tickCounter.getTickDelta(true));
         TimeRenderer.renderHud(renderer, player, context, tickCounter.getTickDelta(true));
+        LobbyPlayersRenderer.renderHud(renderer, player, context);
     }
 
     @WrapMethod(method = "renderCrosshair")

@@ -36,6 +36,8 @@ public class TrainMurderMysteryLangGen extends FabricLanguageProvider {
 //        builder.add("tip.letter.detective.tooltip3", "Potential next victims frequent travelers of the Harpy Express.");
 //        builder.add("tip.letter.detective.tooltip4", "Perfect situation to corner but need to keep targets safe.");
 
+        builder.add("lobby.players.count", "Players boarded: %s / %s");
+
         builder.add("announcement.role.civilian", "Civilian!");
         builder.add("announcement.role.vigilante", "Vigilante!");
         builder.add("announcement.role.killer", "Killer!");

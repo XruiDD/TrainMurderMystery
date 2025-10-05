@@ -73,6 +73,7 @@ public class TMMClient implements ClientModInitializer {
     public static final Map<UUID, PlayerListEntry> PLAYER_ENTRIES_CACHE = Maps.newHashMap();
 
     public static KeyBinding instinctKeybind;
+    public static float instinctLightLevel = -.04f;
 
     public static boolean shouldDisableHudAndDebug() {
         var client = MinecraftClient.getInstance();
@@ -206,6 +207,14 @@ public class TMMClient implements ClientModInitializer {
         TMMItemTooltips.addTooltips();
 
         ClientTickEvents.START_WORLD_TICK.register(clientWorld -> {
+            // instinct night vision
+            if (TMMClient.isInstinctEnabled()) {
+                instinctLightLevel+=.1f;
+            } else {
+                instinctLightLevel-=.1f;
+            }
+            instinctLightLevel = MathHelper.clamp(instinctLightLevel, -.04f, .5f);
+
             // Cache player entries
             for (AbstractClientPlayerEntity player : clientWorld.getPlayers()) {
                 if (!PLAYER_ENTRIES_CACHE.containsKey(player.getUuid())) {

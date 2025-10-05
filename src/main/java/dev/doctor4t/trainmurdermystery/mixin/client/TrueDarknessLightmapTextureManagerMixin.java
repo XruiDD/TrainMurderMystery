@@ -2,9 +2,11 @@ package dev.doctor4t.trainmurdermystery.mixin.client;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.util.math.MathHelper;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.spongepowered.asm.mixin.Mixin;
@@ -36,7 +38,8 @@ public abstract class TrueDarknessLightmapTextureManagerMixin {
         if (client.player != null && world != null) {
 //            BlockPos blockPos = client.player.getBlockPos();
 //            float lightLevelScale = (float) world.getLightLevel(LightType.SKY, blockPos) / (float) world.getMaxLightLevel();
-            return original.call(instance, new Vector3f(.75f, .75f, .75f), -.04f);
+
+            return original.call(instance, new Vector3f(.75f, .75f, .75f), TMMClient.instinctLightLevel);
         }
 
         return original.call(instance, other, t);

@@ -58,6 +58,7 @@ public record GunShootPayload(int target) implements CustomPayload {
                 Item revolver = TMMItems.REVOLVER;
                 if (game.isCivilian(target) && !player.isCreative() && mainHandStack.isOf(revolver)) {
                     Scheduler.schedule(() -> {
+                        if (!context.player().getInventory().contains((s) -> s.isIn(TMMItemTags.GUNS))) return;
                         player.getInventory().remove((s) -> s.isOf(revolver), 1, player.getInventory());
                         var item = player.dropItem(revolver.getDefaultStack(), false, false);
                         if (item != null) {

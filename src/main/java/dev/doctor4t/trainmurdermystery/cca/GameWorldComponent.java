@@ -241,6 +241,8 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         this.fade = nbtCompound.getInt("Fade");
         this.psychosActive = nbtCompound.getInt("PsychosActive");
 
+        this.backfireChance = nbtCompound.getFloat("BackfireChance");
+
         for (Role role : TMMRoles.ROLES) {
             this.setRoles(uuidListFromNbt(nbtCompound, role.identifier().toString()), role);
         }
@@ -270,6 +272,8 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
 
         nbtCompound.putInt("Fade", fade);
         nbtCompound.putInt("PsychosActive", psychosActive);
+
+        nbtCompound.putFloat("BackfireChance", backfireChance);
 
         for (Role role : TMMRoles.ROLES) {
             nbtCompound.put(role.identifier().toString(), nbtFromUuidList(getAllWithRole(role)));

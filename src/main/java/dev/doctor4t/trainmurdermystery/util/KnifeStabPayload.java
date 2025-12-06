@@ -36,7 +36,20 @@ public record KnifeStabPayload(int target) implements CustomPayload {
             target.playSound(TMMSounds.ITEM_KNIFE_STAB, 1.0f, 1.0f);
             player.swingHand(Hand.MAIN_HAND);
             if (!player.isCreative() && GameWorldComponent.KEY.get(context.player().getWorld()).getGameMode() != TMMGameModes.LOOSE_ENDS) {
-                player.getItemCooldownManager().set(TMMItems.KNIFE, GameConstants.ITEM_COOLDOWNS.get(TMMItems.KNIFE));
+                GameWorldComponent gameComponent = GameWorldComponent.KEY.get(context.player().getWorld());
+                
+                // Calculate current excess players
+                int totalPlayers = context.player().getServerWorld().getPlayers().size();
+                int killerCount = gameComponent.getAllKillerTeamPlayers().size();
+                int killerRatio = gameComponent.getKillerPlayerRatio();
+                int excessPlayers = Math.max(0, totalPlayers - (killerCount * killerRatio));
+                
+                // Calculate dynamic cooldown (reduce by 5 seconds per excess player, minimum 10 seconds)
+                int baseCooldown = GameConstants.ITEM_COOLDOWNS.get(TMMItems.KNIFE);
+                int cooldownReductionPerExcess = GameConstants.getInTicks(0, 5); // 5 seconds per excess player
+                int adjustedCooldown = Math.max(GameConstants.getInTicks(0, 10), baseCooldown - (excessPlayers * cooldownReductionPerExcess));
+                
+                player.getItemCooldownManager().set(TMMItems.KNIFE, adjustedCooldown);
             }
         }
     }

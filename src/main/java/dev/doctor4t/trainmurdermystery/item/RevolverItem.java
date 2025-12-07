@@ -54,6 +54,6 @@ public class RevolverItem extends Item {
     }
 
     public static HitResult getGunTarget(PlayerEntity user) {
-        return ProjectileUtil.getCollision(user, entity -> entity instanceof PlayerEntity player && GameFunctions.isPlayerAliveAndSurvival(player), 15f);
+        return ProjectileUtil.getCollision(user, entity -> entity instanceof PlayerEntity player && GameFunctions.isPlayerAliveAndSurvival(player), 30f);
     }
 }

@@ -27,7 +27,25 @@ public class MurderGameMode extends GameMode {
 
         // select roles
         ScoreboardRoleSelectorComponent roleSelector = ScoreboardRoleSelectorComponent.KEY.get(world.getScoreboard());
-        int killerCount = (int) Math.floor(players.size() / 6f);
+        
+        // Calculate killer count based on configuration
+        int killerCount;
+        int configuredKillerCount = gameComponent.getNextRoundKillerCount();
+        
+        if (configuredKillerCount > 0) {
+            // Use exact configured count for next round
+            killerCount = configuredKillerCount;
+            // Reset the configured count for future rounds
+            gameComponent.setNextRoundKillerCount(0);
+        } else {
+            // Use ratio-based calculation
+            int ratio = gameComponent.getKillerPlayerRatio();
+            killerCount = (int) Math.floor(players.size() / (float) ratio);
+        }
+        
+        // Ensure at least 1 killer if there are enough players
+        killerCount = Math.max(1, killerCount);
+        
         int total = roleSelector.assignKillers(world, gameComponent, players, killerCount);
         roleSelector.assignVigilantes(world, gameComponent, players, killerCount);
         return total;

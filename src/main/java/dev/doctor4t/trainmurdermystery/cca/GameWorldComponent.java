@@ -66,9 +66,29 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     private UUID looseEndWinner;
 
     private float backfireChance = 0f;
+    private int nextRoundKillerCount = 0; // 0 = use ratio, >0 = exact count for next round
+    private int killerPlayerRatio = 6; // 1 killer per X players
 
     public GameWorldComponent(World world) {
         this.world = world;
+    }
+
+    public int getNextRoundKillerCount() {
+        return nextRoundKillerCount;
+    }
+
+    public void setNextRoundKillerCount(int nextRoundKillerCount) {
+        this.nextRoundKillerCount = Math.max(0, nextRoundKillerCount);
+        this.sync();
+    }
+
+    public int getKillerPlayerRatio() {
+        return killerPlayerRatio;
+    }
+
+    public void setKillerPlayerRatio(int killerPlayerRatio) {
+        this.killerPlayerRatio = Math.max(1, killerPlayerRatio);
+        this.sync();
     }
 
     public void sync() {
@@ -242,6 +262,8 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         this.psychosActive = nbtCompound.getInt("PsychosActive");
 
         this.backfireChance = nbtCompound.getFloat("BackfireChance");
+        this.nextRoundKillerCount = nbtCompound.getInt("NextRoundKillerCount");
+        this.killerPlayerRatio = nbtCompound.getInt("KillerPlayerRatio") > 0 ? nbtCompound.getInt("KillerPlayerRatio") : 6;
 
         for (Role role : TMMRoles.ROLES) {
             this.setRoles(uuidListFromNbt(nbtCompound, role.identifier().toString()), role);
@@ -274,6 +296,8 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         nbtCompound.putInt("PsychosActive", psychosActive);
 
         nbtCompound.putFloat("BackfireChance", backfireChance);
+        nbtCompound.putInt("NextRoundKillerCount", nextRoundKillerCount);
+        nbtCompound.putInt("KillerPlayerRatio", killerPlayerRatio);
 
         for (Role role : TMMRoles.ROLES) {
             nbtCompound.put(role.identifier().toString(), nbtFromUuidList(getAllWithRole(role)));

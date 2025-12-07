@@ -134,11 +134,19 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
                 }
             }
         }
+        
+        // Calculate excess players and adjust starting money
+        int totalPlayers = players.size();
+        int killerRatio = gameComponent.getKillerPlayerRatio();
+        int excessPlayers = Math.max(0, totalPlayers - (killers.size() * killerRatio));
+        int additionalMoneyPerExcess = 20; // 20 coins per excess player
+        int dynamicStartingMoney = GameConstants.MONEY_START + (excessPlayers * additionalMoneyPerExcess);
+        
         for (UUID killerUUID : killers) {
             gameComponent.addRole(killerUUID, TMMRoles.KILLER);
             PlayerEntity killer = world.getPlayerByUuid(killerUUID);
             if (killer != null) {
-                PlayerShopComponent.KEY.get(killer).setBalance(GameConstants.MONEY_START);
+                PlayerShopComponent.KEY.get(killer).setBalance(dynamicStartingMoney);
             }
         }
         return killers.size();

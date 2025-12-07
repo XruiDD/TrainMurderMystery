@@ -331,7 +331,7 @@
   "itemGroup.trainmurdermystery.decoration": "TrainMurderMystery：装饰与功能",
   "itemGroup.trainmurdermystery.equipment": "TrainMurderMystery：装备",
   "key.trainmurdermystery.instinct": "本能",
-  "lobby.autostart.active": "玩家数达到 6 人以上后将自动开始游戏",
+  "lobby.autostart.active": "玩家数达到 %s 人以上后将自动开始游戏",
   "lobby.autostart.starting": "游戏开始中",
   "lobby.autostart.time": "游戏将在 %ss 后开始",
   "lobby.players.count": "已登车玩家：%s / %s",

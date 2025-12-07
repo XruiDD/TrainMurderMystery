@@ -8,6 +8,7 @@ import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
@@ -20,6 +21,7 @@ public class AutoStartComponent implements AutoSyncedComponent, CommonTickingCom
     public final World world;
     public int startTime;
     public int time;
+    public GameMode gameMode = TMMGameModes.MURDER;
 
     public AutoStartComponent(World world) {
         this.world = world;
@@ -40,11 +42,10 @@ public class AutoStartComponent implements AutoSyncedComponent, CommonTickingCom
 
         if (this.startTime <= 0 && this.time <= 0) return;
 
-        if (GameFunctions.getReadyPlayerCount(world) >= gameWorldComponent.getGameMode().minPlayerCount) {
+        if (GameFunctions.getReadyPlayerCount(world) >= this.gameMode.minPlayerCount) {
             if (this.time-- <= 0 && this.world instanceof ServerWorld serverWorld) {
                 if (gameWorldComponent.getGameStatus() == GameWorldComponent.GameStatus.INACTIVE) {
-                    GameMode gameMode = TMMGameModes.MURDER;
-                    GameFunctions.startGame(serverWorld, gameMode, GameConstants.getInTicks(gameMode.defaultStartTime, 0));
+                    GameFunctions.startGame(serverWorld, this.gameMode, GameConstants.getInTicks(this.gameMode.defaultStartTime, 0));
                     return;
                 }
             }
@@ -79,6 +80,14 @@ public class AutoStartComponent implements AutoSyncedComponent, CommonTickingCom
         this.startTime = time;
     }
 
+    public GameMode getGameMode() {
+        return this.gameMode;
+    }
+
+    public void setGameMode(GameMode gameMode) {
+        this.gameMode = gameMode;
+    }
+
     public void setTime(int time) {
         this.time = time;
         this.sync();
@@ -88,11 +97,18 @@ public class AutoStartComponent implements AutoSyncedComponent, CommonTickingCom
     public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         tag.putInt("startTime", this.startTime);
         tag.putInt("time", this.time);
+        tag.putString("gameMode", this.gameMode.identifier.toString());
     }
 
     @Override
     public void readFromNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         this.startTime = tag.getInt("startTime");
         this.time = tag.getInt("time");
+        if (tag.contains("gameMode")) {
+            Identifier gameModeId = Identifier.tryParse(tag.getString("gameMode"));
+            if (gameModeId != null && TMMGameModes.GAME_MODES.containsKey(gameModeId)) {
+                this.gameMode = TMMGameModes.GAME_MODES.get(gameModeId);
+            }
+        }
     }
 }

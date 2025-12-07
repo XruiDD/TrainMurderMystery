@@ -3,7 +3,10 @@ package dev.doctor4t.trainmurdermystery.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import dev.doctor4t.trainmurdermystery.TMM;
+import dev.doctor4t.trainmurdermystery.api.GameMode;
+import dev.doctor4t.trainmurdermystery.api.TMMGameModes;
 import dev.doctor4t.trainmurdermystery.cca.AutoStartComponent;
+import dev.doctor4t.trainmurdermystery.command.argument.GameModeArgumentType;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -13,16 +16,35 @@ public class AutoStartCommand {
         dispatcher.register(
                 CommandManager.literal("tmm:autoStart")
                         .requires(source -> source.hasPermissionLevel(2))
-                        .then(
-                                CommandManager.argument("seconds", IntegerArgumentType.integer(0, 60))
-                                        .executes(context -> setAutoStart(context.getSource(), IntegerArgumentType.getInteger(context, "seconds")))
+                        .then(CommandManager.argument("gameMode", GameModeArgumentType.gameMode())
+                                .then(CommandManager.argument("seconds", IntegerArgumentType.integer(0, 60))
+                                        .executes(context -> setAutoStart(
+                                                context.getSource(),
+                                                GameModeArgumentType.getGameModeArgument(context, "gameMode"),
+                                                IntegerArgumentType.getInteger(context, "seconds")
+                                        ))
+                                )
+                                .executes(context -> setAutoStart(
+                                        context.getSource(),
+                                        GameModeArgumentType.getGameModeArgument(context, "gameMode"),
+                                        30
+                                ))
                         )
         );
     }
 
-    private static int setAutoStart(ServerCommandSource source, int seconds) {
-        return TMM.executeSupporterCommand(source,
-                () -> AutoStartComponent.KEY.get(source.getWorld()).setStartTime(GameConstants.getInTicks(0, seconds))
-        );
+    private static int setAutoStart(ServerCommandSource source, GameMode gameMode, int seconds) {
+        if (gameMode == TMMGameModes.LOOSE_ENDS || gameMode == TMMGameModes.DISCOVERY) {
+            return TMM.executeSupporterCommand(source, () -> {
+                AutoStartComponent component = AutoStartComponent.KEY.get(source.getWorld());
+                component.setGameMode(gameMode);
+                component.setStartTime(GameConstants.getInTicks(0, seconds));
+            });
+        } else {
+            AutoStartComponent component = AutoStartComponent.KEY.get(source.getWorld());
+            component.setGameMode(gameMode);
+            component.setStartTime(GameConstants.getInTicks(0, seconds));
+            return 1;
+        }
     }
 }

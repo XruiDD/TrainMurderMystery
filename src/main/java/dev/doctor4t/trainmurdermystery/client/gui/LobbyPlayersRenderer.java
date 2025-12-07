@@ -33,12 +33,13 @@ public class LobbyPlayersRenderer {
             if (autoStartComponent.isAutoStartActive()) {
                 MutableText autoStartText;
                 int color = 0xFFAAAAAA;
-                if (readyPlayerCount >= game.getGameMode().minPlayerCount) {
+                int minPlayerCount = autoStartComponent.getGameMode().minPlayerCount;
+                if (readyPlayerCount >= minPlayerCount) {
                     int seconds = autoStartComponent.getTime() / 20;
                     autoStartText = Text.translatable(seconds <= 0 ? "lobby.autostart.starting" : "lobby.autostart.time", seconds);
                     color = 0xFF00BC16;
                 } else {
-                    autoStartText = Text.translatable("lobby.autostart.active");
+                    autoStartText = Text.translatable("lobby.autostart.active", minPlayerCount);
                 }
                 context.drawTextWithShadow(renderer, autoStartText, -renderer.getWidth(autoStartText) / 2, 10, color);
             }

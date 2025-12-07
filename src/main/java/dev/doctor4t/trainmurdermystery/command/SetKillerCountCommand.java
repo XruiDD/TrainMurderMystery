@@ -2,7 +2,6 @@ package dev.doctor4t.trainmurdermystery.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -28,5 +27,4 @@ public class SetKillerCountCommand {
                 .append(Text.literal(".").formatted(Formatting.GRAY)), false);
         return 1;
     }
-
 }

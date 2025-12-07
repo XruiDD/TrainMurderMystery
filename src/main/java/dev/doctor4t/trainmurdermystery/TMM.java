@@ -59,25 +59,25 @@ public class TMM implements ModInitializer {
         ArgumentTypeRegistry.registerArgumentType(id("gamemode"), GameModeArgumentType.class, ConstantArgumentSerializer.of(GameModeArgumentType::gameMode));
 
         // Register commands
-            CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
-                GiveRoomKeyCommand.register(dispatcher);
-                StartCommand.register(dispatcher);
-                StopCommand.register(dispatcher);
-                EnableWeightsCommand.register(dispatcher);
-                CheckWeightsCommand.register(dispatcher);
-                ResetWeightsCommand.register(dispatcher);
-                SetVisualCommand.register(dispatcher);
-                ForceRoleCommand.register(dispatcher);
+        CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
+            GiveRoomKeyCommand.register(dispatcher);
+            StartCommand.register(dispatcher);
+            StopCommand.register(dispatcher);
+            EnableWeightsCommand.register(dispatcher);
+            CheckWeightsCommand.register(dispatcher);
+            ResetWeightsCommand.register(dispatcher);
+            SetVisualCommand.register(dispatcher);
+            ForceRoleCommand.register(dispatcher);
 //            UpdateDoorsCommand.register(dispatcher);
-                SetTimerCommand.register(dispatcher);
-                SetMoneyCommand.register(dispatcher);
-                SetBoundCommand.register(dispatcher);
-                AutoStartCommand.register(dispatcher);
-                LockToSupportersCommand.register(dispatcher);
-                SetBackfireChanceCommand.register(dispatcher);
-                SetKillerCountCommand.register(dispatcher);
-                SetKillerRatioCommand.register(dispatcher);
-            }));
+            SetTimerCommand.register(dispatcher);
+            SetMoneyCommand.register(dispatcher);
+            SetBoundCommand.register(dispatcher);
+            AutoStartCommand.register(dispatcher);
+            LockToSupportersCommand.register(dispatcher);
+            SetBackfireChanceCommand.register(dispatcher);
+            SetKillerCountCommand.register(dispatcher);
+            SetKillerRatioCommand.register(dispatcher);
+        }));
 
         // server lock to supporters
         ServerPlayerEvents.JOIN.register(player -> {

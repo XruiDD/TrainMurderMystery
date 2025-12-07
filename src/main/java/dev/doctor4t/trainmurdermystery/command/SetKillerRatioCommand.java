@@ -27,5 +27,4 @@ public class SetKillerRatioCommand {
                 .append(Text.literal(".").formatted(Formatting.GRAY)), false);
         return 1;
     }
-
 }

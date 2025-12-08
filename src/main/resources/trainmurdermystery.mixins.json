@@ -52,6 +52,7 @@
     "client.scenery.WorldRendererMixin",
     "client.self.NoteItemMixin",
     "client.self.BeveragePlateBlockEntityMixin",
+    "client.self.TrimmedBedBlockEntityMixin",
     "client.ui.InGameHudMixin",
     "client.ui.TooltipBackgroundRendererMixin",
     "compat.sodium.DefaultChunkRendererMixin",

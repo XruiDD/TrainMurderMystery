@@ -49,20 +49,8 @@ public class TrimmedBedBlockEntity extends BlockEntity {
             world.updateListeners(pos, getCachedState(), getCachedState(), 3);
         }
     }
-
+    @SuppressWarnings("unused")
     public static <T extends BlockEntity> void clientTick(World world, BlockPos pos, BlockState state, T t) {
-        TrimmedBedBlockEntity entity = (TrimmedBedBlockEntity) t;
-        if (!TMMClient.isKiller()) return;
-        if (!entity.hasScorpion()) return;
-        if (world.getRandom().nextBetween(0, 20) < 17) return;
-
-        world.addParticle(
-                TMMParticles.POISON,
-                pos.getX() + 0.5f,
-                pos.getY() + 0.5f,
-                pos.getZ() + 0.5f,
-                0f, 0.05f, 0f
-        );
     }
 
     @Override

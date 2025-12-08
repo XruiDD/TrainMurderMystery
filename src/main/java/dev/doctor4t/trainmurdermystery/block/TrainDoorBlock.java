@@ -2,6 +2,7 @@ package dev.doctor4t.trainmurdermystery.block;
 
 import dev.doctor4t.trainmurdermystery.block_entity.SmallDoorBlockEntity;
 import dev.doctor4t.trainmurdermystery.cca.TrainWorldComponent;
+import dev.doctor4t.trainmurdermystery.event.AllowPlayerOpenLockedDoor;
 import dev.doctor4t.trainmurdermystery.index.TMMItems;
 import dev.doctor4t.trainmurdermystery.index.TMMSounds;
 import net.minecraft.block.BlockState;
@@ -30,7 +31,7 @@ public class TrainDoorBlock extends SmallDoorBlock {
                 return ActionResult.PASS;
             }
 
-            if (player.isCreative() || TrainWorldComponent.KEY.get(world).getSpeed() == 0) {
+            if (player.isCreative() || TrainWorldComponent.KEY.get(world).getSpeed() == 0  || AllowPlayerOpenLockedDoor.EVENT.invoker().allowOpen(player)) {
                 return open(state, world, entity, lowerPos);
             } else {
                 boolean hasLockpick = player.getMainHandStack().isOf(TMMItems.LOCKPICK);

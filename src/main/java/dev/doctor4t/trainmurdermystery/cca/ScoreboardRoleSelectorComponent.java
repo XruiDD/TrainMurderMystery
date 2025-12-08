@@ -123,12 +123,15 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         }
         for (int i = 0; i < killerCount; i++) {
             float random = world.getRandom().nextFloat() * total;
-            for (Map.Entry<ServerPlayerEntity, Float> entry : map.entrySet()) {
+            Iterator<Map.Entry<ServerPlayerEntity, Float>> iterator = map.entrySet().iterator();
+
+            while (iterator.hasNext()) {
+                Map.Entry<ServerPlayerEntity, Float> entry = iterator.next();
                 random -= entry.getValue();
                 if (random <= 0) {
                     killers.add(entry.getKey().getUuid());
                     total -= entry.getValue();
-                    map.remove(entry.getKey());
+                    iterator.remove();
                     this.killerRounds.put(entry.getKey().getUuid(), this.killerRounds.getOrDefault(entry.getKey().getUuid(), 1) + 1);
                     break;
                 }
@@ -165,8 +168,8 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         for (UUID uuid : this.forcedVigilantes) {
             PlayerEntity player = world.getPlayerByUuid(uuid);
             if (player instanceof ServerPlayerEntity serverPlayer && players.contains(serverPlayer) && !gameComponent.canUseKillerFeatures(player)) {
-                player.giveItemStack(new ItemStack(TMMItems.REVOLVER));
                 gameComponent.addRole(player, TMMRoles.VIGILANTE);
+                player.giveItemStack(new ItemStack(TMMItems.REVOLVER));
                 vigilanteCount--;
                 this.vigilanteRounds.put(player.getUuid(), this.vigilanteRounds.getOrDefault(player.getUuid(), 1) + 1);
             }
@@ -183,20 +186,23 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         }
         for (int i = 0; i < vigilanteCount; i++) {
             float random = world.getRandom().nextFloat() * total;
-            for (Map.Entry<ServerPlayerEntity, Float> entry : map.entrySet()) {
+            Iterator<Map.Entry<ServerPlayerEntity, Float>> iterator = map.entrySet().iterator();
+
+            while (iterator.hasNext()) {
+                Map.Entry<ServerPlayerEntity, Float> entry = iterator.next();
                 random -= entry.getValue();
                 if (random <= 0) {
                     vigilantes.add(entry.getKey());
                     total -= entry.getValue();
-                    map.remove(entry.getKey());
+                    iterator.remove();
                     this.vigilanteRounds.put(entry.getKey().getUuid(), this.vigilanteRounds.getOrDefault(entry.getKey().getUuid(), 1) + 1);
                     break;
                 }
             }
         }
         for (ServerPlayerEntity player : vigilantes) {
-            player.giveItemStack(new ItemStack(TMMItems.REVOLVER));
             gameComponent.addRole(player, TMMRoles.VIGILANTE);
+            player.giveItemStack(new ItemStack(TMMItems.REVOLVER));
         }
     }
 

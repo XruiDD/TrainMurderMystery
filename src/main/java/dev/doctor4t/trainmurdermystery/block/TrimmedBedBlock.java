@@ -125,6 +125,11 @@ public class TrimmedBedBlock extends BedBlock {
         if (world.isClient) {
             return ActionResult.CONSUME;
         } else {
+            // 检查玩家是否手持匕首，如果是则不允许床的交互
+            if (player.getStackInHand(Hand.MAIN_HAND).isOf(TMMItems.KNIFE)) {
+                return ActionResult.PASS;
+            }
+
             if (!player.isCreative() && player.getStackInHand(Hand.MAIN_HAND).isOf(TMMItems.SCORPION)) {
                 TrimmedBedBlockEntity blockEntity = null;
 

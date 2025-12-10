@@ -1,9 +1,11 @@
 package dev.doctor4t.trainmurdermystery.client.gui;
 
 import dev.doctor4t.trainmurdermystery.TMM;
+import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,6 +25,17 @@ public class RoleAnnouncementTexts {
         }
         return role;
     }
+
+    /**
+     * Gets the RoleAnnouncementText associated with a Role by its identifier.
+     * @param role the role
+     * @return the associated RoleAnnouncementText, or BLANK if not found
+     */
+    public static @NotNull RoleAnnouncementText getForRole(@Nullable Role role) {
+        if (role == null) return BLANK;
+        return ROLE_TEXT_REGISTRY.getOrDefault(role.identifier(), BLANK);
+    }
+
     /**
      * Gets the RoleAnnouncementText associated with a Role by its identifier.
      * @param identifier the identifier of the role
@@ -88,7 +101,7 @@ public class RoleAnnouncementTexts {
                         KILLER.winText;
                 case LOOSE_END -> Text.translatable("announcement.win." + LOOSE_END.name.toLowerCase(), winner).withColor(LOOSE_END.colour);
                 case NEUTRAL -> // Neutral wins - winner parameter contains the winning role's custom win text
-                        winner;
+                        throw new NotImplementedException();
             };
         }
     }

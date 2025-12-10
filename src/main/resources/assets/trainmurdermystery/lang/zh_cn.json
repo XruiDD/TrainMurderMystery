@@ -260,6 +260,10 @@
   "category.trainmurdermystery.keybinds": "列车谋杀之谜",
 
   "commands.supporter_only": "这些超搞怪的赞助者指令仅限 Ko-Fi 与 YouTube 会员使用；如果你想体验一下，欢迎考虑赞助！<3",
+  "commands.trainmurdermystery.forcerole.invalid": "无效的角色名称",
+  "commands.trainmurdermystery.forcerole.query": "%s 被强制设定为角色：%s",
+  "commands.trainmurdermystery.forcerole.query.none": "%s 没有被强制设定为任何角色",
+  "commands.trainmurdermystery.forcerole.success": "已将 %s 强制分配给 %s",
 
   "container.cabinet": "柜子",
   "container.cargo_box": "货箱",

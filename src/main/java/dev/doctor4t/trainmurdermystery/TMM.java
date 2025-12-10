@@ -77,6 +77,7 @@ public class TMM implements ModInitializer {
             SetBackfireChanceCommand.register(dispatcher);
             SetKillerCountCommand.register(dispatcher);
             SetKillerRatioCommand.register(dispatcher);
+            ListRolesCommand.register(dispatcher);
         }));
 
         // server lock to supporters

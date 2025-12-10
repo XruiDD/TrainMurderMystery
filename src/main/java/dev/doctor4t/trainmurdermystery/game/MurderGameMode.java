@@ -5,6 +5,7 @@ import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.cca.*;
 import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
+import dev.doctor4t.trainmurdermystery.event.RoleAssigned;
 import dev.doctor4t.trainmurdermystery.util.AnnounceWelcomePayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -51,6 +52,9 @@ public class MurderGameMode extends GameMode {
         roleSelector.assignVigilantes(world, gameComponent, players, killerCount);
         roleSelector.assignNeutrals(world, gameComponent, players, killerCount);
         roleSelector.assignCivilians(world, gameComponent, players);
+        for (ServerPlayerEntity player : players) {
+            RoleAssigned.EVENT.invoker().assignModdedRole(player,gameComponent.getRole(player));
+        }
         return total;
     }
 

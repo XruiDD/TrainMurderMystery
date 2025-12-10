@@ -4,10 +4,7 @@ import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.api.Faction;
 import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
-import dev.doctor4t.trainmurdermystery.game.GameConstants;
-import dev.doctor4t.trainmurdermystery.index.TMMItems;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.scoreboard.Scoreboard;
@@ -19,8 +16,6 @@ import org.jetbrains.annotations.Nullable;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
-
-
 
 import java.util.*;
 
@@ -54,9 +49,6 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
                 PlayerEntity player = world.getPlayerByUuid(uuid);
                 if (player instanceof ServerPlayerEntity serverPlayer && players.contains(serverPlayer)) {
                     gameComponent.addRole(player, role);
-                    if (role == TMMRoles.VIGILANTE) {
-                        player.giveItemStack(new ItemStack(TMMItems.REVOLVER));
-                    }
                 }
             }
             uuids.clear();
@@ -65,19 +57,18 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
     }
 
     public int assignKillers(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int killerCount) {
-        Map<UUID, Role> assignedKillers = new HashMap<>();
-
         ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
 
         // Collect available non-vanilla killer faction roles (each can only be assigned once)
         ArrayList<Role> availableSpecialKillerRoles = new ArrayList<>();
         for (Role role : TMMRoles.ROLES) {
-            if (role.getFaction() == Faction.KILLER && !TMMRoles.VANILLA_ROLES.contains(role)) {
+            if (role.getFaction() == Faction.KILLER && !TMMRoles.VANILLA_ROLES.contains(role) && TMMRoles.isRoleEnabled(role)) {
                 availableSpecialKillerRoles.add(role);
             }
         }
         shuffle(availableSpecialKillerRoles, world.getRandom());
 
+        int assignedCount = 0;
         // Assign killers randomly
         for (ServerPlayerEntity player : availablePlayers) {
             if (killerCount <= 0) break;
@@ -91,28 +82,12 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
                 assignedRole = TMMRoles.KILLER;
             }
 
-            assignedKillers.put(player.getUuid(), assignedRole);
+            gameComponent.addRole(player, assignedRole);
+            assignedCount++;
             killerCount--;
         }
 
-        // Calculate excess players and adjust starting money
-        int totalPlayers = players.size();
-        int killerRatio = gameComponent.getKillerPlayerRatio();
-        int excessPlayers = Math.max(0, totalPlayers - (assignedKillers.size() * killerRatio));
-        int additionalMoneyPerExcess = 20; // 20 coins per excess player
-        int dynamicStartingMoney = GameConstants.MONEY_START + (excessPlayers * additionalMoneyPerExcess);
-
-        // Apply roles to players
-        for (Map.Entry<UUID, Role> entry : assignedKillers.entrySet()) {
-            UUID killerUUID = entry.getKey();
-            Role role = entry.getValue();
-            gameComponent.addRole(killerUUID, role);
-            PlayerEntity killer = world.getPlayerByUuid(killerUUID);
-            if (killer != null) {
-                PlayerShopComponent.KEY.get(killer).setBalance(dynamicStartingMoney);
-            }
-        }
-        return assignedKillers.size();
+        return assignedCount;
     }
 
     public void assignVigilantes(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int vigilanteCount) {
@@ -120,16 +95,10 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
 
         // Assign vigilantes randomly
-        ArrayList<ServerPlayerEntity> vigilantes = new ArrayList<>();
         for (ServerPlayerEntity player : availablePlayers) {
             if (vigilanteCount <= 0) break;
-            vigilantes.add(player);
-            vigilanteCount--;
-        }
-
-        for (ServerPlayerEntity player : vigilantes) {
             gameComponent.addRole(player, TMMRoles.VIGILANTE);
-            player.giveItemStack(new ItemStack(TMMItems.REVOLVER));
+            vigilanteCount--;
         }
     }
 
@@ -137,7 +106,7 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         // Collect available non-vanilla neutral faction roles (each can only be assigned once)
         ArrayList<Role> availableNeutralRoles = new ArrayList<>();
         for (Role role : TMMRoles.ROLES) {
-            if (role.getFaction() == Faction.NEUTRAL && !TMMRoles.VANILLA_ROLES.contains(role)) {
+            if (role.getFaction() == Faction.NEUTRAL && !TMMRoles.VANILLA_ROLES.contains(role) && TMMRoles.isRoleEnabled(role)) {
                 availableNeutralRoles.add(role);
             }
         }
@@ -174,7 +143,7 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         // Collect available non-vanilla civilian faction roles (each can only be assigned once)
         ArrayList<Role> availableSpecialCivilianRoles = new ArrayList<>();
         for (Role role : TMMRoles.ROLES) {
-            if (role.getFaction() == Faction.CIVILIAN && !TMMRoles.VANILLA_ROLES.contains(role)) {
+            if (role.getFaction() == Faction.CIVILIAN && !TMMRoles.VANILLA_ROLES.contains(role) && TMMRoles.isRoleEnabled(role)) {
                 availableSpecialCivilianRoles.add(role);
             }
         }

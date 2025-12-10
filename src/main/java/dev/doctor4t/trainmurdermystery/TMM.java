@@ -6,6 +6,7 @@ import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.command.*;
 import dev.doctor4t.trainmurdermystery.command.argument.GameModeArgumentType;
 import dev.doctor4t.trainmurdermystery.command.argument.TimeOfDayArgumentType;
+import dev.doctor4t.trainmurdermystery.event.TMMEventHandlers;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.index.*;
 import dev.doctor4t.trainmurdermystery.util.*;
@@ -75,6 +76,7 @@ public class TMM implements ModInitializer {
             SetKillerCountCommand.register(dispatcher);
             SetKillerRatioCommand.register(dispatcher);
             ListRolesCommand.register(dispatcher);
+            SetEnabledRoleCommand.register(dispatcher);
         }));
 
         // server lock to supporters
@@ -101,6 +103,9 @@ public class TMM implements ModInitializer {
         ServerPlayNetworking.registerGlobalReceiver(GunShootPayload.ID, new GunShootPayload.Receiver());
         ServerPlayNetworking.registerGlobalReceiver(StoreBuyPayload.ID, new StoreBuyPayload.Receiver());
         ServerPlayNetworking.registerGlobalReceiver(NoteEditPayload.ID, new NoteEditPayload.Receiver());
+
+        // Register event handlers
+        TMMEventHandlers.register();
 
         Scheduler.init();
     }

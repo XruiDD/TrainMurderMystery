@@ -264,6 +264,10 @@
   "commands.trainmurdermystery.forcerole.query": "%s 被强制设定为角色：%s",
   "commands.trainmurdermystery.forcerole.query.none": "%s 没有被强制设定为任何角色",
   "commands.trainmurdermystery.forcerole.success": "已将 %s 强制分配给 %s",
+  "commands.trainmurdermystery.setenabledrole.invalid": "无效的角色名称",
+  "commands.trainmurdermystery.setenabledrole.success": "角色 %s 现在已 %s",
+  "commands.trainmurdermystery.setenabledrole.enabled": "启用",
+  "commands.trainmurdermystery.setenabledrole.disabled": "禁用",
 
   "container.cabinet": "柜子",
   "container.cargo_box": "货箱",

@@ -14,6 +14,8 @@ public class ListRolesCommand {
     private static final int CIVILIAN_COLOR = 0x36E51B;
     private static final int KILLER_COLOR = 0xC13838;
     private static final int NEUTRAL_COLOR = 0x9F9F9F;
+    private static final int ENABLED_COLOR = 0x55FF55;
+    private static final int DISABLED_COLOR = 0xFF5555;
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("tmm:listRoles")
@@ -42,6 +44,15 @@ public class ListRolesCommand {
             // Special tag
             if (TMMRoles.SPECIAL_ROLES.contains(role)) {
                 message.append(Text.literal(" (special)").withColor(Colors.LIGHT_GRAY));
+            }
+
+            // Enabled/Disabled status
+            if (!TMMRoles.SPECIAL_ROLES.contains(role)) {
+                if (TMMRoles.isRoleEnabled(role)) {
+                    message.append(Text.literal(" [ON]").withColor(ENABLED_COLOR));
+                } else {
+                    message.append(Text.literal(" [OFF]").withColor(DISABLED_COLOR));
+                }
             }
         }
 

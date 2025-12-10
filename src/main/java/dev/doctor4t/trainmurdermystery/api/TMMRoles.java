@@ -8,13 +8,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class TMMRoles {
     public static final ArrayList<Role> ROLES = new ArrayList<>();
     public static final ArrayList<Role> SPECIAL_ROLES = new ArrayList<>();
     public static final ArrayList<Role> VANILLA_ROLES = new ArrayList<>();
     private static final Map<Identifier, Role> ROLES_REGISTRY = new HashMap<>();
+    private static final Set<Role> DISABLED_ROLES = new HashSet<>();
 
     public static final Role DISCOVERY_CIVILIAN = new Role(TMM.id("discovery_civilian"), 0x36E51B, true, false, Role.MoodType.NONE, -1, true);
     public static final Role NO_ROLE = new Role(TMM.id("no_role"), 0xFFFFFF, false, false, Role.MoodType.NONE, -1, false);
@@ -51,5 +54,21 @@ public class TMMRoles {
     }
     public static @Nullable Role getRole(Identifier id) {
         return ROLES_REGISTRY.get(id);
+    }
+
+    public static void setRoleEnabled(Role role, boolean enabled) {
+        if (enabled) {
+            DISABLED_ROLES.remove(role);
+        } else {
+            DISABLED_ROLES.add(role);
+        }
+    }
+
+    public static boolean isRoleEnabled(Role role) {
+        return !DISABLED_ROLES.contains(role);
+    }
+
+    public static Set<Role> getDisabledRoles() {
+        return DISABLED_ROLES;
     }
 }

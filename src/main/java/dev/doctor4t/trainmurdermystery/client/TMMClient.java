@@ -7,6 +7,7 @@ import dev.doctor4t.ratatouille.client.util.ambience.BackgroundAmbience;
 import dev.doctor4t.ratatouille.client.util.ambience.BlockEntityAmbience;
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.TMMConfig;
+import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.block_entity.SprinklerBlockEntity;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
@@ -382,6 +383,19 @@ public class TMMClient implements ClientModInitializer {
 
     public static int getInstinctHighlight(Entity target) {
         if (!isInstinctEnabled()) return -1;
+        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
+        if (target instanceof PlayerEntity) {
+            if (!(target).isSpectator()) {
+                if (GameFunctions.isPlayerSpectatingOrCreative(MinecraftClient.getInstance().player)) {
+                    Role role = gameWorldComponent.getRole((PlayerEntity) target);
+                    if (role == null) {
+                        return TMMRoles.CIVILIAN.color();
+                    } else {
+                        return role.color();
+                    }
+                }
+            }
+        }
 //        if (target instanceof PlayerBodyEntity) return 0x606060;
         if (target instanceof ItemEntity || target instanceof NoteEntity || target instanceof FirecrackerEntity)
             return 0xDB9D00;

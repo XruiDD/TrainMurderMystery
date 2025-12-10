@@ -8,6 +8,7 @@ import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
 import dev.doctor4t.trainmurdermystery.cca.PlayerPsychoComponent;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
+import dev.doctor4t.trainmurdermystery.game.MurderGameMode;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.font.TextRenderer;
@@ -46,7 +47,7 @@ public class MoodRenderer {
     @Environment(EnvType.CLIENT)
     public static void renderHud(@NotNull PlayerEntity player, TextRenderer textRenderer, DrawContext context, RenderTickCounter tickCounter) {
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
-        if (!gameWorldComponent.isRunning() || !TMMClient.isPlayerAliveAndInSurvival() || gameWorldComponent.getGameMode() != TMMGameModes.MURDER)
+        if (!gameWorldComponent.isRunning() || !TMMClient.isPlayerAliveAndInSurvival() || !(gameWorldComponent.getGameMode() instanceof MurderGameMode))
             return;
         PlayerMoodComponent component = PlayerMoodComponent.KEY.get(player);
         float oldMood = moodRender;

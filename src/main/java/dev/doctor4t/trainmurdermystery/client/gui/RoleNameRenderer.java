@@ -1,8 +1,10 @@
 package dev.doctor4t.trainmurdermystery.client.gui;
 
+import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.cca.PlayerPsychoComponent;
+import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.entity.NoteEntity;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import net.minecraft.client.font.TextRenderer;
@@ -22,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class RoleNameRenderer {
     private static TrainRole targetRole = TrainRole.BYSTANDER;
+
     private static float nametagAlpha = 0f;
     private static float noteAlpha = 0f;
     private static Text nametag = Text.empty();
@@ -32,8 +35,11 @@ public class RoleNameRenderer {
         if (player.getWorld().getLightLevel(LightType.BLOCK, BlockPos.ofFloored(player.getEyePos())) < 3 && player.getWorld().getLightLevel(LightType.SKY, BlockPos.ofFloored(player.getEyePos())) < 10)
             return;
         float range = GameFunctions.isPlayerSpectatingOrCreative(player) ? 8f : 2f;
+        Role targetPlayerRole = null;
         if (ProjectileUtil.getCollision(player, entity -> entity instanceof PlayerEntity, range) instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() instanceof PlayerEntity target) {
             nametagAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 4, nametagAlpha, 1f);
+            // Get target's role for spectator/creative mode display
+            targetPlayerRole = component.getRole(target);
             nametag = target.getDisplayName();
             if (component.canUseKillerFeatures(target)) {
                 targetRole = TrainRole.KILLER;
@@ -49,6 +55,12 @@ public class RoleNameRenderer {
             context.getMatrices().push();
             context.getMatrices().translate(context.getScaledWindowWidth() / 2f, context.getScaledWindowHeight() / 2f + 6, 0);
             context.getMatrices().scale(0.6f, 0.6f, 1f);
+            Role hudRole = targetPlayerRole != null ? targetPlayerRole : TMMRoles.CIVILIAN;
+            // Draw role name for spectators/creative players
+            if (hudRole != null && TMMClient.isPlayerSpectatingOrCreative()) {
+                Text roleName = Text.translatable("announcement.role." + hudRole.identifier().getPath());
+                context.drawTextWithShadow(renderer, roleName, -renderer.getWidth(roleName) / 2, 0, hudRole.color() | (int) (nametagAlpha * 255.0F) << 24);
+            }
             int nameWidth = renderer.getWidth(nametag);
             context.drawTextWithShadow(renderer, nametag, -nameWidth / 2, 16, MathHelper.packRgb(1f, 1f, 1f) | ((int) (nametagAlpha * 255) << 24));
             if (component.isRunning()) {

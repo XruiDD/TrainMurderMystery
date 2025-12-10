@@ -1,6 +1,7 @@
 package dev.doctor4t.trainmurdermystery.api;
 
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 
 public final class Role {
     private final Identifier identifier;
@@ -10,6 +11,8 @@ public final class Role {
     private final MoodType moodType;
     private final int maxSprintTime;
     private final boolean canSeeTime;
+    @Nullable
+    private final NeutralWinCondition winCondition;
 
     public enum MoodType {
         NONE, REAL, FAKE
@@ -25,6 +28,20 @@ public final class Role {
      * @param canSeeTime    if the role can see the game timer
      */
     public Role(Identifier identifier, int color, boolean isInnocent, boolean canUseKiller, MoodType moodType, int maxSprintTime, boolean canSeeTime) {
+        this(identifier, color, isInnocent, canUseKiller, moodType, maxSprintTime, canSeeTime, null);
+    }
+
+    /**
+     * @param identifier    the mod id and name of the role
+     * @param color         the role announcement color
+     * @param isInnocent    whether the gun drops when a person with this role is shot and is considered a civilian to the win conditions
+     * @param canUseKiller  can see and use the killer features
+     * @param moodType      the mood type a role has
+     * @param maxSprintTime the maximum sprint time in ticks
+     * @param canSeeTime    if the role can see the game timer
+     * @param winCondition  the win condition for neutral roles (can be null)
+     */
+    public Role(Identifier identifier, int color, boolean isInnocent, boolean canUseKiller, MoodType moodType, int maxSprintTime, boolean canSeeTime, @Nullable NeutralWinCondition winCondition) {
         this.identifier = identifier;
         this.color = color;
         this.isInnocent = isInnocent;
@@ -32,6 +49,7 @@ public final class Role {
         this.moodType = moodType;
         this.maxSprintTime = maxSprintTime;
         this.canSeeTime = canSeeTime;
+        this.winCondition = winCondition;
     }
 
     public Identifier identifier() {
@@ -74,5 +92,20 @@ public final class Role {
      */
     public Faction getFaction() {
         return Faction.fromRole(this);
+    }
+
+    /**
+     * @return the win condition for this neutral role, or null if not defined
+     */
+    @Nullable
+    public NeutralWinCondition getWinCondition() {
+        return winCondition;
+    }
+
+    /**
+     * @return true if this role has a custom win condition defined
+     */
+    public boolean hasWinCondition() {
+        return winCondition != null;
     }
 }

@@ -4,7 +4,6 @@ import dev.doctor4t.trainmurdermystery.api.GameMode;
 import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.cca.*;
-import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
 import dev.doctor4t.trainmurdermystery.event.RoleAssigned;
 import dev.doctor4t.trainmurdermystery.util.AnnounceWelcomePayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -74,10 +73,27 @@ public class MurderGameMode extends GameMode {
     @Override
     public void tickServerGameLoop(ServerWorld serverWorld, GameWorldComponent gameWorldComponent) {
         GameFunctions.WinStatus winStatus = GameFunctions.WinStatus.NONE;
+        ServerPlayerEntity neutralWinner = null;
 
         // check if out of time
         if (!GameTimeComponent.KEY.get(serverWorld).hasTime())
             winStatus = GameFunctions.WinStatus.TIME;
+
+        // check neutral win conditions first (priority over killer/civilian wins)
+        if (winStatus == GameFunctions.WinStatus.NONE) {
+            for (ServerPlayerEntity player : serverWorld.getPlayers()) {
+                if (GameFunctions.isPlayerEliminated(player)) continue;
+
+                Role role = gameWorldComponent.getRole(player);
+                if (role != null && role.isNeutral() && role.hasWinCondition()) {
+                    if (role.getWinCondition() != null && role.getWinCondition().checkWin(player, serverWorld, gameWorldComponent)) {
+                        winStatus = GameFunctions.WinStatus.NEUTRAL;
+                        neutralWinner = player;
+                        break; // first neutral to satisfy condition wins
+                    }
+                }
+            }
+        }
 
         boolean civilianAlive = false;
         for (ServerPlayerEntity player : serverWorld.getPlayers()) {
@@ -93,8 +109,8 @@ public class MurderGameMode extends GameMode {
             }
         }
 
-        // check killer win condition (killed all civilians)
-        if (!civilianAlive) {
+        // check killer win condition (killed all civilians) - only if no neutral has won
+        if (winStatus == GameFunctions.WinStatus.NONE && !civilianAlive) {
             winStatus = GameFunctions.WinStatus.KILLERS;
         }
 
@@ -110,7 +126,12 @@ public class MurderGameMode extends GameMode {
 
         // game end on win and display
         if (winStatus != GameFunctions.WinStatus.NONE && gameWorldComponent.getGameStatus() == GameWorldComponent.GameStatus.ACTIVE) {
-            GameRoundEndComponent.KEY.get(serverWorld).setRoundEndData(serverWorld.getPlayers(), winStatus);
+            if (winStatus == GameFunctions.WinStatus.NEUTRAL) {
+                // use single winner method for neutral wins
+                GameRoundEndComponent.KEY.get(serverWorld).setRoundEndData(serverWorld.getPlayers(), neutralWinner);
+            } else {
+                GameRoundEndComponent.KEY.get(serverWorld).setRoundEndData(serverWorld.getPlayers(), winStatus);
+            }
 
             GameFunctions.stopGame(serverWorld);
         }

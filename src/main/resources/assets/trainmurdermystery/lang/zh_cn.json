@@ -24,6 +24,9 @@
   "announcement.win.killer": "杀手胜利！",
   "announcement.win.loose_end": "%s 获胜！",
   "announcement.win.vigilante": "乘客胜利！",
+  "announcement.faction.civilian": "平民",
+  "announcement.faction.killer": "杀手",
+  "announcement.faction.neutral": "中立",
 
   "block.trainmurdermystery.acacia_branch": "金合欢枝柱",
   "block.trainmurdermystery.anthracite_steel": "无烟煤钢",

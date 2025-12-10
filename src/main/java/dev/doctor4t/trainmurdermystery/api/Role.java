@@ -61,4 +61,18 @@ public final class Role {
     public boolean canSeeTime() {
         return canSeeTime;
     }
+
+    /**
+     * @return true if this role is neutral (neither innocent nor killer)
+     */
+    public boolean isNeutral() {
+        return !this.isInnocent && !this.canUseKiller;
+    }
+
+    /**
+     * @return the faction this role belongs to
+     */
+    public Faction getFaction() {
+        return Faction.fromRole(this);
+    }
 }

@@ -3,7 +3,6 @@ package dev.doctor4t.trainmurdermystery.game;
 import com.google.common.collect.Lists;
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.api.GameMode;
-import dev.doctor4t.trainmurdermystery.api.TMMGameModes;
 import dev.doctor4t.trainmurdermystery.cca.*;
 import dev.doctor4t.trainmurdermystery.compat.TrainVoicePlugin;
 import dev.doctor4t.trainmurdermystery.entity.FirecrackerEntity;
@@ -501,6 +500,6 @@ public class GameFunctions {
     }
 
     public enum WinStatus {
-        NONE, KILLERS, PASSENGERS, TIME, LOOSE_END
+        NONE, KILLERS, PASSENGERS, TIME, LOOSE_END, NEUTRAL
     }
 }

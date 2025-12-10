@@ -36,15 +36,8 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     private final World world;
 
     private boolean lockedToSupporters = false;
-    private boolean enableWeights = false;
 
-    public void setWeightsEnabled(boolean enabled) {
-        this.enableWeights = enabled;
-    }
 
-    public boolean areWeightsEnabled() {
-        return enableWeights;
-    }
 
     public enum GameStatus {
         INACTIVE, STARTING, ACTIVE, STOPPING
@@ -186,6 +179,14 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         return this.roles.get(uuid) == role;
     }
 
+    public boolean hasAnyRole(@NotNull PlayerEntity player) {
+        return hasAnyRole(player.getUuid());
+    }
+
+    public boolean hasAnyRole(@NotNull UUID uuid) {
+        return this.roles.containsKey(uuid) && this.roles.get(uuid) != TMMRoles.NO_ROLE;
+    }
+
     public boolean canUseKillerFeatures(@NotNull PlayerEntity player) {
         return getRole(player) != null && getRole(player).canUseKiller();
     }
@@ -253,7 +254,6 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     @Override
     public void readFromNbt(@NotNull NbtCompound nbtCompound, RegistryWrapper.WrapperLookup wrapperLookup) {
         this.lockedToSupporters = nbtCompound.getBoolean("LockedToSupporters");
-        this.enableWeights = nbtCompound.getBoolean("EnableWeights");
 
         this.gameMode = TMMGameModes.GAME_MODES.get(Identifier.of(nbtCompound.getString("GameMode")));
         this.gameStatus = GameStatus.valueOf(nbtCompound.getString("GameStatus"));
@@ -287,7 +287,6 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     @Override
     public void writeToNbt(@NotNull NbtCompound nbtCompound, RegistryWrapper.WrapperLookup wrapperLookup) {
         nbtCompound.putBoolean("LockedToSupporters", lockedToSupporters);
-        nbtCompound.putBoolean("EnableWeights", enableWeights);
 
         nbtCompound.putString("GameMode", this.gameMode != null ? this.gameMode.identifier.toString() : "");
         nbtCompound.putString("GameStatus", this.gameStatus.toString());

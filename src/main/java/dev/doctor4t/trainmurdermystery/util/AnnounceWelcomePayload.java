@@ -8,11 +8,12 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
-public record AnnounceWelcomePayload(int role, int killers, int targets) implements CustomPayload {
+public record AnnounceWelcomePayload(String role, int killers, int targets) implements CustomPayload {
     public static final Id<AnnounceWelcomePayload> ID = new Id<>(TMM.id("announcewelcome"));
-    public static final PacketCodec<PacketByteBuf, AnnounceWelcomePayload> CODEC = PacketCodec.tuple(PacketCodecs.INTEGER, AnnounceWelcomePayload::role, PacketCodecs.INTEGER, AnnounceWelcomePayload::killers, PacketCodecs.INTEGER, AnnounceWelcomePayload::targets, AnnounceWelcomePayload::new);
+    public static final PacketCodec<PacketByteBuf, AnnounceWelcomePayload> CODEC = PacketCodec.tuple(PacketCodecs.STRING, AnnounceWelcomePayload::role, PacketCodecs.INTEGER, AnnounceWelcomePayload::killers, PacketCodecs.INTEGER, AnnounceWelcomePayload::targets, AnnounceWelcomePayload::new);
 
     @Override
     public Id<? extends CustomPayload> getId() {
@@ -22,8 +23,9 @@ public record AnnounceWelcomePayload(int role, int killers, int targets) impleme
     public static class Receiver implements ClientPlayNetworking.PlayPayloadHandler<AnnounceWelcomePayload> {
         @Override
         public void receive(@NotNull AnnounceWelcomePayload payload, ClientPlayNetworking.@NotNull Context context) {
-            if (payload.role() < 0 || payload.role() >= RoleAnnouncementTexts.ROLE_ANNOUNCEMENT_TEXTS.size()) return;
-            RoundTextRenderer.startWelcome(RoleAnnouncementTexts.ROLE_ANNOUNCEMENT_TEXTS.get(payload.role()), payload.killers(), payload.targets());
+            Identifier roleId = Identifier.tryParse(payload.role());
+            RoleAnnouncementTexts.RoleAnnouncementText roleText = RoleAnnouncementTexts.getForRole(roleId);
+            RoundTextRenderer.startWelcome(roleText, payload.killers(), payload.targets());
         }
     }
 }

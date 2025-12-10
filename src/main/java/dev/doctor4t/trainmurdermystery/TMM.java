@@ -63,9 +63,6 @@ public class TMM implements ModInitializer {
             GiveRoomKeyCommand.register(dispatcher);
             StartCommand.register(dispatcher);
             StopCommand.register(dispatcher);
-            EnableWeightsCommand.register(dispatcher);
-            CheckWeightsCommand.register(dispatcher);
-            ResetWeightsCommand.register(dispatcher);
             SetVisualCommand.register(dispatcher);
             ForceRoleCommand.register(dispatcher);
 //            UpdateDoorsCommand.register(dispatcher);

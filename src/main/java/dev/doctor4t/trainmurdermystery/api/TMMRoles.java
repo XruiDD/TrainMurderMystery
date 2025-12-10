@@ -17,6 +17,7 @@ public class TMMRoles {
     private static final Map<Identifier, Role> ROLES_REGISTRY = new HashMap<>();
 
     public static final Role DISCOVERY_CIVILIAN = new Role(TMM.id("discovery_civilian"), 0x36E51B, true, false, Role.MoodType.NONE, -1, true);
+    public static final Role NO_ROLE = new Role(TMM.id("no_role"), 0xFFFFFF, false, false, Role.MoodType.NONE, -1, false);
     public static final Role CIVILIAN = new Role(TMM.id("civilian"), 0x36E51B, true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), false);
     public static final Role VIGILANTE = new Role(TMM.id("vigilante"), 0x1B8AE5, true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), false);
     public static final Role KILLER = new Role(TMM.id("killer"), 0xC13838, false, true, Role.MoodType.FAKE, -1, true);
@@ -25,8 +26,8 @@ public class TMMRoles {
 
     static {
         SPECIAL_ROLES.add(LOOSE_END);
+        SPECIAL_ROLES.add(NO_ROLE);
         SPECIAL_ROLES.add(DISCOVERY_CIVILIAN);
-        SPECIAL_ROLES.add(CIVILIAN);
         VANILLA_ROLES.add(DISCOVERY_CIVILIAN);
         VANILLA_ROLES.add(CIVILIAN);
         VANILLA_ROLES.add(VIGILANTE);
@@ -37,6 +38,7 @@ public class TMMRoles {
         registerRole(VIGILANTE);
         registerRole(KILLER);
         registerRole(LOOSE_END);
+        registerRole(NO_ROLE);
     }
     public static Role registerRole(Role role) {
         ROLES.add(role);

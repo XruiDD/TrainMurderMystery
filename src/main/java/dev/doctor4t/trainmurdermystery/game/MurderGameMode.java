@@ -1,6 +1,7 @@
 package dev.doctor4t.trainmurdermystery.game;
 
 import dev.doctor4t.trainmurdermystery.api.GameMode;
+import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.cca.*;
 import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
@@ -20,9 +21,9 @@ public class MurderGameMode extends GameMode {
     }
 
     private static int assignRolesAndGetKillerCount(@NotNull ServerWorld world, @NotNull List<ServerPlayerEntity> players, GameWorldComponent gameComponent) {
-        // civilian base role, replaced for selected killers and vigilantes
+        // NO_ROLE base role, replaced for selected killers and vigilantes
         for (ServerPlayerEntity player : players) {
-            gameComponent.addRole(player, TMMRoles.CIVILIAN);
+            gameComponent.addRole(player, TMMRoles.NO_ROLE);
         }
 
         // select roles
@@ -45,9 +46,11 @@ public class MurderGameMode extends GameMode {
         
         // Ensure at least 1 killer if there are enough players
         killerCount = Math.max(1, killerCount);
-        
+        roleSelector.assignForcedRoles(world, gameComponent, players);
         int total = roleSelector.assignKillers(world, gameComponent, players, killerCount);
         roleSelector.assignVigilantes(world, gameComponent, players, killerCount);
+        roleSelector.assignNeutrals(world, gameComponent, players, killerCount);
+        roleSelector.assignCivilians(world, gameComponent, players);
         return total;
     }
 
@@ -58,7 +61,9 @@ public class MurderGameMode extends GameMode {
         int killerCount = assignRolesAndGetKillerCount(serverWorld, players, gameWorldComponent);
 
         for (ServerPlayerEntity player : players) {
-            ServerPlayNetworking.send(player, new AnnounceWelcomePayload(RoleAnnouncementTexts.ROLE_ANNOUNCEMENT_TEXTS.indexOf(gameWorldComponent.isRole(player, TMMRoles.KILLER) ? RoleAnnouncementTexts.KILLER : gameWorldComponent.isRole(player, TMMRoles.VIGILANTE) ? RoleAnnouncementTexts.VIGILANTE : RoleAnnouncementTexts.CIVILIAN), killerCount, players.size() - killerCount));
+            Role role = gameWorldComponent.getRole(player);
+            String roleId = role != null ? role.identifier().toString() : TMMRoles.CIVILIAN.identifier().toString();
+            ServerPlayNetworking.send(player, new AnnounceWelcomePayload(roleId, killerCount, players.size() - killerCount));
         }
     }
 

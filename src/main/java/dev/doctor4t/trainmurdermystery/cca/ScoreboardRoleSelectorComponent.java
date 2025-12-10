@@ -1,6 +1,7 @@
 package dev.doctor4t.trainmurdermystery.cca;
 
 import dev.doctor4t.trainmurdermystery.TMM;
+import dev.doctor4t.trainmurdermystery.api.Faction;
 import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
@@ -8,31 +9,27 @@ import dev.doctor4t.trainmurdermystery.index.TMMItems;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 
+
+
 import java.util.*;
+
+import static net.minecraft.util.Util.shuffle;
 
 public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
     public static final ComponentKey<ScoreboardRoleSelectorComponent> KEY = ComponentRegistry.getOrCreate(TMM.id("rolecounter"), ScoreboardRoleSelectorComponent.class);
     public final Scoreboard scoreboard;
     public final MinecraftServer server;
-    public final Map<Role, Map<UUID, Integer>> roleRounds = new HashMap<>();
     public final Map<Role, List<UUID>> forcedRoles = new HashMap<>();
 
     public ScoreboardRoleSelectorComponent(Scoreboard scoreboard, @Nullable MinecraftServer server) {
@@ -40,268 +37,184 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         this.server = server;
     }
 
-    public Map<UUID, Integer> getRoundsForRole(Role role) {
-        return roleRounds.computeIfAbsent(role, k -> new HashMap<>());
-    }
-
     public List<UUID> getForcedForRole(Role role) {
         return forcedRoles.computeIfAbsent(role, k -> new ArrayList<>());
     }
 
     public int reset() {
-        this.roleRounds.clear();
         this.forcedRoles.clear();
         return 1;
     }
 
-    public void checkWeights(@NotNull ServerCommandSource source) {
-        Map<Role, Double> roleTotals = new HashMap<>();
-        for (Role role : TMMRoles.ROLES) {
-            if (TMMRoles.SPECIAL_ROLES.contains(role)) continue;
-            double total = 0d;
-            for (ServerPlayerEntity player : source.getWorld().getPlayers()) {
-                total += Math.exp(-getRoundsForRole(role).getOrDefault(player.getUuid(), 0) * 4);
+    public void assignForcedRoles(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players) {
+        for (Map.Entry<Role, List<UUID>> entry : forcedRoles.entrySet()) {
+            Role role = entry.getKey();
+            List<UUID> uuids = entry.getValue();
+            for (UUID uuid : uuids) {
+                PlayerEntity player = world.getPlayerByUuid(uuid);
+                if (player instanceof ServerPlayerEntity serverPlayer && players.contains(serverPlayer)) {
+                    gameComponent.addRole(player, role);
+                    if (role == TMMRoles.VIGILANTE) {
+                        player.giveItemStack(new ItemStack(TMMItems.REVOLVER));
+                    }
+                }
             }
-            roleTotals.put(role, total);
+            uuids.clear();
         }
-
-        MutableText text = Text.literal("Role Weights:").formatted(Formatting.GRAY);
-        for (ServerPlayerEntity player : source.getWorld().getPlayers()) {
-            text = text.append("\n").append(player.getDisplayName());
-            for (Role role : TMMRoles.ROLES) {
-                if (TMMRoles.SPECIAL_ROLES.contains(role)) continue;
-                int rounds = getRoundsForRole(role).getOrDefault(player.getUuid(), 0);
-                double weight = Math.exp(-rounds * 4);
-                double percent = weight / roleTotals.getOrDefault(role, 1.0) * 100;
-                text.append(
-                        Text.literal("\n  " + role.identifier().getPath() + " (").withColor(role.color())
-                                .append(Text.literal("%d".formatted(rounds)).withColor(0x808080))
-                                .append(Text.literal("): ").withColor(role.color()))
-                                .append(Text.literal("%.2f%%".formatted(percent)).withColor(0x808080))
-                );
-            }
-        }
-        MutableText finalText = text;
-        source.sendFeedback(() -> finalText, false);
-    }
-
-    public void setRoleRounds(@NotNull ServerCommandSource source, @NotNull ServerPlayerEntity player, @NotNull Role role, int times) {
-        if (times < 0) times = 0;
-        Map<UUID, Integer> rounds = getRoundsForRole(role);
-        if (times == 0) rounds.remove(player.getUuid());
-        else rounds.put(player.getUuid(), times);
-        int finalTimes = times;
-        String roleName = role.identifier().getPath();
-        roleName = roleName.substring(0, 1).toUpperCase() + roleName.substring(1);
-        String finalRoleName = roleName;
-        source.sendFeedback(() -> Text.literal("Set ").formatted(Formatting.GRAY)
-                .append(player.getDisplayName().copy().formatted(Formatting.YELLOW))
-                .append(Text.literal("'s " + finalRoleName + " rounds to ").formatted(Formatting.GRAY))
-                .append(Text.literal("%d".formatted(finalTimes)).withColor(0x808080))
-                .append(Text.literal(".").formatted(Formatting.GRAY)), false);
-    }
-
-    @Deprecated
-    public void setKillerRounds(@NotNull ServerCommandSource source, @NotNull ServerPlayerEntity player, int times) {
-        setRoleRounds(source, player, TMMRoles.KILLER, times);
-    }
-
-    @Deprecated
-    public void setVigilanteRounds(@NotNull ServerCommandSource source, @NotNull ServerPlayerEntity player, int times) {
-        setRoleRounds(source, player, TMMRoles.VIGILANTE, times);
+        forcedRoles.clear();
     }
 
     public int assignKillers(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int killerCount) {
-        this.reduceRoleRounds(TMMRoles.KILLER);
-        Map<UUID, Integer> killerRoundsMap = getRoundsForRole(TMMRoles.KILLER);
-        List<UUID> forcedKillersList = getForcedForRole(TMMRoles.KILLER);
-        ArrayList<UUID> killers = new ArrayList<>();
-        for (UUID uuid : forcedKillersList) {
-            killers.add(uuid);
-            killerCount--;
-            killerRoundsMap.put(uuid, killerRoundsMap.getOrDefault(uuid, 1) + 1);
-        }
-        forcedKillersList.clear();
-        HashMap<ServerPlayerEntity, Float> map = new HashMap<>();
-        float total = 0f;
-        for (ServerPlayerEntity player : players) {
-            float weight = (float) Math.exp(-killerRoundsMap.getOrDefault(player.getUuid(), 0) * 4);
-            if (!GameWorldComponent.KEY.get(world).areWeightsEnabled()) weight = 1;
-            map.put(player, weight);
-            total += weight;
-        }
-        for (int i = 0; i < killerCount; i++) {
-            float random = world.getRandom().nextFloat() * total;
-            Iterator<Map.Entry<ServerPlayerEntity, Float>> iterator = map.entrySet().iterator();
+        Map<UUID, Role> assignedKillers = new HashMap<>();
 
-            while (iterator.hasNext()) {
-                Map.Entry<ServerPlayerEntity, Float> entry = iterator.next();
-                random -= entry.getValue();
-                if (random <= 0) {
-                    killers.add(entry.getKey().getUuid());
-                    total -= entry.getValue();
-                    iterator.remove();
-                    killerRoundsMap.put(entry.getKey().getUuid(), killerRoundsMap.getOrDefault(entry.getKey().getUuid(), 1) + 1);
-                    break;
-                }
+        ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
+
+        // Collect available non-vanilla killer faction roles (each can only be assigned once)
+        ArrayList<Role> availableSpecialKillerRoles = new ArrayList<>();
+        for (Role role : TMMRoles.ROLES) {
+            if (role.getFaction() == Faction.KILLER && !TMMRoles.VANILLA_ROLES.contains(role)) {
+                availableSpecialKillerRoles.add(role);
             }
+        }
+        shuffle(availableSpecialKillerRoles, world.getRandom());
+
+        // Assign killers randomly
+        for (ServerPlayerEntity player : availablePlayers) {
+            if (killerCount <= 0) break;
+
+            Role assignedRole;
+            if (!availableSpecialKillerRoles.isEmpty()) {
+                // Assign a special non-vanilla killer role
+                assignedRole = availableSpecialKillerRoles.removeFirst();
+            } else {
+                // No special roles left, assign basic KILLER
+                assignedRole = TMMRoles.KILLER;
+            }
+
+            assignedKillers.put(player.getUuid(), assignedRole);
+            killerCount--;
         }
 
         // Calculate excess players and adjust starting money
         int totalPlayers = players.size();
         int killerRatio = gameComponent.getKillerPlayerRatio();
-        int excessPlayers = Math.max(0, totalPlayers - (killers.size() * killerRatio));
+        int excessPlayers = Math.max(0, totalPlayers - (assignedKillers.size() * killerRatio));
         int additionalMoneyPerExcess = 20; // 20 coins per excess player
         int dynamicStartingMoney = GameConstants.MONEY_START + (excessPlayers * additionalMoneyPerExcess);
 
-        for (UUID killerUUID : killers) {
-            gameComponent.addRole(killerUUID, TMMRoles.KILLER);
+        // Apply roles to players
+        for (Map.Entry<UUID, Role> entry : assignedKillers.entrySet()) {
+            UUID killerUUID = entry.getKey();
+            Role role = entry.getValue();
+            gameComponent.addRole(killerUUID, role);
             PlayerEntity killer = world.getPlayerByUuid(killerUUID);
             if (killer != null) {
                 PlayerShopComponent.KEY.get(killer).setBalance(dynamicStartingMoney);
             }
         }
-        return killers.size();
-    }
-
-    private void reduceRoleRounds(Role role) {
-        Map<UUID, Integer> rounds = getRoundsForRole(role);
-        if (rounds.isEmpty()) return;
-        int minimum = Integer.MAX_VALUE;
-        for (Integer times : rounds.values()) minimum = Math.min(minimum, times);
-        for (UUID uuid : rounds.keySet())
-            rounds.put(uuid, rounds.get(uuid) - minimum);
-    }
-
-    @Deprecated
-    private void reduceKillers() {
-        reduceRoleRounds(TMMRoles.KILLER);
+        return assignedKillers.size();
     }
 
     public void assignVigilantes(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int vigilanteCount) {
-        this.reduceRoleRounds(TMMRoles.VIGILANTE);
-        Map<UUID, Integer> vigilanteRoundsMap = getRoundsForRole(TMMRoles.VIGILANTE);
-        List<UUID> forcedVigilantesList = getForcedForRole(TMMRoles.VIGILANTE);
-        ArrayList<ServerPlayerEntity> vigilantes = new ArrayList<>();
-        for (UUID uuid : forcedVigilantesList) {
-            PlayerEntity player = world.getPlayerByUuid(uuid);
-            if (player instanceof ServerPlayerEntity serverPlayer && players.contains(serverPlayer) && !gameComponent.canUseKillerFeatures(player)) {
-                gameComponent.addRole(player, TMMRoles.VIGILANTE);
-                player.giveItemStack(new ItemStack(TMMItems.REVOLVER));
-                vigilanteCount--;
-                vigilanteRoundsMap.put(player.getUuid(), vigilanteRoundsMap.getOrDefault(player.getUuid(), 1) + 1);
-            }
-        }
-        forcedVigilantesList.clear();
-        HashMap<ServerPlayerEntity, Float> map = new HashMap<>();
-        float total = 0f;
-        for (ServerPlayerEntity player : players) {
-            if (gameComponent.isRole(player, TMMRoles.KILLER)) continue;
-            float weight = (float) Math.exp(-vigilanteRoundsMap.getOrDefault(player.getUuid(), 0) * 4);
-            if (!GameWorldComponent.KEY.get(world).areWeightsEnabled()) weight = 1;
-            map.put(player, weight);
-            total += weight;
-        }
-        for (int i = 0; i < vigilanteCount; i++) {
-            float random = world.getRandom().nextFloat() * total;
-            Iterator<Map.Entry<ServerPlayerEntity, Float>> iterator = map.entrySet().iterator();
+        // Get available players
+        ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
 
-            while (iterator.hasNext()) {
-                Map.Entry<ServerPlayerEntity, Float> entry = iterator.next();
-                random -= entry.getValue();
-                if (random <= 0) {
-                    vigilantes.add(entry.getKey());
-                    total -= entry.getValue();
-                    iterator.remove();
-                    vigilanteRoundsMap.put(entry.getKey().getUuid(), vigilanteRoundsMap.getOrDefault(entry.getKey().getUuid(), 1) + 1);
-                    break;
-                }
-            }
+        // Assign vigilantes randomly
+        ArrayList<ServerPlayerEntity> vigilantes = new ArrayList<>();
+        for (ServerPlayerEntity player : availablePlayers) {
+            if (vigilanteCount <= 0) break;
+            vigilantes.add(player);
+            vigilanteCount--;
         }
+
         for (ServerPlayerEntity player : vigilantes) {
             gameComponent.addRole(player, TMMRoles.VIGILANTE);
             player.giveItemStack(new ItemStack(TMMItems.REVOLVER));
         }
     }
 
-    @Deprecated
-    private void reduceVigilantes() {
-        reduceRoleRounds(TMMRoles.VIGILANTE);
+    public int assignNeutrals(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int neutralCount) {
+        // Collect available non-vanilla neutral faction roles (each can only be assigned once)
+        ArrayList<Role> availableNeutralRoles = new ArrayList<>();
+        for (Role role : TMMRoles.ROLES) {
+            if (role.getFaction() == Faction.NEUTRAL && !TMMRoles.VANILLA_ROLES.contains(role)) {
+                availableNeutralRoles.add(role);
+            }
+        }
+
+        // If no special neutral roles registered, skip neutral assignment
+        if (availableNeutralRoles.isEmpty()) {
+            return 0;
+        }
+
+        shuffle(availableNeutralRoles, world.getRandom());
+
+        // Get available players
+        ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
+
+        int assignedCount = 0;
+        // Assign neutral roles randomly (one role per player, one player per role)
+        for (ServerPlayerEntity player : availablePlayers) {
+            if (neutralCount <= 0) break;
+            if (availableNeutralRoles.isEmpty()) break;
+
+            Role assignedRole = availableNeutralRoles.removeFirst();
+            gameComponent.addRole(player, assignedRole);
+            assignedCount++;
+            neutralCount--;
+        }
+
+        return assignedCount;
+    }
+
+    public int assignCivilians(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players) {
+        // Get available players
+        ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
+
+        // Collect available non-vanilla civilian faction roles (each can only be assigned once)
+        ArrayList<Role> availableSpecialCivilianRoles = new ArrayList<>();
+        for (Role role : TMMRoles.ROLES) {
+            if (role.getFaction() == Faction.CIVILIAN && !TMMRoles.VANILLA_ROLES.contains(role)) {
+                availableSpecialCivilianRoles.add(role);
+            }
+        }
+        shuffle(availableSpecialCivilianRoles, world.getRandom());
+
+        int assignedCount = 0;
+        // Assign civilians to all remaining players
+        for (ServerPlayerEntity player : availablePlayers) {
+            Role assignedRole;
+            if (!availableSpecialCivilianRoles.isEmpty()) {
+                // Assign a special non-vanilla civilian role
+                assignedRole = availableSpecialCivilianRoles.removeFirst();
+            } else {
+                // No special roles left, assign basic CIVILIAN
+                assignedRole = TMMRoles.CIVILIAN;
+            }
+
+            gameComponent.addRole(player, assignedRole);
+            assignedCount++;
+        }
+
+        return assignedCount;
+    }
+
+    private ArrayList<ServerPlayerEntity> getAvailablePlayers(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players) {
+        ArrayList<ServerPlayerEntity> availablePlayers = new ArrayList<>();
+        for (ServerPlayerEntity player : players) {
+            if (!gameComponent.hasAnyRole(player)) {
+                availablePlayers.add(player);
+            }
+        }
+        shuffle(availablePlayers, world.getRandom());
+        return availablePlayers;
     }
 
     @Override
     public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-        NbtCompound rolesCompound = new NbtCompound();
-        for (Map.Entry<Role, Map<UUID, Integer>> roleEntry : this.roleRounds.entrySet()) {
-            NbtList roundsList = new NbtList();
-            for (Map.Entry<UUID, Integer> detail : roleEntry.getValue().entrySet()) {
-                NbtCompound compound = new NbtCompound();
-                compound.putUuid("uuid", detail.getKey());
-                compound.putInt("times", detail.getValue());
-                roundsList.add(compound);
-            }
-            rolesCompound.put(roleEntry.getKey().identifier().toString(), roundsList);
-        }
-        tag.put("roleRounds", rolesCompound);
-
-        // Backwards compatibility
-        if (roleRounds.containsKey(TMMRoles.KILLER)) {
-            NbtList killerRounds = new NbtList();
-            for (Map.Entry<UUID, Integer> detail : getRoundsForRole(TMMRoles.KILLER).entrySet()) {
-                NbtCompound compound = new NbtCompound();
-                compound.putUuid("uuid", detail.getKey());
-                compound.putInt("times", detail.getValue());
-                killerRounds.add(compound);
-            }
-            tag.put("killerRounds", killerRounds);
-        }
-        if (roleRounds.containsKey(TMMRoles.VIGILANTE)) {
-            NbtList vigilanteRounds = new NbtList();
-            for (Map.Entry<UUID, Integer> detail : getRoundsForRole(TMMRoles.VIGILANTE).entrySet()) {
-                NbtCompound compound = new NbtCompound();
-                compound.putUuid("uuid", detail.getKey());
-                compound.putInt("times", detail.getValue());
-                vigilanteRounds.add(compound);
-            }
-            tag.put("vigilanteRounds", vigilanteRounds);
-        }
     }
 
     @Override
     public void readFromNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-        this.roleRounds.clear();
-
-        // Read new format
-        if (tag.contains("roleRounds")) {
-            NbtCompound rolesCompound = tag.getCompound("roleRounds");
-            for (String key : rolesCompound.getKeys()) {
-                Role role = TMMRoles.getRole(Identifier.of(key));
-                if (role == null) continue;
-                Map<UUID, Integer> rounds = getRoundsForRole(role);
-                for (NbtElement element : rolesCompound.getList(key, 10)) {
-                    NbtCompound compound = (NbtCompound) element;
-                    if (!compound.contains("uuid") || !compound.contains("times")) continue;
-                    rounds.put(compound.getUuid("uuid"), compound.getInt("times"));
-                }
-            }
-        }
-
-        // Backwards compatibility: read old format if new format doesn't have killer/vigilante
-        if (!roleRounds.containsKey(TMMRoles.KILLER) && tag.contains("killerRounds")) {
-            Map<UUID, Integer> killerRoundsMap = getRoundsForRole(TMMRoles.KILLER);
-            for (NbtElement element : tag.getList("killerRounds", 10)) {
-                NbtCompound compound = (NbtCompound) element;
-                if (!compound.contains("uuid") || !compound.contains("times")) continue;
-                killerRoundsMap.put(compound.getUuid("uuid"), compound.getInt("times"));
-            }
-        }
-        if (!roleRounds.containsKey(TMMRoles.VIGILANTE) && tag.contains("vigilanteRounds")) {
-            Map<UUID, Integer> vigilanteRoundsMap = getRoundsForRole(TMMRoles.VIGILANTE);
-            for (NbtElement element : tag.getList("vigilanteRounds", 10)) {
-                NbtCompound compound = (NbtCompound) element;
-                if (!compound.contains("uuid") || !compound.contains("times")) continue;
-                vigilanteRoundsMap.put(compound.getUuid("uuid"), compound.getInt("times"));
-            }
-        }
     }
 }

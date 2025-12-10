@@ -45,7 +45,7 @@ public class LooseEndsGameMode extends GameMode {
 
             gameWorldComponent.addRole(player, TMMRoles.LOOSE_END);
 
-            ServerPlayNetworking.send(player, new AnnounceWelcomePayload(RoleAnnouncementTexts.ROLE_ANNOUNCEMENT_TEXTS.indexOf(RoleAnnouncementTexts.LOOSE_END), -1, -1));
+            ServerPlayNetworking.send(player, new AnnounceWelcomePayload(TMMRoles.LOOSE_END.identifier().toString(), -1, -1));
         }
     }
 

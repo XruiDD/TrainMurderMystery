@@ -1,5 +1,6 @@
 package dev.doctor4t.trainmurdermystery.entity;
 
+import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
@@ -16,6 +17,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.ServerConfigHandler;
 import net.minecraft.util.Arm;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 
 import java.util.Optional;
@@ -23,6 +25,7 @@ import java.util.UUID;
 
 public class PlayerBodyEntity extends LivingEntity {
     private static final TrackedData<Optional<UUID>> PLAYER = DataTracker.registerData(PlayerBodyEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
+    private static final TrackedData<String> DEATH_REASON = DataTracker.registerData(PlayerBodyEntity.class, TrackedDataHandlerRegistry.STRING);
 
     public PlayerBodyEntity(EntityType<? extends LivingEntity> entityType, World world) {
         super(entityType, world);
@@ -32,6 +35,7 @@ public class PlayerBodyEntity extends LivingEntity {
     protected void initDataTracker(DataTracker.Builder builder) {
         super.initDataTracker(builder);
         builder.add(PLAYER, Optional.empty());
+        builder.add(DEATH_REASON, GameConstants.DeathReasons.GENERIC.toString());
     }
 
     @Override
@@ -63,6 +67,14 @@ public class PlayerBodyEntity extends LivingEntity {
         return optional.orElseGet(() -> UUID.fromString("25adae11-cd98-48f4-990b-9fe1b2ee0886")); // Folly default because that's lowkey funny
     }
 
+    public void setDeathReason(Identifier deathReason) {
+        this.dataTracker.set(DEATH_REASON, deathReason.toString());
+    }
+
+    public Identifier getDeathReason() {
+        return Identifier.of(this.dataTracker.get(DEATH_REASON));
+    }
+
     @Override
     public boolean isInvulnerable() {
         return true;
@@ -91,6 +103,7 @@ public class PlayerBodyEntity extends LivingEntity {
         if (this.getPlayerUuid() != null) {
             nbt.putUuid("Player", this.getPlayerUuid());
         }
+        nbt.putString("DeathReason", this.getDeathReason().toString());
     }
 
     @Override
@@ -106,6 +119,10 @@ public class PlayerBodyEntity extends LivingEntity {
 
         if (uUID != null) {
             this.setPlayerUuid(uUID);
+        }
+
+        if (nbt.contains("DeathReason")) {
+            this.setDeathReason(Identifier.of(nbt.getString("DeathReason")));
         }
     }
 

@@ -18,7 +18,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.util.Colors;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -35,6 +37,7 @@ public class RoleNameRenderer {
     private static float bodyRoleAlpha = 0f;
     private static Text nametag = Text.empty();
     private static Role bodyRole = null;
+    private static PlayerBodyEntity targetBody = null;
     private static final Text[] note = new Text[]{Text.empty(), Text.empty(), Text.empty(), Text.empty()};
 
     public static void renderHud(TextRenderer renderer, @NotNull ClientPlayerEntity player, DrawContext context, RenderTickCounter tickCounter) {
@@ -88,6 +91,7 @@ public class RoleNameRenderer {
             // 检查是否有权限查看尸体角色（旁观者/创造模式 或 通过 Event 允许）
             if (deadPlayerUuid != null && (TMMClient.isPlayerSpectatingOrCreative() || CanSeeBodyRole.EVENT.invoker().canSee(MinecraftClient.getInstance().player))) {
                 bodyRole = component.getRole(deadPlayerUuid);
+                targetBody = body;
                 bodyRoleAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 4, bodyRoleAlpha, 1f);
             } else {
                 bodyRoleAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 4, bodyRoleAlpha, 0f);
@@ -95,13 +99,19 @@ public class RoleNameRenderer {
         } else {
             bodyRoleAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 4, bodyRoleAlpha, 0f);
         }
-        // 渲染尸体角色信息
-        if (bodyRoleAlpha > 0.05f && bodyRole != null) {
+        // 渲染尸体角色和死亡信息
+        if (bodyRoleAlpha > 0.05f && bodyRole != null && targetBody != null) {
             context.getMatrices().push();
             context.getMatrices().translate(context.getScaledWindowWidth() / 2f, context.getScaledWindowHeight() / 2f + 6, 0);
             context.getMatrices().scale(0.6f, 0.6f, 1f);
+            // 渲染角色名称
             Text roleName = Text.translatable("announcement.role." + bodyRole.identifier().getPath());
             context.drawTextWithShadow(renderer, roleName, -renderer.getWidth(roleName) / 2, 0, bodyRole.color() | (int) (bodyRoleAlpha * 255.0F) << 24);
+            // 渲染死亡信息（死亡时间和死因）
+            Identifier deathReason = targetBody.getDeathReason();
+            Text deathInfo = Text.translatable("hud.body.death_info", targetBody.age / 20)
+                    .append(Text.translatable("death_reason." + deathReason.getNamespace() + "." + deathReason.getPath()));
+            context.drawTextWithShadow(renderer, deathInfo, -renderer.getWidth(deathInfo) / 2, 16, Colors.RED | (int) (bodyRoleAlpha * 255.0F) << 24);
             context.getMatrices().pop();
         }
         if (ProjectileUtil.getCollision(player, entity -> entity instanceof NoteEntity, range) instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() instanceof NoteEntity note) {

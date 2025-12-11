@@ -355,5 +355,14 @@
   "trainmurdermystery.midnightconfig.disableScreenShake": "Disable Screen Shake",
   "trainmurdermystery.midnightconfig.title": "The Last Voyage of the Harpy Express - Config",
   "trainmurdermystery.midnightconfig.ultraPerfMode": "Ultra Performance Mode",
-  "trainmurdermystery.midnightconfig.ultraPerfMode.tooltip": "Disables scenery for a worse visual experience but maximum performance. Lowers render distance to 2."
+  "trainmurdermystery.midnightconfig.ultraPerfMode.tooltip": "Disables scenery for a worse visual experience but maximum performance. Lowers render distance to 2.",
+
+  "hud.body.death_info": "Died %ss ago from ",
+  "death_reason.trainmurdermystery.generic": "Unknown",
+  "death_reason.trainmurdermystery.knife_stab": "Knife Stab",
+  "death_reason.trainmurdermystery.gun_shot": "Gun Shot",
+  "death_reason.trainmurdermystery.bat_hit": "Bat Hit",
+  "death_reason.trainmurdermystery.grenade": "Grenade",
+  "death_reason.trainmurdermystery.poison": "Poison",
+  "death_reason.trainmurdermystery.fell_out_of_train": "Fell Out of Train"
 }

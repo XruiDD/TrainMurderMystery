@@ -326,6 +326,7 @@ public class GameFunctions {
             PlayerBodyEntity body = TMMEntities.PLAYER_BODY.create(victim.getWorld());
             if (body != null) {
                 body.setPlayerUuid(victim.getUuid());
+                body.setDeathReason(deathReason);
                 Vec3d spawnPos = victim.getPos().add(victim.getRotationVector().normalize().multiply(1));
                 body.refreshPositionAndAngles(spawnPos.getX(), victim.getY(), spawnPos.getZ(), victim.getHeadYaw(), 0f);
                 body.setYaw(victim.getHeadYaw());

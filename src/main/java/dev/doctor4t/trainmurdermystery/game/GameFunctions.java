@@ -9,6 +9,7 @@ import dev.doctor4t.trainmurdermystery.entity.FirecrackerEntity;
 import dev.doctor4t.trainmurdermystery.entity.NoteEntity;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
 import dev.doctor4t.trainmurdermystery.event.AllowPlayerDeath;
+import dev.doctor4t.trainmurdermystery.event.ResetPlayer;
 import dev.doctor4t.trainmurdermystery.event.ShouldDropOnDeath;
 import dev.doctor4t.trainmurdermystery.index.TMMDataComponentTypes;
 import dev.doctor4t.trainmurdermystery.index.TMMEntities;
@@ -270,6 +271,8 @@ public class GameFunctions {
         AreasWorldComponent.PosWithOrientation spawnPos = AreasWorldComponent.KEY.get(player.getWorld()).getSpawnPos();
         TeleportTarget teleportTarget = new TeleportTarget(player.getServerWorld(), spawnPos.pos, Vec3d.ZERO, spawnPos.yaw, spawnPos.pitch, TeleportTarget.NO_OP);
         player.teleportTo(teleportTarget);
+
+        ResetPlayer.EVENT.invoker().onReset(player);
     }
 
     public static boolean isPlayerEliminated(PlayerEntity player) {

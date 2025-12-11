@@ -1,6 +1,8 @@
 package dev.doctor4t.trainmurdermystery.cca;
 
 import dev.doctor4t.trainmurdermystery.TMM;
+import dev.doctor4t.trainmurdermystery.event.BuildShopEntries;
+import dev.doctor4t.trainmurdermystery.event.ShopPurchase;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.index.TMMItems;
 import dev.doctor4t.trainmurdermystery.index.TMMSounds;
@@ -21,6 +23,8 @@ import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
+
+import java.util.List;
 
 public class PlayerShopComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
     public static final ComponentKey<PlayerShopComponent> KEY = ComponentRegistry.getOrCreate(TMM.id("shop"), PlayerShopComponent.class);
@@ -45,25 +49,91 @@ public class PlayerShopComponent implements AutoSyncedComponent, ServerTickingCo
     }
 
     public void setBalance(int amount) {
-        this.balance = amount;
-        this.sync();
+        if (this.balance != amount) {
+            this.balance = amount;
+            this.sync();
+        }
+    }
+
+    private void sendPurchaseError(String translationKey) {
+        this.player.sendMessage(Text.translatable(translationKey).formatted(Formatting.DARK_RED), true);
+        if (this.player instanceof ServerPlayerEntity serverPlayer) {
+            serverPlayer.networkHandler.sendPacket(
+                new PlaySoundS2CPacket(
+                    Registries.SOUND_EVENT.getEntry(TMMSounds.UI_SHOP_BUY_FAIL),
+                    SoundCategory.PLAYERS,
+                    serverPlayer.getX(),
+                    serverPlayer.getY(),
+                    serverPlayer.getZ(),
+                    1.0f,
+                    0.9f + this.player.getRandom().nextFloat() * 0.2f,
+                    player.getRandom().nextLong()
+                )
+            );
+        }
     }
 
     public void tryBuy(int index) {
-        if (index < 0 || index >= GameConstants.SHOP_ENTRIES.size()) return;
-        ShopEntry entry = GameConstants.SHOP_ENTRIES.get(index);
-        if (FabricLoader.getInstance().isDevelopmentEnvironment() && this.balance < entry.price())
-            this.balance = entry.price() * 10;
-        if (this.balance >= entry.price() && !this.player.getItemCooldownManager().isCoolingDown(entry.stack().getItem()) && entry.onBuy(this.player)) {
-            this.balance -= entry.price();
-            if (this.player instanceof ServerPlayerEntity player) {
-                player.networkHandler.sendPacket(new PlaySoundS2CPacket(Registries.SOUND_EVENT.getEntry(TMMSounds.UI_SHOP_BUY), SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 1.0f, 0.9f + this.player.getRandom().nextFloat() * 0.2f, player.getRandom().nextLong()));
+        // 1. Build shop entries via event
+        // Empty array = no shop access
+        BuildShopEntries.ShopContext context = new BuildShopEntries.ShopContext(GameConstants.SHOP_ENTRIES);
+        BuildShopEntries.EVENT.invoker().buildEntries(player, context);
+        List<ShopEntry> entries = context.getEntries();
+
+        // 2. Check shop access via empty array
+        if (entries.isEmpty()) {
+            sendPurchaseError("shop.error.not_available");
+            return;
+        }
+
+        // 3. Validate index
+        if (index < 0 || index >= entries.size()) {
+            sendPurchaseError("shop.error.invalid_item");
+            return;
+        }
+        ShopEntry entry = entries.get(index);
+
+        // 4. Fire before purchase event
+        ShopPurchase.PurchaseResult purchaseResult = null;
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            purchaseResult = ShopPurchase.BEFORE.invoker().beforePurchase(serverPlayer, entry, index);
+        }
+
+        // 5. Handle before event result
+        if (purchaseResult != null && !purchaseResult.allowed()) {
+            // If event provides a custom reason, use it as literal text, otherwise use translation key
+            if (purchaseResult.denyReason() != null) {
+                this.player.sendMessage(Text.literal(purchaseResult.denyReason()).formatted(Formatting.DARK_RED), true);
+                if (this.player instanceof ServerPlayerEntity serverPlayer) {
+                    serverPlayer.networkHandler.sendPacket(new PlaySoundS2CPacket(Registries.SOUND_EVENT.getEntry(TMMSounds.UI_SHOP_BUY_FAIL), SoundCategory.PLAYERS, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 1.0f, 0.9f + this.player.getRandom().nextFloat() * 0.2f, player.getRandom().nextLong()));
+                }
+            } else {
+                sendPurchaseError("shop.error.purchase_denied");
+            }
+            return;
+        }
+
+        // 6. Determine actual price
+        int actualPrice = entry.price();
+        if (purchaseResult != null && purchaseResult.hasModifiedPrice()) {
+            actualPrice = purchaseResult.modifiedPrice();
+        }
+
+        // 7. Development environment debug
+        if (FabricLoader.getInstance().isDevelopmentEnvironment() && this.balance < actualPrice)
+            this.balance = actualPrice * 10;
+
+        // 8. Execute purchase
+        if (this.balance >= actualPrice && !this.player.getItemCooldownManager().isCoolingDown(entry.stack().getItem()) && entry.onBuy(this.player)) {
+            this.balance -= actualPrice;
+            if (this.player instanceof ServerPlayerEntity serverPlayer) {
+                serverPlayer.networkHandler.sendPacket(new PlaySoundS2CPacket(Registries.SOUND_EVENT.getEntry(TMMSounds.UI_SHOP_BUY), SoundCategory.PLAYERS, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 1.0f, 0.9f + this.player.getRandom().nextFloat() * 0.2f, player.getRandom().nextLong()));
+
+                // 9. Fire after purchase event
+                ShopPurchase.AFTER.invoker().afterPurchase(serverPlayer, entry, index, actualPrice);
             }
         } else {
-            this.player.sendMessage(Text.literal("Purchase Failed").formatted(Formatting.DARK_RED), true);
-            if (this.player instanceof ServerPlayerEntity player) {
-                player.networkHandler.sendPacket(new PlaySoundS2CPacket(Registries.SOUND_EVENT.getEntry(TMMSounds.UI_SHOP_BUY_FAIL), SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 1.0f, 0.9f + this.player.getRandom().nextFloat() * 0.2f, player.getRandom().nextLong()));
-            }
+            sendPurchaseError("shop.error.purchase_failed");
         }
         this.sync();
     }

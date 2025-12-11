@@ -64,30 +64,8 @@ public interface GameConstants {
     int ITEM_PSYCHOSIS_REROLL_TIME = 200;
 
     // Shop Variables
-    List<ShopEntry> SHOP_ENTRIES = Util.make(new ArrayList<>(), entries -> {
-        entries.add(new ShopEntry(TMMItems.KNIFE.getDefaultStack(), 100, ShopEntry.Type.WEAPON));
-        entries.add(new ShopEntry(TMMItems.REVOLVER.getDefaultStack(), 300, ShopEntry.Type.WEAPON));
-        entries.add(new ShopEntry(TMMItems.GRENADE.getDefaultStack(), 350, ShopEntry.Type.WEAPON));
-        entries.add(new ShopEntry(TMMItems.PSYCHO_MODE.getDefaultStack(), 300, ShopEntry.Type.WEAPON) {
-            @Override
-            public boolean onBuy(@NotNull PlayerEntity player) {
-                return PlayerShopComponent.usePsychoMode(player);
-            }
-        });
-        entries.add(new ShopEntry(TMMItems.POISON_VIAL.getDefaultStack(), 100, ShopEntry.Type.POISON));
-        entries.add(new ShopEntry(TMMItems.SCORPION.getDefaultStack(), 50, ShopEntry.Type.POISON));
-        entries.add(new ShopEntry(TMMItems.FIRECRACKER.getDefaultStack(), 10, ShopEntry.Type.TOOL));
-        entries.add(new ShopEntry(TMMItems.LOCKPICK.getDefaultStack(), 50, ShopEntry.Type.TOOL));
-        entries.add(new ShopEntry(TMMItems.CROWBAR.getDefaultStack(), 25, ShopEntry.Type.TOOL));
-        entries.add(new ShopEntry(TMMItems.BODY_BAG.getDefaultStack(), 100, ShopEntry.Type.TOOL));
-        entries.add(new ShopEntry(TMMItems.BLACKOUT.getDefaultStack(), 200, ShopEntry.Type.TOOL) {
-            @Override
-            public boolean onBuy(@NotNull PlayerEntity player) {
-                return PlayerShopComponent.useBlackout(player);
-            }
-        });
-        entries.add(new ShopEntry(new ItemStack(TMMItems.NOTE, 4), 10, ShopEntry.Type.TOOL));
-    });
+    // Default shop entries - empty by default, populated by BuildShopEntries event
+    List<ShopEntry> SHOP_ENTRIES = new ArrayList<>();
     int MONEY_START = 100;
     Function<Long, Integer> PASSIVE_MONEY_TICKER = time -> {
         if (time % getInTicks(0, 10) == 0) {

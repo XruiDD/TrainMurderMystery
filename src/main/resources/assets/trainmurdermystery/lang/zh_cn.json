@@ -340,6 +340,11 @@
   "item.trainmurdermystery.scorpion.tooltip": "悄悄放入床中，使下一个来休息的人中毒而亡",
   "item.trainmurdermystery.thrown_grenade": "已投掷手雷",
   "itemGroup.trainmurdermystery.building": "TrainMurderMystery：建筑方块",
+
+  "shop.error.not_available": "商店暂不可用",
+  "shop.error.invalid_item": "无效的商品",
+  "shop.error.purchase_denied": "购买被拒绝",
+  "shop.error.purchase_failed": "购买失败",
   "itemGroup.trainmurdermystery.decoration": "TrainMurderMystery：装饰与功能",
   "itemGroup.trainmurdermystery.equipment": "TrainMurderMystery：装备",
   "key.trainmurdermystery.instinct": "本能",

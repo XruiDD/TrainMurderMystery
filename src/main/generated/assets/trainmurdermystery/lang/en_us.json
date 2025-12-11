@@ -316,6 +316,11 @@
   "item.trainmurdermystery.scorpion.tooltip": "Slip in a bed to poison the next person looking for a rest",
   "item.trainmurdermystery.thrown_grenade": "Thrown Grenade",
   "itemGroup.trainmurdermystery.building": "TrainMurderMystery: Building Blocks",
+
+  "shop.error.not_available": "Shop Not Available",
+  "shop.error.invalid_item": "Invalid Item",
+  "shop.error.purchase_denied": "Purchase Denied",
+  "shop.error.purchase_failed": "Purchase Failed",
   "itemGroup.trainmurdermystery.decoration": "TrainMurderMystery: Decoration & Functional",
   "itemGroup.trainmurdermystery.equipment": "TrainMurderMystery: Equipment",
   "key.trainmurdermystery.instinct": "Instinct",

@@ -1,9 +1,8 @@
 package dev.doctor4t.trainmurdermystery.client.gui.screen.ingame;
 
 import dev.doctor4t.trainmurdermystery.TMM;
-import dev.doctor4t.trainmurdermystery.api.TMMRoles;
-import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.client.gui.StoreRenderer;
+import dev.doctor4t.trainmurdermystery.event.BuildShopEntries;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.util.ShopEntry;
 import dev.doctor4t.trainmurdermystery.util.StoreBuyPayload;
@@ -34,8 +33,17 @@ public class LimitedInventoryScreen extends LimitedHandledScreen<PlayerScreenHan
     @Override
     protected void init() {
         super.init();
-        if (!GameWorldComponent.KEY.get(this.player.getWorld()).canUseKillerFeatures(player)) return;
-        List<ShopEntry> entries = GameConstants.SHOP_ENTRIES;
+
+        // Build shop entries via event - empty array = no shop access
+        BuildShopEntries.ShopContext context = new BuildShopEntries.ShopContext(GameConstants.SHOP_ENTRIES);
+        BuildShopEntries.EVENT.invoker().buildEntries(player, context);
+        List<ShopEntry> entries = context.getEntries();
+
+        // Check shop access via empty array
+        if (entries.isEmpty()) {
+            return;
+        }
+
         int apart = 38;
         int x = this.width / 2 - entries.size() * apart / 2 + 9;
         int y = this.y - 46;

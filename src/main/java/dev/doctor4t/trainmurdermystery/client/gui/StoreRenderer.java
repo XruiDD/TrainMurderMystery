@@ -1,8 +1,8 @@
 package dev.doctor4t.trainmurdermystery.client.gui;
 
-import dev.doctor4t.trainmurdermystery.api.TMMRoles;
-import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.cca.PlayerShopComponent;
+import dev.doctor4t.trainmurdermystery.event.BuildShopEntries;
+import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -18,7 +18,14 @@ public class StoreRenderer {
     public static float offsetDelta = 0f;
 
     public static void renderHud(TextRenderer renderer, @NotNull ClientPlayerEntity player, @NotNull DrawContext context, float delta) {
-        if (!GameWorldComponent.KEY.get(player.getWorld()).canUseKillerFeatures(player)) return;
+        // Check shop access via BuildShopEntries - empty array = no access
+        BuildShopEntries.ShopContext shopContext = new BuildShopEntries.ShopContext(GameConstants.SHOP_ENTRIES);
+        BuildShopEntries.EVENT.invoker().buildEntries(player, shopContext);
+        if (shopContext.getEntries().isEmpty()) {
+            // No shop access
+            return;
+        }
+
         int balance = PlayerShopComponent.KEY.get(player).balance;
         if (view.getTarget() != balance) {
             offsetDelta = balance > view.getTarget() ? .6f : -.6f;

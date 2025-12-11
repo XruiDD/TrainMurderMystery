@@ -1,12 +1,9 @@
 package dev.doctor4t.trainmurdermystery.util;
 
 import dev.doctor4t.trainmurdermystery.TMM;
-import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
-import net.minecraft.world.GameMode;
 import org.jetbrains.annotations.NotNull;
 
 public class ShopEntry {
@@ -37,9 +34,7 @@ public class ShopEntry {
     }
 
     public boolean onBuy(@NotNull PlayerEntity player) {
-        if (GameWorldComponent.KEY.get(player.getWorld()).canUseKillerFeatures(player)) {
-            return insertStackInFreeSlot(player, this.stack.copy());
-        } else return false;
+        return insertStackInFreeSlot(player, this.stack.copy());
     }
 
     public static boolean insertStackInFreeSlot(@NotNull PlayerEntity player, ItemStack stackToInsert) {

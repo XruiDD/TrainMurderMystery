@@ -2,9 +2,8 @@ package dev.doctor4t.trainmurdermystery.client.gui.screen.ingame;
 
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.client.gui.StoreRenderer;
-import dev.doctor4t.trainmurdermystery.event.BuildShopEntries;
-import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.util.ShopEntry;
+import dev.doctor4t.trainmurdermystery.util.ShopUtils;
 import dev.doctor4t.trainmurdermystery.util.StoreBuyPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.font.TextRenderer;
@@ -34,12 +33,10 @@ public class LimitedInventoryScreen extends LimitedHandledScreen<PlayerScreenHan
     protected void init() {
         super.init();
 
-        // Build shop entries via event - empty array = no shop access
-        BuildShopEntries.ShopContext context = new BuildShopEntries.ShopContext(GameConstants.SHOP_ENTRIES);
-        BuildShopEntries.EVENT.invoker().buildEntries(player, context);
-        List<ShopEntry> entries = context.getEntries();
+        // Get shop entries for this player
+        List<ShopEntry> entries = ShopUtils.getShopEntriesForPlayer(player);
 
-        // Check shop access via empty array
+        // Check shop access
         if (entries.isEmpty()) {
             return;
         }

@@ -1,8 +1,7 @@
 package dev.doctor4t.trainmurdermystery.client.gui;
 
 import dev.doctor4t.trainmurdermystery.cca.PlayerShopComponent;
-import dev.doctor4t.trainmurdermystery.event.BuildShopEntries;
-import dev.doctor4t.trainmurdermystery.game.GameConstants;
+import dev.doctor4t.trainmurdermystery.util.ShopUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -18,11 +17,8 @@ public class StoreRenderer {
     public static float offsetDelta = 0f;
 
     public static void renderHud(TextRenderer renderer, @NotNull ClientPlayerEntity player, @NotNull DrawContext context, float delta) {
-        // Check shop access via BuildShopEntries - empty array = no access
-        BuildShopEntries.ShopContext shopContext = new BuildShopEntries.ShopContext(GameConstants.SHOP_ENTRIES);
-        BuildShopEntries.EVENT.invoker().buildEntries(player, shopContext);
-        if (shopContext.getEntries().isEmpty()) {
-            // No shop access
+        // Check shop access
+        if (!ShopUtils.canAccessShop(player)) {
             return;
         }
 

@@ -53,7 +53,6 @@ public interface BuildShopEntries {
      */
     class ShopContext {
         private final List<ShopEntry> entries;
-        private boolean cleared = false;
 
         public ShopContext(@NotNull List<ShopEntry> defaultEntries) {
             this.entries = new ArrayList<>(defaultEntries);
@@ -97,18 +96,10 @@ public interface BuildShopEntries {
 
         /**
          * Clear all entries from the shop.
-         * Useful for mods that want to completely replace the shop.
+         * Useful for denying shop access or completely replacing shop contents.
          */
         public void clearEntries() {
             this.entries.clear();
-            this.cleared = true;
-        }
-
-        /**
-         * @return true if clearEntries() was called
-         */
-        public boolean wasCleared() {
-            return cleared;
         }
 
         /**

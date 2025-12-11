@@ -1,6 +1,7 @@
 package dev.doctor4t.trainmurdermystery.cca;
 
 import dev.doctor4t.trainmurdermystery.TMM;
+import dev.doctor4t.trainmurdermystery.event.PlayerPoisoned;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import net.minecraft.entity.player.PlayerEntity;
@@ -95,10 +96,20 @@ public class PlayerPoisonComponent implements AutoSyncedComponent, ServerTicking
     }
 
     public void setPoisonTicks(int ticks, UUID poisoner) {
+        // Call before event - allow cancellation
+        PlayerPoisoned.PoisonResult result = PlayerPoisoned.BEFORE.invoker().beforePlayerPoisoned(this.player, ticks, poisoner);
+        if (result != null && result.cancelled()) {
+            // Event cancelled the poisoning
+            return;
+        }
+
         this.poisoner = poisoner;
         this.poisonTicks = ticks;
         if (this.initialPoisonTicks == 0) this.initialPoisonTicks = ticks;
         this.sync();
+
+        // Call after event
+        PlayerPoisoned.AFTER.invoker().afterPlayerPoisoned(this.player, ticks, poisoner);
     }
 
     @Override

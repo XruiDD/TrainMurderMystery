@@ -3,6 +3,7 @@ package dev.doctor4t.trainmurdermystery.client.gui;
 import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.doctor4t.trainmurdermystery.api.Faction;
+import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMGameModes;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.cca.GameRoundEndComponent;
@@ -95,12 +96,14 @@ public class RoundTextRenderer {
             context.getMatrices().translate(context.getScaledWindowWidth() / 2f, context.getScaledWindowHeight() / 2f - 40, 0);
             context.getMatrices().push();
             context.getMatrices().scale(2.6f, 2.6f, 1f);
-            context.drawTextWithShadow(renderer, endText, -renderer.getWidth(endText) / 2, -12, 0xFFFFFF);
+            int endTextWidth = renderer.getWidth(endText);
+            context.drawTextWithShadow(renderer, endText, -endTextWidth / 2, -12, 0xFFFFFF);
             context.getMatrices().pop();
             context.getMatrices().push();
             context.getMatrices().scale(1.2f, 1.2f, 1f);
             MutableText winMessage = Text.translatable("game.win." + roundEnd.getWinStatus().name().toLowerCase().toLowerCase());
-            context.drawTextWithShadow(renderer, winMessage, -renderer.getWidth(winMessage) / 2, -4, 0xFFFFFF);
+            int winMessageWidth = renderer.getWidth(winMessage);
+            context.drawTextWithShadow(renderer, winMessage, -winMessageWidth / 2, -4, 0xFFFFFF);
             context.getMatrices().pop();
             if (isLooseEnds) {
                 context.drawTextWithShadow(renderer, RoleAnnouncementTexts.LOOSE_END.titleText, -renderer.getWidth(RoleAnnouncementTexts.LOOSE_END.titleText) / 2, 14, 0xFFFFFF);
@@ -133,76 +136,64 @@ public class RoundTextRenderer {
                 }
                 context.getMatrices().pop();
             } else {
-                // Group players by faction
-                List<GameRoundEndComponent.RoundEndData> civilianPlayers = new ArrayList<>();
-                List<GameRoundEndComponent.RoundEndData> killerPlayers = new ArrayList<>();
-                List<GameRoundEndComponent.RoundEndData> neutralPlayers = new ArrayList<>();
+                // Group players by win/lose status
+                List<GameRoundEndComponent.RoundEndData> winners = new ArrayList<>();
+                List<GameRoundEndComponent.RoundEndData> losers = new ArrayList<>();
 
                 for (GameRoundEndComponent.RoundEndData entry : roundEnd.getPlayers()) {
-                    Faction faction = TMMRoles.getRole(entry.role()).getFaction();
-                    switch (faction) {
-                        case CIVILIAN -> civilianPlayers.add(entry);
-                        case KILLER -> killerPlayers.add(entry);
-                        case NEUTRAL -> neutralPlayers.add(entry);
+                    if (entry.isWinner()) {
+                        winners.add(entry);
+                    } else {
+                        losers.add(entry);
                     }
                 }
 
-                boolean hasNeutrals = !neutralPlayers.isEmpty();
+                // Layout constants - more compact
+                int playersPerRow = 5;
+                int cardWidth = 36; // Compact width per player card
+                int cardHeight = 28; // Height per row (head 16px + role name + small spacing)
+                int startY = 16; // Starting Y position below win message
+                int titleToCardsGap = 14; // Gap between title and player cards
 
-                // Calculate layout positions based on whether neutrals exist
-                int civilianX = hasNeutrals ? -80 : -60;
-                int killerX = hasNeutrals ? 0 : 50;
-                int neutralX = 80;
+                // Render winner players (no title)
+                int winnerRows = winners.isEmpty() ? 0 : (winners.size() + playersPerRow - 1) / playersPerRow;
 
-                // Calculate vertical offset for killer group based on civilian count
-                int civilianRows = (civilianPlayers.size() + 3) / 4; // 4 per row for civilians
-                int killerYOffset = hasNeutrals ? 0 : Math.max(0, (civilianRows - 1)) * 12;
-
-                // Draw faction titles
-                Text civilianTitle = Text.translatable("announcement.faction.civilian").withColor(RoleAnnouncementTexts.CIVILIAN.colour);
-                context.drawTextWithShadow(renderer, civilianTitle, -renderer.getWidth(civilianTitle) / 2 + civilianX, 14, 0xFFFFFF);
-
-                Text killerTitle = Text.translatable("announcement.faction.killer").withColor(RoleAnnouncementTexts.KILLER.colour);
-                context.drawTextWithShadow(renderer, killerTitle, -renderer.getWidth(killerTitle) / 2 + killerX, 14 + (hasNeutrals ? 0 : killerYOffset), 0xFFFFFF);
-
-                if (hasNeutrals) {
-                    Text neutralTitle = Text.translatable("announcement.faction.neutral").withColor(0xFF9F00);
-                    context.drawTextWithShadow(renderer, neutralTitle, -renderer.getWidth(neutralTitle) / 2 + neutralX, 14, 0xFFFFFF);
+                for (int i = 0; i < winners.size(); i++) {
+                    GameRoundEndComponent.RoundEndData entry = winners.get(i);
+                    int row = i / playersPerRow;
+                    int col = i % playersPerRow;
+                    // Center the row
+                    int itemsInThisRow = (row == winnerRows - 1) ? ((winners.size() - 1) % playersPerRow + 1) : playersPerRow;
+                    int rowWidth = itemsInThisRow * cardWidth;
+                    int rowStartX = -rowWidth / 2;
+                    int x = rowStartX + col * cardWidth + cardWidth / 2 - 8; // Center the head (16px wide) within card
+                    int y = startY + row * cardHeight;
+                    renderPlayerCard(context, renderer, entry, x, y);
                 }
 
-                // Render civilian players
-                int civIndex = 0;
-                for (GameRoundEndComponent.RoundEndData entry : civilianPlayers) {
-                    context.getMatrices().push();
-                    context.getMatrices().scale(2f, 2f, 1f);
-                    int columns = hasNeutrals ? 2 : 4;
-                    context.getMatrices().translate(civilianX + (civIndex % columns) * 12, 14 + 12 + (civIndex / columns) * 12, 0);
-                    renderPlayerHead(context, renderer, entry);
-                    context.getMatrices().pop();
-                    civIndex++;
-                }
+                // Calculate losers section Y position
+                int losersStartY = startY + Math.max(1, winnerRows) * cardHeight + 8;
 
-                // Render killer players
-                int killerIndex = 0;
-                for (GameRoundEndComponent.RoundEndData entry : killerPlayers) {
-                    context.getMatrices().push();
-                    context.getMatrices().scale(2f, 2f, 1f);
-                    context.getMatrices().translate(killerX + (killerIndex % 2) * 12, 14 + 12 + (hasNeutrals ? 0 : killerYOffset) + (killerIndex / 2) * 12, 0);
-                    renderPlayerHead(context, renderer, entry);
-                    context.getMatrices().pop();
-                    killerIndex++;
-                }
+                // Draw losers section title (centered)
+                if (!losers.isEmpty()) {
+                    Text losersTitle = Text.translatable("announcement.result.losers");
+                    int losersTitleX = -renderer.getWidth(losersTitle) / 2;
+                    context.drawTextWithShadow(renderer, losersTitle, losersTitleX, losersStartY, 0xFF5555);
 
-                // Render neutral players (if any)
-                if (hasNeutrals) {
-                    int neutralIndex = 0;
-                    for (GameRoundEndComponent.RoundEndData entry : neutralPlayers) {
-                        context.getMatrices().push();
-                        context.getMatrices().scale(2f, 2f, 1f);
-                        context.getMatrices().translate(neutralX + (neutralIndex % 2) * 12, 14 + 12 + (neutralIndex / 2) * 12, 0);
-                        renderPlayerHead(context, renderer, entry);
-                        context.getMatrices().pop();
-                        neutralIndex++;
+                    // Render loser players
+                    int loserRows = (losers.size() + playersPerRow - 1) / playersPerRow;
+
+                    for (int i = 0; i < losers.size(); i++) {
+                        GameRoundEndComponent.RoundEndData entry = losers.get(i);
+                        int row = i / playersPerRow;
+                        int col = i % playersPerRow;
+                        // Center the row
+                        int itemsInThisRow = (row == loserRows - 1) ? ((losers.size() - 1) % playersPerRow + 1) : playersPerRow;
+                        int rowWidth = itemsInThisRow * cardWidth;
+                        int rowStartX = -rowWidth / 2;
+                        int x = rowStartX + col * cardWidth + cardWidth / 2 - 8; // Center the head within card
+                        int y = losersStartY + titleToCardsGap + row * cardHeight;
+                        renderPlayerCard(context, renderer, entry, x, y);
                     }
                 }
 
@@ -262,6 +253,49 @@ public class RoundTextRenderer {
         welcomeTime = 0;
         endTime = END_DURATION;
     }
+    /**
+     * Helper method to render a player card with head and role name
+     */
+    private static void renderPlayerCard(DrawContext context, TextRenderer renderer, GameRoundEndComponent.RoundEndData entry, int x, int y) {
+        PlayerListEntry playerEntry = TMMClient.PLAYER_ENTRIES_CACHE.get(entry.player().getId());
+
+        // Get role information
+        RoleAnnouncementTexts.RoleAnnouncementText role = RoleAnnouncementTexts.getForRole(entry.role());
+        Text roleName = role.roleText;
+
+        // Render player head with 2x scale (same as original code)
+        if (playerEntry != null) {
+            Identifier texture = playerEntry.getSkinTextures().texture();
+            if (texture != null) {
+                RenderSystem.enableBlend();
+                context.getMatrices().push();
+                context.getMatrices().scale(2f, 2f, 1f);
+                context.getMatrices().translate(x / 2f, y / 2f, 0);
+                float offColour = entry.wasDead() ? 0.4f : 1f;
+                // Draw base head (8x8)
+                context.drawTexturedQuad(texture, 0, 8, 0, 8, 0, 8 / 64f, 16 / 64f, 8 / 64f, 16 / 64f, 1f, offColour, offColour, 1f);
+                // Draw hat layer
+                context.getMatrices().translate(-0.5, -0.5, 0);
+                context.getMatrices().scale(1.125f, 1.125f, 1f);
+                context.drawTexturedQuad(texture, 0, 8, 0, 8, 0, 40 / 64f, 48 / 64f, 8 / 64f, 16 / 64f, 1f, offColour, offColour, 1f);
+                context.getMatrices().pop();
+            }
+            // Draw death marker (same style as original)
+            if (entry.wasDead()) {
+                context.getMatrices().push();
+                context.getMatrices().scale(2f, 2f, 1f);
+                context.getMatrices().translate(x / 2f + 5, y / 2f, 0);
+                context.getMatrices().scale(2f, 1f, 1f);
+                context.drawText(renderer, "x", -renderer.getWidth("x") / 2, 0, 0xE10000, false);
+                context.drawText(renderer, "x", -renderer.getWidth("x") / 2, 1, 0x550000, false);
+                context.getMatrices().pop();
+            }
+        }
+
+        // Render role name below head
+        context.drawTextWithShadow(renderer, roleName, x + 8 - renderer.getWidth(roleName) / 2, y + 18, role.colour);
+    }
+
     /**
      * Helper method to render a player head with death indicator
      */

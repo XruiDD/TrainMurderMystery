@@ -5,6 +5,7 @@ import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
+import dev.doctor4t.trainmurdermystery.event.TaskComplete;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import dev.doctor4t.trainmurdermystery.index.tag.TMMItemTags;
@@ -136,8 +137,10 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
             if (task.isFulfilled(this.player)) {
                 removals.add(task.getType());
                 this.setMood(this.mood + GameConstants.MOOD_GAIN);
-                if (this.player instanceof ServerPlayerEntity tempPlayer)
+                if (this.player instanceof ServerPlayerEntity tempPlayer) {
                     ServerPlayNetworking.send(tempPlayer, new TaskCompletePayload());
+                    TaskComplete.EVENT.invoker().onTaskComplete(tempPlayer, task.getType());
+                }
                 shouldSync = true;
             }
         }

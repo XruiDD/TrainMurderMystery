@@ -4,6 +4,7 @@ import dev.doctor4t.trainmurdermystery.api.GameMode;
 import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.cca.*;
+import dev.doctor4t.trainmurdermystery.event.CheckWinCondition;
 import dev.doctor4t.trainmurdermystery.event.RoleAssigned;
 import dev.doctor4t.trainmurdermystery.util.AnnounceWelcomePayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -79,22 +80,6 @@ public class MurderGameMode extends GameMode {
         if (!GameTimeComponent.KEY.get(serverWorld).hasTime())
             winStatus = GameFunctions.WinStatus.TIME;
 
-        // check neutral win conditions first (priority over killer/civilian wins)
-        if (winStatus == GameFunctions.WinStatus.NONE) {
-            for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-                if (GameFunctions.isPlayerEliminated(player)) continue;
-
-                Role role = gameWorldComponent.getRole(player);
-                if (role != null && role.isNeutral() && role.hasWinCondition()) {
-                    if (role.getWinCondition() != null && role.getWinCondition().checkWin(player, serverWorld, gameWorldComponent)) {
-                        winStatus = GameFunctions.WinStatus.NEUTRAL;
-                        neutralWinner = player;
-                        break; // first neutral to satisfy condition wins
-                    }
-                }
-            }
-        }
-
         boolean civilianAlive = false;
         for (ServerPlayerEntity player : serverWorld.getPlayers()) {
             // passive money
@@ -109,7 +94,7 @@ public class MurderGameMode extends GameMode {
             }
         }
 
-        // check killer win condition (killed all civilians) - only if no neutral has won
+        // check killer win condition (killed all civilians)
         if (winStatus == GameFunctions.WinStatus.NONE && !civilianAlive) {
             winStatus = GameFunctions.WinStatus.KILLERS;
         }
@@ -120,13 +105,22 @@ public class MurderGameMode extends GameMode {
             for (UUID player : gameWorldComponent.getAllKillerTeamPlayers()) {
                 if (!GameFunctions.isPlayerEliminated(serverWorld.getPlayerByUuid(player))) {
                     winStatus = GameFunctions.WinStatus.NONE;
+                    break;
                 }
             }
         }
 
+        // allow mods to override win conditions (neutral wins, block wins, etc.)
+        CheckWinCondition.WinResult eventResult = CheckWinCondition.EVENT.invoker()
+                .checkWin(serverWorld, gameWorldComponent, winStatus);
+        if (eventResult != null) {
+            winStatus = eventResult.status();
+            neutralWinner = eventResult.winner();
+        }
+
         // game end on win and display
         if (winStatus != GameFunctions.WinStatus.NONE && gameWorldComponent.getGameStatus() == GameWorldComponent.GameStatus.ACTIVE) {
-            if (winStatus == GameFunctions.WinStatus.NEUTRAL) {
+            if (winStatus == GameFunctions.WinStatus.NEUTRAL && neutralWinner != null) {
                 // use single winner method for neutral wins
                 GameRoundEndComponent.KEY.get(serverWorld).setRoundEndData(serverWorld.getPlayers(), neutralWinner);
             } else {

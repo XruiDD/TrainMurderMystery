@@ -26,6 +26,7 @@ import dev.doctor4t.trainmurdermystery.client.render.entity.NoteEntityRenderer;
 import dev.doctor4t.trainmurdermystery.client.util.TMMItemTooltips;
 import dev.doctor4t.trainmurdermystery.entity.FirecrackerEntity;
 import dev.doctor4t.trainmurdermystery.entity.NoteEntity;
+import dev.doctor4t.trainmurdermystery.event.GetInstinctHighlight;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import dev.doctor4t.trainmurdermystery.index.*;
@@ -383,6 +384,13 @@ public class TMMClient implements ClientModInitializer {
 
     public static int getInstinctHighlight(Entity target) {
         if (!isInstinctEnabled()) return -1;
+
+        // 触发事件，允许附属 mod 自定义高亮
+        int eventColor = GetInstinctHighlight.EVENT.invoker().getHighlight(target);
+        if (eventColor != -1) {
+            return eventColor;
+        }
+
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
         if (target instanceof PlayerEntity) {
             if (!(target).isSpectator()) {

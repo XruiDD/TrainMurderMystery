@@ -65,7 +65,7 @@ public class ForceRoleCommand {
                         forcedList.add(targetPlayer.getUuid());
                     }
                     Text roleText = Text.literal(finalRole.identifier().getPath()).withColor(finalRole.color());
-                    source.sendFeedback(() -> Text.translatable("commands.tmm.forcerole.success", roleText, targetPlayer.getDisplayName()), true);
+                    source.sendFeedback(() -> Text.translatable("commands.trainmurdermystery.forcerole.success", roleText, targetPlayer.getDisplayName()), true);
                 });
             }
         }

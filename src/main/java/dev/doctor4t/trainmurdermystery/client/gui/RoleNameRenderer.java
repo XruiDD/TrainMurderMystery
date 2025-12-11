@@ -6,7 +6,10 @@ import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.cca.PlayerPsychoComponent;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.entity.NoteEntity;
+import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
+import dev.doctor4t.trainmurdermystery.event.CanSeeBodyRole;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -22,12 +25,16 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.LightType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
+
 public class RoleNameRenderer {
     private static TrainRole targetRole = TrainRole.BYSTANDER;
 
     private static float nametagAlpha = 0f;
     private static float noteAlpha = 0f;
+    private static float bodyRoleAlpha = 0f;
     private static Text nametag = Text.empty();
+    private static Role bodyRole = null;
     private static final Text[] note = new Text[]{Text.empty(), Text.empty(), Text.empty(), Text.empty()};
 
     public static void renderHud(TextRenderer renderer, @NotNull ClientPlayerEntity player, DrawContext context, RenderTickCounter tickCounter) {
@@ -73,6 +80,28 @@ public class RoleNameRenderer {
                     context.drawTextWithShadow(renderer, roleText, -roleWidth / 2, 0, MathHelper.packRgb(1f, 0f, 0f) | ((int) (nametagAlpha * 255) << 24));
                 }
             }
+            context.getMatrices().pop();
+        }
+        // 尸体角色显示逻辑：检测玩家是否在看尸体
+        if (ProjectileUtil.getCollision(player, entity -> entity instanceof PlayerBodyEntity, range) instanceof EntityHitResult ehr && ehr.getEntity() instanceof PlayerBodyEntity body) {
+            UUID deadPlayerUuid = body.getPlayerUuid();
+            // 检查是否有权限查看尸体角色（旁观者/创造模式 或 通过 Event 允许）
+            if (deadPlayerUuid != null && (TMMClient.isPlayerSpectatingOrCreative() || CanSeeBodyRole.EVENT.invoker().canSee(MinecraftClient.getInstance().player))) {
+                bodyRole = component.getRole(deadPlayerUuid);
+                bodyRoleAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 4, bodyRoleAlpha, 1f);
+            } else {
+                bodyRoleAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 4, bodyRoleAlpha, 0f);
+            }
+        } else {
+            bodyRoleAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 4, bodyRoleAlpha, 0f);
+        }
+        // 渲染尸体角色信息
+        if (bodyRoleAlpha > 0.05f && bodyRole != null) {
+            context.getMatrices().push();
+            context.getMatrices().translate(context.getScaledWindowWidth() / 2f, context.getScaledWindowHeight() / 2f + 6, 0);
+            context.getMatrices().scale(0.6f, 0.6f, 1f);
+            Text roleName = Text.translatable("announcement.role." + bodyRole.identifier().getPath());
+            context.drawTextWithShadow(renderer, roleName, -renderer.getWidth(roleName) / 2, 0, bodyRole.color() | (int) (bodyRoleAlpha * 255.0F) << 24);
             context.getMatrices().pop();
         }
         if (ProjectileUtil.getCollision(player, entity -> entity instanceof NoteEntity, range) instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() instanceof NoteEntity note) {

@@ -24,9 +24,12 @@ public abstract class KeyBindingMixin {
             result = this.equals(MinecraftClient.getInstance().options.chatKey) ||
                     this.equals(MinecraftClient.getInstance().options.commandKey);
         }
+
+        if (!result && TMMClient.gameComponent.isRunning()){
+            result = this.equals(MinecraftClient.getInstance().options.jumpKey);
+        }
         if (!result && TMMClient.isPlayerAliveAndInSurvival()) {
-            result =  this.equals(MinecraftClient.getInstance().options.swapHandsKey) ||
-                    this.equals(MinecraftClient.getInstance().options.jumpKey) ||
+            result = this.equals(MinecraftClient.getInstance().options.swapHandsKey) ||
                     this.equals(MinecraftClient.getInstance().options.togglePerspectiveKey) ||
                     this.equals(MinecraftClient.getInstance().options.dropKey) ||
                     this.equals(MinecraftClient.getInstance().options.advancementsKey);

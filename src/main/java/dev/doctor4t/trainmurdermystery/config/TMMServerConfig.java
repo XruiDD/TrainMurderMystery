@@ -11,6 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TMMServerConfig {
+    // 惩罚类型枚举
+    public enum ShootInnocentPunishment {
+        DEFAULT,
+        PREVENT_GUN_PICKUP,
+        KILL_SHOOTER
+    }
+
     public static ConfigClassHandler<TMMServerConfig> HANDLER = ConfigClassHandler.createBuilder(TMMServerConfig.class)
             .id(TMM.id("server_config"))
             .serializer(config -> GsonConfigSerializerBuilder.create(config)
@@ -57,4 +64,7 @@ public class TMMServerConfig {
 
     @SerialEntry(comment = "默认时间 (DAY/NIGHT/SUNDOWN)")
     public TrainWorldComponent.TimeOfDay timeOfDay = TrainWorldComponent.TimeOfDay.NIGHT;
+
+    @SerialEntry(comment = "射杀无辜玩家的惩罚 (DEFAULT/PREVENT_GUN_PICKUP/KILL_SHOOTER)")
+    public ShootInnocentPunishment shootInnocentPunishment = ShootInnocentPunishment.DEFAULT;
 }

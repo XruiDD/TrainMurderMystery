@@ -209,6 +209,19 @@ public class TMMModMenuIntegration implements ModMenuApi {
                         .enumClass(TrainWorldComponent.TimeOfDay.class))
                     .build())
 
+                // 射杀无辜惩罚
+                .option(Option.<TMMServerConfig.ShootInnocentPunishment>createBuilder()
+                    .name(Text.translatable("config.trainmurdermystery.shoot_innocent_punishment"))
+                    .description(OptionDescription.of(Text.translatable("config.trainmurdermystery.shoot_innocent_punishment.desc")))
+                    .binding(
+                        TMMServerConfig.ShootInnocentPunishment.DEFAULT,
+                        () -> TMMServerConfig.HANDLER.instance().shootInnocentPunishment,
+                        val -> TMMServerConfig.HANDLER.instance().shootInnocentPunishment = val
+                    )
+                    .controller(opt -> EnumControllerBuilder.create(opt)
+                        .enumClass(TMMServerConfig.ShootInnocentPunishment.class))
+                    .build())
+
                 // 禁用角色列表
                 .group(ListOption.<String>createBuilder()
                     .name(Text.translatable("config.trainmurdermystery.disabled_roles"))

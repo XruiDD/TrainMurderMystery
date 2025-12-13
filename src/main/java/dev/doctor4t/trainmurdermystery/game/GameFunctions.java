@@ -176,6 +176,7 @@ public class GameFunctions {
             for (Item item : copy) serverPlayerEntity.getItemCooldownManager().remove(item);
         }
         gameComponent.clearRoleMap();
+        gameComponent.clearPreventGunPickup(); // 清空射杀无辜惩罚列表
         GameTimeComponent.KEY.get(serverWorld).reset();
 
         // reset train

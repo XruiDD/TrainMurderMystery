@@ -6,6 +6,7 @@ import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMGameModes;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.config.TMMServerConfig;
+import dev.doctor4t.trainmurdermystery.config.TMMServerConfig.ShootInnocentPunishment;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import com.mojang.authlib.GameProfile;
@@ -66,6 +67,10 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     private int nextRoundKillerCount = 0; // 0 = use ratio, >0 = exact count for next round
     private int killerPlayerRatio = 6; // 1 killer per X players
 
+    // 射杀无辜惩罚
+    private ShootInnocentPunishment shootInnocentPunishment = ShootInnocentPunishment.DEFAULT;
+    private final HashSet<UUID> preventGunPickup = new HashSet<>();
+
     public GameWorldComponent(World world) {
         this.world = world;
         // 应用服务器配置默认值
@@ -74,6 +79,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         this.killerPlayerRatio = config.killerRatio;
         this.nextRoundKillerCount = config.killerCount;
         this.bound = config.bound;
+        this.shootInnocentPunishment = config.shootInnocentPunishment;
     }
 
     public int getNextRoundKillerCount() {
@@ -269,6 +275,27 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         this.sync();
     }
 
+    public ShootInnocentPunishment getShootInnocentPunishment() {
+        return shootInnocentPunishment;
+    }
+
+    public void setShootInnocentPunishment(ShootInnocentPunishment punishment) {
+        this.shootInnocentPunishment = punishment;
+        this.sync();
+    }
+
+    public void addToPreventGunPickup(PlayerEntity player) {
+        this.preventGunPickup.add(player.getUuid());
+    }
+
+    public boolean isPreventedFromGunPickup(PlayerEntity player) {
+        return this.preventGunPickup.contains(player.getUuid());
+    }
+
+    public void clearPreventGunPickup() {
+        this.preventGunPickup.clear();
+    }
+
     @Override
     public void readFromNbt(@NotNull NbtCompound nbtCompound, RegistryWrapper.WrapperLookup wrapperLookup) {
 
@@ -281,6 +308,15 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         this.backfireChance = nbtCompound.getFloat("BackfireChance");
         this.nextRoundKillerCount = nbtCompound.getInt("NextRoundKillerCount");
         this.killerPlayerRatio = nbtCompound.getInt("KillerPlayerRatio") > 0 ? nbtCompound.getInt("KillerPlayerRatio") : 6;
+
+        // Read shoot innocent punishment
+        if (nbtCompound.contains("ShootInnocentPunishment")) {
+            try {
+                this.shootInnocentPunishment = ShootInnocentPunishment.valueOf(nbtCompound.getString("ShootInnocentPunishment"));
+            } catch (IllegalArgumentException e) {
+                this.shootInnocentPunishment = ShootInnocentPunishment.DEFAULT;
+            }
+        }
 
         for (Role role : TMMRoles.ROLES) {
             this.setRoles(uuidListFromNbt(nbtCompound, role.identifier().toString()), role);
@@ -311,6 +347,14 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
                 this.deadPlayers.add(NbtHelper.toUuid(e));
             }
         }
+
+        // Read prevent gun pickup list
+        this.preventGunPickup.clear();
+        if (nbtCompound.contains("PreventGunPickup")) {
+            for (NbtElement e : nbtCompound.getList("PreventGunPickup", NbtElement.INT_ARRAY_TYPE)) {
+                this.preventGunPickup.add(NbtHelper.toUuid(e));
+            }
+        }
     }
 
     private ArrayList<UUID> uuidListFromNbt(NbtCompound nbtCompound, String listName) {
@@ -334,6 +378,9 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         nbtCompound.putInt("NextRoundKillerCount", nextRoundKillerCount);
         nbtCompound.putInt("KillerPlayerRatio", killerPlayerRatio);
 
+        // Write shoot innocent punishment
+        nbtCompound.putString("ShootInnocentPunishment", shootInnocentPunishment.name());
+
         for (Role role : TMMRoles.ROLES) {
             nbtCompound.put(role.identifier().toString(), nbtFromUuidList(getAllWithRole(role)));
         }
@@ -356,6 +403,13 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
             deadList.add(NbtHelper.fromUuid(uuid));
         }
         nbtCompound.put("DeadPlayers", deadList);
+
+        // Write prevent gun pickup list
+        NbtList preventGunPickupList = new NbtList();
+        for (UUID uuid : this.preventGunPickup) {
+            preventGunPickupList.add(NbtHelper.fromUuid(uuid));
+        }
+        nbtCompound.put("PreventGunPickup", preventGunPickupList);
     }
 
     private NbtList nbtFromUuidList(List<UUID> list) {

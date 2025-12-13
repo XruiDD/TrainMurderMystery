@@ -91,10 +91,12 @@ public interface GameConstants {
         Identifier GENERIC = TMM.id("generic");
         Identifier KNIFE = TMM.id("knife_stab");
         Identifier GUN = TMM.id("gun_shot");
+        Identifier GUN_BACKFIRE = TMM.id("gun_shot_backfire");
         Identifier BAT = TMM.id("bat_hit");
         Identifier GRENADE = TMM.id("grenade");
         Identifier POISON = TMM.id("poison");
         Identifier FELL_OUT_OF_TRAIN = TMM.id("fell_out_of_train");
         Identifier ESCAPED = TMM.id("escaped");
+        Identifier SHOT_INNOCENT = TMM.id("shot_innocent");
     }
 }

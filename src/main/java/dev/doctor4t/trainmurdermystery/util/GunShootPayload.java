@@ -9,6 +9,7 @@ import dev.doctor4t.trainmurdermystery.index.TMMDataComponentTypes;
 import dev.doctor4t.trainmurdermystery.index.TMMItems;
 import dev.doctor4t.trainmurdermystery.index.TMMSounds;
 import dev.doctor4t.trainmurdermystery.index.tag.TMMItemTags;
+import dev.doctor4t.trainmurdermystery.config.TMMServerConfig.ShootInnocentPunishment;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.ItemEntity;
@@ -66,19 +67,46 @@ public record GunShootPayload(int target) implements CustomPayload {
                     // backfire: if you kill an innocent you have a chance of shooting yourself instead
                     if (game.isInnocent(player) && player.getRandom().nextFloat() <= game.getBackfireChance()) {
                         backfire = true;
-                        GameFunctions.killPlayer(player, true, player, GameConstants.DeathReasons.GUN);
+                        GameFunctions.killPlayer(player, true, player, GameConstants.DeathReasons.GUN_BACKFIRE);
                     } else {
-                        Scheduler.schedule(() -> {
-                            if (!context.player().getInventory().contains((s) -> s.isIn(TMMItemTags.GUNS))) return;
-                            player.getInventory().remove((s) -> s.isOf(revolver), 1, player.getInventory());
-                            ItemEntity item = player.dropItem(revolver.getDefaultStack(), false, false);
-                            if (item != null) {
-                                item.setPickupDelay(10);
-                                item.setThrower(player);
+                        // 应用射杀无辜惩罚
+                        ShootInnocentPunishment punishment = game.getShootInnocentPunishment();
+                        switch (punishment) {
+                            case DEFAULT -> {
+                                // 默认行为：掉落枪支
+                                Scheduler.schedule(() -> {
+                                    if (!context.player().getInventory().contains((s) -> s.isIn(TMMItemTags.GUNS))) return;
+                                    player.getInventory().remove((s) -> s.isOf(revolver), 1, player.getInventory());
+                                    ItemEntity item = player.dropItem(revolver.getDefaultStack(), false, false);
+                                    if (item != null) {
+                                        item.setPickupDelay(10);
+                                        item.setThrower(player);
+                                    }
+                                    ServerPlayNetworking.send(player, new GunDropPayload());
+                                    PlayerMoodComponent.KEY.get(player).setMood(0);
+                                }, 4);
                             }
-                            ServerPlayNetworking.send(player, new GunDropPayload());
-                            PlayerMoodComponent.KEY.get(player).setMood(0);
-                        }, 4);
+                            case PREVENT_GUN_PICKUP -> {
+                                // 禁止拾取枪支：掉落枪支并标记玩家
+                                Scheduler.schedule(() -> {
+                                    if (!context.player().getInventory().contains((s) -> s.isIn(TMMItemTags.GUNS))) return;
+                                    player.getInventory().remove((s) -> s.isOf(revolver), 1, player.getInventory());
+                                    ItemEntity item = player.dropItem(revolver.getDefaultStack(), false, false);
+                                    if (item != null) {
+                                        item.setPickupDelay(10);
+                                        item.setThrower(player);
+                                    }
+                                    ServerPlayNetworking.send(player, new GunDropPayload());
+                                    PlayerMoodComponent.KEY.get(player).setMood(0);
+                                    // 标记玩家无法再拾取枪支
+                                    game.addToPreventGunPickup(player);
+                                }, 4);
+                            }
+                            case KILL_SHOOTER -> {
+                                // 击杀射击者：射击者和目标同归于尽
+                                GameFunctions.killPlayer(player, true, player, GameConstants.DeathReasons.SHOT_INNOCENT);
+                            }
+                        }
                     }
                 }
 

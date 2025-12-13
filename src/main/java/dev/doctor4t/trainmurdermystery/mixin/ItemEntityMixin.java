@@ -28,7 +28,19 @@ public abstract class ItemEntityMixin {
 
     @WrapMethod(method = "onPlayerCollision")
     public void tmm$preventGunPickup(PlayerEntity player, Operation<Void> original) {
-        if (player.isCreative() || !this.getStack().isIn(TMMItemTags.GUNS) || (GameWorldComponent.KEY.get(player.getWorld()).isInnocent(player) && !player.equals(this.getOwner()) && !player.getInventory().contains(itemStack -> itemStack.isIn(TMMItemTags.GUNS)))) {
+        if (player.isCreative()) {
+            original.call(player);
+            return;
+        }
+
+        // 检查玩家是否被禁止拾取枪支（射杀无辜惩罚）
+        GameWorldComponent game = GameWorldComponent.KEY.get(player.getWorld());
+        if (game.isPreventedFromGunPickup(player) && this.getStack().isIn(TMMItemTags.GUNS)) {
+            return; // 阻止拾取枪支
+        }
+
+        // 原有逻辑：无辜玩家只能拾取自己掉落的枪或在没有枪的情况下拾取他人的枪
+        if (!this.getStack().isIn(TMMItemTags.GUNS) || (game.isInnocent(player) && !player.equals(this.getOwner()) && !player.getInventory().contains(itemStack -> itemStack.isIn(TMMItemTags.GUNS)))) {
             original.call(player);
         }
     }

@@ -388,16 +388,20 @@
   "config.trainmurdermystery.train_speed.desc": "Default train speed in km/h",
   "config.trainmurdermystery.time_of_day": "Time of Day",
   "config.trainmurdermystery.time_of_day.desc": "Default time of day (DAY/NIGHT/SUNDOWN)",
+  "config.trainmurdermystery.shoot_innocent_punishment": "Shoot Innocent Punishment",
+  "config.trainmurdermystery.shoot_innocent_punishment.desc": "Punishment type for shooting innocent players",
 
   "hud.body.death_info": "Died %ss ago from ",
   "death_reason.trainmurdermystery.generic": "Unknown",
   "death_reason.trainmurdermystery.knife_stab": "Knife Stab",
   "death_reason.trainmurdermystery.gun_shot": "Gun Shot",
+  "death_reason.trainmurdermystery.gun_shot_backfire": "Gun Backfire",
   "death_reason.trainmurdermystery.bat_hit": "Bat Hit",
   "death_reason.trainmurdermystery.grenade": "Grenade",
   "death_reason.trainmurdermystery.poison": "Poison",
   "death_reason.trainmurdermystery.fell_out_of_train": "Fell Out of Train",
-  "death_reason.trainmurdermystery.escaped": "退出游戏",
+  "death_reason.trainmurdermystery.escaped": "Escaped",
+  "death_reason.trainmurdermystery.shot_innocent": "Shot Innocent",
   "disconnect.trainmurdermystery.version_mismatch": "Mod version mismatch! Server: %s, Client: %s",
   "disconnect.trainmurdermystery.not_in_ready_area": "The game has started, but you were not in the ready area, so you cannot join!"
 }

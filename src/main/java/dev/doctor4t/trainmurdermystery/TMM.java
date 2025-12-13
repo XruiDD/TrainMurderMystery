@@ -104,6 +104,7 @@ public class TMM implements ModInitializer {
             SetKillerRatioCommand.register(dispatcher);
             ListRolesCommand.register(dispatcher);
             SetEnabledRoleCommand.register(dispatcher);
+            SetShootInnocentPunishmentCommand.register(dispatcher);
         }));
 
         // 版本检查 - 在配置阶段验证客户端 mod 版本

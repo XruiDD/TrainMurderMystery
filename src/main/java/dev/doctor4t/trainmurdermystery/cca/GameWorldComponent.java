@@ -142,7 +142,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         return roles;
     }
 
-    public Role getRole(PlayerEntity player) {
+    public @Nullable Role getRole(PlayerEntity player) {
         return getRole(player.getUuid());
     }
 

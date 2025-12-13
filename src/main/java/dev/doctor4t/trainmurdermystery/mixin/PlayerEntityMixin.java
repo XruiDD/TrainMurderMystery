@@ -69,18 +69,12 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         GameWorldComponent gameComponent = GameWorldComponent.KEY.get(this.getWorld());
         if (GameFunctions.isPlayerAliveAndSurvival((PlayerEntity) (Object) this) && gameComponent != null && gameComponent.isRunning()) {
             Role role = gameComponent.getRole((PlayerEntity) (Object) this);
+            PlayerStaminaComponent staminaComponent = PlayerStaminaComponent.KEY.get(this);
+
             if (role != null && role.getMaxSprintTime() >= 0) {
-                PlayerStaminaComponent staminaComponent = PlayerStaminaComponent.KEY.get(this);
-                float sprintingTicks = staminaComponent.getSprintingTicks();
                 int maxSprintTime = role.getMaxSprintTime();
+                float sprintingTicks = staminaComponent.getSprintingTicks();
                 boolean exhausted = staminaComponent.isExhausted();
-
-                if (this.isSprinting()) {
-                    sprintingTicks = Math.max(sprintingTicks - 1, 0);
-                } else {
-                    sprintingTicks = Math.min(sprintingTicks + 0.25f, maxSprintTime);
-                }
-
                 // 疲惫机制
                 if (sprintingTicks <= 0) {
                     this.setSprinting(false);
@@ -95,10 +89,22 @@ public abstract class PlayerEntityMixin extends LivingEntity {
                         exhausted = false;
                     }
                 }
+                if (this.isSprinting()) {
+                    sprintingTicks = Math.max(sprintingTicks - 1, 0);
+                } else {
+                    sprintingTicks = Math.min(sprintingTicks + 0.25f, maxSprintTime);
+                }
+
 
                 staminaComponent.setSprintingTicks(sprintingTicks);
                 staminaComponent.setMaxSprintTime(maxSprintTime);
                 staminaComponent.setExhausted(exhausted);
+            } else {
+                // 角色没有体力限制（如杀手），确保 maxSprintTime = -1 被同步到客户端
+                if (staminaComponent.getMaxSprintTime() != -1) {
+                    staminaComponent.setMaxSprintTime(-1);
+                    staminaComponent.setExhausted(false);
+                }
             }
         }
     }

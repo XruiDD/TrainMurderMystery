@@ -15,7 +15,7 @@ public class PlayerStaminaComponent implements AutoSyncedComponent, ServerTickin
     public static final ComponentKey<PlayerStaminaComponent> KEY =
             ComponentRegistry.getOrCreate(TMM.id("stamina"), PlayerStaminaComponent.class);
 
-    private static final float EXHAUSTION_RECOVERY_THRESHOLD = 0.4f; // 恢复到40%才能解除疲惫
+    private static final float EXHAUSTION_RECOVERY_THRESHOLD = 0.6f; // 恢复到60%才能解除疲惫
 
     private final PlayerEntity player;
     private float sprintingTicks = 0f;
@@ -59,6 +59,16 @@ public class PlayerStaminaComponent implements AutoSyncedComponent, ServerTickin
 
     public float getExhaustionRecoveryThreshold() {
         return EXHAUSTION_RECOVERY_THRESHOLD;
+    }
+
+    public void reset() {
+        this.sprintingTicks = 0f;
+        this.maxSprintTime = -1;
+        this.exhausted = false;
+        this.lastSyncedValue = -1f;
+        this.lastSyncedMaxTime = -1;
+        this.lastSyncedExhausted = false;
+        this.sync();
     }
 
     @Override

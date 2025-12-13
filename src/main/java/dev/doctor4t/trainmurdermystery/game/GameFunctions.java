@@ -2,7 +2,10 @@ package dev.doctor4t.trainmurdermystery.game;
 
 import com.google.common.collect.Lists;
 import dev.doctor4t.trainmurdermystery.TMM;
+import dev.doctor4t.trainmurdermystery.api.Faction;
 import dev.doctor4t.trainmurdermystery.api.GameMode;
+import dev.doctor4t.trainmurdermystery.api.Role;
+import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.cca.*;
 import dev.doctor4t.trainmurdermystery.compat.TrainVoicePlugin;
 import dev.doctor4t.trainmurdermystery.entity.FirecrackerEntity;
@@ -38,6 +41,7 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Clearable;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Language;
 import net.minecraft.util.math.BlockBox;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -112,13 +116,17 @@ public class GameFunctions {
         GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
         List<ServerPlayerEntity> readyPlayerList = getReadyPlayerList(serverWorld);
 
-        baseInitialize(serverWorld, gameComponent, readyPlayerList);
+        // baseInitialize现在返回房间号映射
+        Map<UUID, Integer> playerRoomMap = baseInitialize(serverWorld, gameComponent, readyPlayerList);
         gameComponent.getGameMode().initializeGame(serverWorld, gameComponent, readyPlayerList);
+
+        // 角色分配后再生成信件
+        giveLettersToPlayers(serverWorld, gameComponent, readyPlayerList, playerRoomMap);
 
         gameComponent.sync();
     }
 
-    private static void baseInitialize(ServerWorld serverWorld, GameWorldComponent gameComponent, List<ServerPlayerEntity> players) {
+    private static Map<UUID, Integer> baseInitialize(ServerWorld serverWorld, GameWorldComponent gameComponent, List<ServerPlayerEntity> players) {
         AreasWorldComponent areas = AreasWorldComponent.KEY.get(serverWorld);
 
         TrainWorldComponent.KEY.get(serverWorld).reset();
@@ -163,6 +171,7 @@ public class GameFunctions {
             PlayerPsychoComponent.KEY.get(serverPlayerEntity).reset();
             PlayerNoteComponent.KEY.get(serverPlayerEntity).reset();
             PlayerShopComponent.KEY.get(serverPlayerEntity).reset();
+            PlayerStaminaComponent.KEY.get(serverPlayerEntity).reset();
             TrainVoicePlugin.resetPlayer(serverPlayerEntity.getUuid());
 
             // remove item cooldowns
@@ -175,51 +184,141 @@ public class GameFunctions {
         // reset train
         gameComponent.queueTrainReset();
 
-        // select rooms
+        // select rooms and give keys
         Collections.shuffle(players);
+        Map<UUID, Integer> playerRoomMap = new HashMap<>();
         int roomNumber = 0;
         for (ServerPlayerEntity serverPlayerEntity : players) {
-            ItemStack itemStack = new ItemStack(TMMItems.KEY);
             roomNumber = roomNumber % 7 + 1;
             int finalRoomNumber = roomNumber;
+            playerRoomMap.put(serverPlayerEntity.getUuid(), finalRoomNumber);
+
+            // 只给钥匙，信件生成移到giveLettersToPlayers中
+            ItemStack itemStack = new ItemStack(TMMItems.KEY);
             itemStack.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, component -> new LoreComponent(Text.literal("Room " + finalRoomNumber).getWithStyle(Style.EMPTY.withItalic(false).withColor(0xFF8C00))));
             serverPlayerEntity.giveItemStack(itemStack);
-
-            // give letter
-            ItemStack letter = new ItemStack(TMMItems.LETTER);
-
-            letter.set(DataComponentTypes.ITEM_NAME, Text.translatable(letter.getTranslationKey()));
-            int letterColor = 0xC5AE8B;
-            String tipString = "tip.letter.";
-            letter.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, component -> {
-                        List<Text> text = new ArrayList<>();
-                        UnaryOperator<Style> stylizer = style -> style.withItalic(false).withColor(letterColor);
-
-                        Text displayName = serverPlayerEntity.getDisplayName();
-                        String string = displayName != null ? displayName.getString() : serverPlayerEntity.getName().getString();
-                        if (string.charAt(string.length() - 1) == '\uE780') { // remove ratty supporter icon
-                            string = string.substring(0, string.length() - 1);
-                        }
-
-                        text.add(Text.translatable(tipString + "name", string).styled(style -> style.withItalic(false).withColor(0xFFFFFF)));
-                        text.add(Text.translatable(tipString + "room").styled(stylizer));
-                        text.add(Text.translatable(tipString + "tooltip1",
-                                Text.translatable(tipString + "room." + switch (finalRoomNumber) {
-                                    case 1 -> "grand_suite";
-                                    case 2, 3 -> "cabin_suite";
-                                    default -> "twin_cabin";
-                                }).getString()
-                        ).styled(stylizer));
-                        text.add(Text.translatable(tipString + "tooltip2").styled(stylizer));
-
-                        return new LoreComponent(text);
-                    }
-            );
-            serverPlayerEntity.giveItemStack(letter);
         }
 
         gameComponent.setGameStatus(GameWorldComponent.GameStatus.ACTIVE);
         gameComponent.sync();
+
+        return playerRoomMap;
+    }
+
+    private static void giveLettersToPlayers(ServerWorld serverWorld, GameWorldComponent gameComponent,
+                                              List<ServerPlayerEntity> players, Map<UUID, Integer> playerRoomMap) {
+        int letterColor = 0xC5AE8B; // 固定棕色，与旧版一致
+
+        for (ServerPlayerEntity player : players) {
+            ItemStack letter = new ItemStack(TMMItems.LETTER);
+            letter.set(DataComponentTypes.ITEM_NAME, Text.translatable(letter.getTranslationKey()));
+
+            Role role = gameComponent.getRole(player);
+            String roleName = (role != null && role != TMMRoles.NO_ROLE) ? role.identifier().getPath() : null;
+            String factionName = (role != null && role != TMMRoles.NO_ROLE) ? role.getFaction().name().toLowerCase() : null;
+            int roleColor = (role != null && role != TMMRoles.NO_ROLE) ? role.color() : letterColor;
+
+            applyLetterLore(letter, player, role, roleName, factionName, letterColor, roleColor);
+            player.giveItemStack(letter);
+        }
+    }
+
+    /**
+     * 应用信件Lore，支持动态fallback机制
+     * 结构：name, room, tooltip1, tooltip2, ... tooltipX（直到检测不到为止）
+     * Fallback顺序：tip.letter.{roleName}.tooltipX -> tip.letter.{faction}.tooltipX -> tip.letter.tooltipX
+     */
+    private static void applyLetterLore(ItemStack letter, ServerPlayerEntity player, Role role,
+                                         String roleName, String factionName, int letterColor, int roleColor) {
+        letter.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, component -> {
+            List<Text> text = new ArrayList<>();
+            UnaryOperator<Style> stylizer = style -> style.withItalic(false).withColor(letterColor);
+            String playerName = getPlayerDisplayName(player);
+
+            // 获取角色显示名称
+            String roleDisplayName = Text.translatable("announcement.role" + "." + roleName).getString();
+
+            // name - 使用fallback机制，包含玩家名和角色名（角色名使用角色颜色）
+            String nameKey = resolveTranslationKey("name", roleName, factionName);
+            Text roleText = Text.literal(roleDisplayName).styled(style -> style.withItalic(false).withColor(roleColor));
+            text.add(Text.translatable(nameKey, playerName, roleText)
+                .styled(style -> style.withItalic(false).withColor(0xFFFFFF)));
+
+            // room - 使用fallback机制
+            String roomKey = resolveTranslationKey("room", roleName, factionName);
+            text.add(Text.translatable(roomKey).styled(stylizer));
+
+            // tooltipX - 循环直到检测不到为止
+            int tooltipIndex = 1;
+            while (true) {
+                String tooltipKey = resolveTranslationKey("tooltip" + tooltipIndex, roleName, factionName);
+                if (tooltipKey == null) {
+                    break; // 没有找到任何翻译键，停止循环
+                }
+
+                // 检查是否需要添加空行（在角色/阵营特定tooltip之前）
+                if (tooltipIndex == 1) {
+                    // 检查是否使用了角色或阵营特定的tooltip
+                    String roleSpecific = "tip.letter." + roleName + ".tooltip1";
+                    String factionSpecific = "tip.letter." + factionName + ".tooltip1";
+                    if ((roleName != null && hasTranslation(roleSpecific)) ||
+                        (factionName != null && hasTranslation(factionSpecific))) {
+                        text.add(Text.empty()); // 添加空行分隔
+                    }
+                }
+
+                text.add(Text.translatable(tooltipKey).styled(stylizer));
+                tooltipIndex++;
+            }
+
+            return new LoreComponent(text);
+        });
+    }
+
+    /**
+     * 解析翻译键，按fallback顺序查找
+     * @return 找到的翻译键，如果都不存在则返回null
+     */
+    private static String resolveTranslationKey(String suffix, String roleName, String factionName) {
+        // 1. 优先使用角色特定的
+        if (roleName != null) {
+            String roleKey = "tip.letter." + roleName + "." + suffix;
+            if (hasTranslation(roleKey)) {
+                return roleKey;
+            }
+        }
+
+        // 2. 其次使用阵营特定的
+        if (factionName != null) {
+            String factionKey = "tip.letter." + factionName + "." + suffix;
+            if (hasTranslation(factionKey)) {
+                return factionKey;
+            }
+        }
+
+        // 3. 最后使用通用的
+        String genericKey = "tip.letter." + suffix;
+        if (hasTranslation(genericKey)) {
+            return genericKey;
+        }
+
+        return null; // 没有找到任何翻译键
+    }
+
+    /**
+     * 检查翻译键是否存在
+     */
+    private static boolean hasTranslation(String key) {
+        return Language.getInstance().hasTranslation(key);
+    }
+
+    private static String getPlayerDisplayName(ServerPlayerEntity player) {
+        Text displayName = player.getDisplayName();
+        String name = displayName != null ? displayName.getString() : player.getName().getString();
+        if (!name.isEmpty() && name.charAt(name.length() - 1) == '\uE780') {
+            name = name.substring(0, name.length() - 1);
+        }
+        return name;
     }
 
     private static List<ServerPlayerEntity> getReadyPlayerList(ServerWorld serverWorld) {
@@ -264,6 +363,7 @@ public class GameFunctions {
         PlayerPoisonComponent.KEY.get(player).reset();
         PlayerPsychoComponent.KEY.get(player).reset();
         PlayerNoteComponent.KEY.get(player).reset();
+        PlayerStaminaComponent.KEY.get(player).reset();
         TrainVoicePlugin.resetPlayer(player.getUuid());
 
         player.changeGameMode(net.minecraft.world.GameMode.ADVENTURE);

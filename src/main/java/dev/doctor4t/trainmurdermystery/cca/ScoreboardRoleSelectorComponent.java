@@ -57,6 +57,18 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
     }
 
     public int assignKillers(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int killerCount) {
+        // Count already assigned killers (from forced roles)
+        int existingKillerCount = 0;
+        for (ServerPlayerEntity player : players) {
+            Role role = gameComponent.getRole(player);
+            if (role != null && role.getFaction() == Faction.KILLER) {
+                existingKillerCount++;
+            }
+        }
+
+        // Adjust killer count by subtracting existing killers
+        killerCount = Math.max(0, killerCount - existingKillerCount);
+
         ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
 
         // Collect available non-vanilla killer faction roles (each can only be assigned once)
@@ -68,7 +80,7 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         }
         shuffle(availableSpecialKillerRoles, world.getRandom());
 
-        int assignedCount = 0;
+        int assignedCount = existingKillerCount;
         // Assign killers randomly
         for (ServerPlayerEntity player : availablePlayers) {
             if (killerCount <= 0) break;
@@ -91,6 +103,18 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
     }
 
     public void assignVigilantes(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int vigilanteCount) {
+        // Count already assigned vigilantes (from forced roles)
+        int existingVigilanteCount = 0;
+        for (ServerPlayerEntity player : players) {
+            Role role = gameComponent.getRole(player);
+            if (role != null && role == TMMRoles.VIGILANTE) {
+                existingVigilanteCount++;
+            }
+        }
+
+        // Adjust vigilante count by subtracting existing vigilantes
+        vigilanteCount = Math.max(0, vigilanteCount - existingVigilanteCount);
+
         // Get available players
         ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
 
@@ -103,6 +127,18 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
     }
 
     public int assignNeutrals(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int neutralCount) {
+        // Count already assigned neutrals (from forced roles)
+        int existingNeutralCount = 0;
+        for (ServerPlayerEntity player : players) {
+            Role role = gameComponent.getRole(player);
+            if (role != null && role.getFaction() == Faction.NEUTRAL) {
+                existingNeutralCount++;
+            }
+        }
+
+        // Adjust neutral count by subtracting existing neutrals
+        neutralCount = Math.max(0, neutralCount - existingNeutralCount);
+
         // Collect available non-vanilla neutral faction roles (each can only be assigned once)
         ArrayList<Role> availableNeutralRoles = new ArrayList<>();
         for (Role role : TMMRoles.ROLES) {
@@ -113,7 +149,7 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
 
         // If no special neutral roles registered, skip neutral assignment
         if (availableNeutralRoles.isEmpty()) {
-            return 0;
+            return existingNeutralCount;
         }
 
         shuffle(availableNeutralRoles, world.getRandom());
@@ -121,7 +157,7 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         // Get available players
         ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
 
-        int assignedCount = 0;
+        int assignedCount = existingNeutralCount;
         // Assign neutral roles randomly (one role per player, one player per role)
         for (ServerPlayerEntity player : availablePlayers) {
             if (neutralCount <= 0) break;

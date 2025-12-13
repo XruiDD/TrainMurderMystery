@@ -1,7 +1,7 @@
 package dev.doctor4t.trainmurdermystery.mixin.client.scenery;
 
 import dev.doctor4t.trainmurdermystery.TMM;
-import dev.doctor4t.trainmurdermystery.TMMConfig;
+import dev.doctor4t.trainmurdermystery.config.TMMClientConfig;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -33,7 +33,7 @@ public class CameraMixin {
 
     @Inject(method = "update", at = @At("RETURN"))
     private void tmm$doScreenshake(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo ci) {
-        if (TMMClient.isTrainMoving() && !TMMConfig.disableScreenShake) {
+        if (TMMClient.isTrainMoving() && !TMMClientConfig.HANDLER.instance().disableScreenShake) {
             Camera camera = (Camera) (Object) this;
 
             ClientPlayerEntity player = MinecraftClient.getInstance().player;

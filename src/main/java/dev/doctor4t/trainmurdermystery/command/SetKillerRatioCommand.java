@@ -3,6 +3,7 @@ package dev.doctor4t.trainmurdermystery.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
+import dev.doctor4t.trainmurdermystery.config.TMMServerConfig;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -22,6 +23,9 @@ public class SetKillerRatioCommand {
 
     private static int execute(ServerCommandSource source, int ratio) {
         GameWorldComponent.KEY.get(source.getWorld()).setKillerPlayerRatio(ratio);
+        // 保存到配置文件
+        TMMServerConfig.HANDLER.instance().killerRatio = ratio;
+        TMMServerConfig.HANDLER.save();
         source.sendFeedback(() -> Text.literal("Set killer-player ratio to ").formatted(Formatting.GRAY)
                 .append(Text.literal("1:" + ratio).withColor(0x808080))
                 .append(Text.literal(".").formatted(Formatting.GRAY)), false);

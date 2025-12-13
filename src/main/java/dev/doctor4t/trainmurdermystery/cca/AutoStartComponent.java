@@ -3,6 +3,7 @@ package dev.doctor4t.trainmurdermystery.cca;
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.api.GameMode;
 import dev.doctor4t.trainmurdermystery.api.TMMGameModes;
+import dev.doctor4t.trainmurdermystery.config.TMMServerConfig;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import net.minecraft.nbt.NbtCompound;
@@ -25,6 +26,15 @@ public class AutoStartComponent implements AutoSyncedComponent, CommonTickingCom
 
     public AutoStartComponent(World world) {
         this.world = world;
+        // 应用服务器配置默认值
+        TMMServerConfig config = TMMServerConfig.HANDLER.instance();
+        if (config.autoStartSeconds > 0) {
+            Identifier gameModeId = Identifier.tryParse(config.autoStartGameMode);
+            if (gameModeId != null && TMMGameModes.GAME_MODES.containsKey(gameModeId)) {
+                this.gameMode = TMMGameModes.GAME_MODES.get(gameModeId);
+            }
+            this.startTime = GameConstants.getInTicks(0, config.autoStartSeconds);
+        }
     }
 
     public void sync() {

@@ -6,7 +6,7 @@ import dev.doctor4t.ratatouille.client.util.ambience.AmbienceUtil;
 import dev.doctor4t.ratatouille.client.util.ambience.BackgroundAmbience;
 import dev.doctor4t.ratatouille.client.util.ambience.BlockEntityAmbience;
 import dev.doctor4t.trainmurdermystery.TMM;
-import dev.doctor4t.trainmurdermystery.TMMConfig;
+import dev.doctor4t.trainmurdermystery.config.TMMClientConfig;
 import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.block_entity.SprinklerBlockEntity;
@@ -91,8 +91,8 @@ public class TMMClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        // Load config
-        TMMConfig.init(TMM.MOD_ID, TMMConfig.class);
+        // Load client config
+        TMMClientConfig.HANDLER.load();
 
         // Initialize ScreenParticle
         handParticleManager = new HandParticleManager();
@@ -220,7 +220,7 @@ public class TMMClient implements ClientModInitializer {
 
         // Lock options
         OptionLocker.overrideOption("gamma", 0d);
-        OptionLocker.overrideOption("renderDistance", getLockedRenderDistance(TMMConfig.ultraPerfMode)); // mfw 15 fps on a 3050 - Cup // haha 🫵 brokie - RAT // buy me a better one then - Cup // okay nvm I fixed it I was actually rendering a lot of empty chunks we didn't need my bad LMAO - RAT
+        OptionLocker.overrideOption("renderDistance", getLockedRenderDistance(TMMClientConfig.HANDLER.instance().ultraPerfMode)); // mfw 15 fps on a 3050 - Cup // haha 🫵 brokie - RAT // buy me a better one then - Cup // okay nvm I fixed it I was actually rendering a lot of empty chunks we didn't need my bad LMAO - RAT
         OptionLocker.overrideOption("showSubtitles", false);
         OptionLocker.overrideOption("autoJump", false);
         OptionLocker.overrideOption("renderClouds", CloudRenderMode.OFF);

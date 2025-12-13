@@ -40,6 +40,12 @@ repositories {
 		url "https://maven.ladysnake.org/releases"
 	}
 
+	// YACL
+	maven {
+		name 'Xander Maven'
+		url 'https://maven.isxander.dev/releases'
+	}
+
 	maven {
         url "https://maven.uuid.gg/releases"
         name "Datasync"
@@ -79,8 +85,8 @@ dependencies {
 	modImplementation include ("org.ladysnake.cardinal-components-api:cardinal-components-world:${project.cca_version}")
 	modImplementation include ("org.ladysnake.cardinal-components-api:cardinal-components-entity:${project.cca_version}")
 	modImplementation include ("org.ladysnake.cardinal-components-api:cardinal-components-scoreboard:${project.cca_version}")
-	// Midnightlib
-	modIncludeImplementation "maven.modrinth:midnightlib:${project.midnightlib_version}"
+	// YACL
+	modImplementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
 
 	// Runtime mods
 	modLocalImplementation "com.terraformersmc:modmenu:${mod_menu_version}"

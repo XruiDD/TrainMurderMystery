@@ -1,11 +1,14 @@
 package dev.doctor4t.trainmurdermystery;
 
 import com.google.common.reflect.Reflection;
+import dev.doctor4t.trainmurdermystery.api.Role;
+import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.block.DoorPartBlock;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.command.*;
 import dev.doctor4t.trainmurdermystery.command.argument.GameModeArgumentType;
 import dev.doctor4t.trainmurdermystery.command.argument.TimeOfDayArgumentType;
+import dev.doctor4t.trainmurdermystery.config.TMMServerConfig;
 import dev.doctor4t.trainmurdermystery.event.TMMEventHandlers;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.index.*;
@@ -52,6 +55,18 @@ public class TMM implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        // 加载服务端配置
+        TMMServerConfig.HANDLER.load();
+
+        // 应用禁用角色配置
+        TMMServerConfig config = TMMServerConfig.HANDLER.instance();
+        for (String roleId : config.disabledRoles) {
+            Role role = TMMRoles.getRole(Identifier.of(roleId));
+            if (role != null) {
+                TMMRoles.setRoleEnabled(role, false);
+            }
+        }
+
         // Init constants
         GameConstants.init();
 
@@ -80,7 +95,6 @@ public class TMM implements ModInitializer {
             SetMoneyCommand.register(dispatcher);
             SetBoundCommand.register(dispatcher);
             AutoStartCommand.register(dispatcher);
-            LockToSupportersCommand.register(dispatcher);
             SetBackfireChanceCommand.register(dispatcher);
             SetKillerCountCommand.register(dispatcher);
             SetKillerRatioCommand.register(dispatcher);
@@ -111,15 +125,6 @@ public class TMM implements ModInitializer {
             }
         });
 
-        // server lock to supporters
-        ServerPlayerEvents.JOIN.register(player -> {
-            DataSyncAPI.refreshAllPlayerData(player.getUuid()).thenRunAsync(() -> {
-                // check if player is supporter now, if not kick
-                if (GameWorldComponent.KEY.get(player.getWorld()).isLockedToSupporters() && !TMM.isSupporter(player)) {
-                    player.networkHandler.disconnect(Text.literal("Server is reserved to doctor4t supporters."));
-                }
-            }, player.getWorld().getServer());
-        });
 
         PayloadTypeRegistry.playS2C().register(ShootMuzzleS2CPayload.ID, ShootMuzzleS2CPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(PoisonUtils.PoisonOverlayPayload.ID, PoisonUtils.PoisonOverlayPayload.CODEC);

@@ -7,6 +7,7 @@ import dev.doctor4t.trainmurdermystery.api.GameMode;
 import dev.doctor4t.trainmurdermystery.api.TMMGameModes;
 import dev.doctor4t.trainmurdermystery.cca.AutoStartComponent;
 import dev.doctor4t.trainmurdermystery.command.argument.GameModeArgumentType;
+import dev.doctor4t.trainmurdermystery.config.TMMServerConfig;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -39,11 +40,19 @@ public class AutoStartCommand {
                 AutoStartComponent component = AutoStartComponent.KEY.get(source.getWorld());
                 component.setGameMode(gameMode);
                 component.setStartTime(GameConstants.getInTicks(0, seconds));
+                // 保存到配置文件
+                TMMServerConfig.HANDLER.instance().autoStartGameMode = gameMode.identifier.toString();
+                TMMServerConfig.HANDLER.instance().autoStartSeconds = seconds;
+                TMMServerConfig.HANDLER.save();
             });
         } else {
             AutoStartComponent component = AutoStartComponent.KEY.get(source.getWorld());
             component.setGameMode(gameMode);
             component.setStartTime(GameConstants.getInTicks(0, seconds));
+            // 保存到配置文件
+            TMMServerConfig.HANDLER.instance().autoStartGameMode = gameMode.identifier.toString();
+            TMMServerConfig.HANDLER.instance().autoStartSeconds = seconds;
+            TMMServerConfig.HANDLER.save();
             return 1;
         }
     }

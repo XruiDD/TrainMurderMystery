@@ -37,6 +37,7 @@ public class SetEnabledRoleCommand {
             if (TMMRoles.SPECIAL_ROLES.contains(role)) continue;
             if (role.identifier().getPath().equals(roleName)) {
                 TMMRoles.setRoleEnabled(role, enabled);
+                TMMRoles.saveDisabledRolesToConfig(); // 保存到配置文件
                 Text roleText = Text.literal(role.identifier().getPath()).withColor(role.color());
                 Text statusText = enabled
                         ? Text.translatable("commands.trainmurdermystery.setenabledrole.enabled")

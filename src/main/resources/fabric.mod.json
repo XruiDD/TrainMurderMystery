@@ -23,6 +23,9 @@
 		"client": [
 			"dev.doctor4t.trainmurdermystery.client.TMMClient"
 		],
+		"modmenu": [
+			"dev.doctor4t.trainmurdermystery.client.config.TMMModMenuIntegration"
+		],
 		"fabric-datagen": [
           "dev.doctor4t.trainmurdermystery.datagen.TMMDatagen"
 		],
@@ -63,6 +66,7 @@
 		"fabricloader": "*",
 		"minecraft": "~1.21.1",
 		"java": ">=21",
-		"fabric-api": "*"
+		"fabric-api": "*",
+		"yet_another_config_lib_v3": ">=3.0.0"
 	}
 }

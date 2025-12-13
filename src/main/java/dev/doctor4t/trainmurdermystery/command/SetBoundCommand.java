@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
+import dev.doctor4t.trainmurdermystery.config.TMMServerConfig;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 
@@ -21,6 +22,9 @@ public class SetBoundCommand {
                 () -> {
                     GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(source.getWorld());
                     gameWorldComponent.setBound(enabled);
+                    // 保存到配置文件
+                    TMMServerConfig.HANDLER.instance().bound = enabled;
+                    TMMServerConfig.HANDLER.save();
                 }
         );
     }

@@ -5,6 +5,7 @@ import dev.doctor4t.trainmurdermystery.api.GameMode;
 import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMGameModes;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
+import dev.doctor4t.trainmurdermystery.config.TMMServerConfig;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import com.mojang.authlib.GameProfile;
@@ -37,7 +38,6 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     public static final ComponentKey<GameWorldComponent> KEY = ComponentRegistry.getOrCreate(TMM.id("game"), GameWorldComponent.class);
     private final World world;
 
-    private boolean lockedToSupporters = false;
 
 
 
@@ -68,6 +68,12 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
 
     public GameWorldComponent(World world) {
         this.world = world;
+        // 应用服务器配置默认值
+        TMMServerConfig config = TMMServerConfig.HANDLER.instance();
+        this.backfireChance = config.backfireChance;
+        this.killerPlayerRatio = config.killerRatio;
+        this.nextRoundKillerCount = config.killerCount;
+        this.bound = config.bound;
     }
 
     public int getNextRoundKillerCount() {
@@ -253,13 +259,6 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         this.sync();
     }
 
-    public boolean isLockedToSupporters() {
-        return lockedToSupporters;
-    }
-
-    public void setLockedToSupporters(boolean lockedToSupporters) {
-        this.lockedToSupporters = lockedToSupporters;
-    }
 
     public float getBackfireChance() {
         return backfireChance;
@@ -272,7 +271,6 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
 
     @Override
     public void readFromNbt(@NotNull NbtCompound nbtCompound, RegistryWrapper.WrapperLookup wrapperLookup) {
-        this.lockedToSupporters = nbtCompound.getBoolean("LockedToSupporters");
 
         this.gameMode = TMMGameModes.GAME_MODES.get(Identifier.of(nbtCompound.getString("GameMode")));
         this.gameStatus = GameStatus.valueOf(nbtCompound.getString("GameStatus"));
@@ -325,7 +323,6 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
 
     @Override
     public void writeToNbt(@NotNull NbtCompound nbtCompound, RegistryWrapper.WrapperLookup wrapperLookup) {
-        nbtCompound.putBoolean("LockedToSupporters", lockedToSupporters);
 
         nbtCompound.putString("GameMode", this.gameMode != null ? this.gameMode.identifier.toString() : "");
         nbtCompound.putString("GameStatus", this.gameStatus.toString());

@@ -2,6 +2,7 @@ package dev.doctor4t.trainmurdermystery.api;
 
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.client.gui.RoleAnnouncementTexts;
+import dev.doctor4t.trainmurdermystery.config.TMMServerConfig;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
@@ -9,8 +10,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class TMMRoles {
     public static final ArrayList<Role> ROLES = new ArrayList<>();
@@ -70,5 +73,30 @@ public class TMMRoles {
 
     public static Set<Role> getDisabledRoles() {
         return DISABLED_ROLES;
+    }
+
+    /**
+     * 将禁用角色列表保存到配置文件
+     */
+    public static void saveDisabledRolesToConfig() {
+        List<String> disabledList = DISABLED_ROLES.stream()
+                .map(role -> role.identifier().toString())
+                .collect(Collectors.toList());
+        TMMServerConfig.HANDLER.instance().disabledRoles = disabledList;
+        TMMServerConfig.HANDLER.save();
+    }
+
+    /**
+     * 从配置文件应用禁用角色列表
+     */
+    public static void applyDisabledRolesFromConfig() {
+        DISABLED_ROLES.clear();
+        TMMServerConfig config = TMMServerConfig.HANDLER.instance();
+        for (String roleId : config.disabledRoles) {
+            Role role = getRole(Identifier.of(roleId));
+            if (role != null) {
+                DISABLED_ROLES.add(role);
+            }
+        }
     }
 }

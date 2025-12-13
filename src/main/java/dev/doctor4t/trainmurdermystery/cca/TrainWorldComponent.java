@@ -1,6 +1,7 @@
 package dev.doctor4t.trainmurdermystery.cca;
 
 import dev.doctor4t.trainmurdermystery.TMM;
+import dev.doctor4t.trainmurdermystery.config.TMMServerConfig;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ServerWorld;
@@ -25,6 +26,13 @@ public class TrainWorldComponent implements AutoSyncedComponent, ServerTickingCo
 
     public TrainWorldComponent(World world) {
         this.world = world;
+        // 应用服务器配置默认值
+        TMMServerConfig config = TMMServerConfig.HANDLER.instance();
+        this.snow = config.snow;
+        this.fog = config.fog;
+        this.hud = config.hud;
+        this.speed = config.trainSpeed;
+        this.timeOfDay = config.timeOfDay;
     }
 
     private void sync() {

@@ -385,5 +385,8 @@
   "death_reason.trainmurdermystery.bat_hit": "球棒击打",
   "death_reason.trainmurdermystery.grenade": "手雷爆炸",
   "death_reason.trainmurdermystery.poison": "中毒",
-  "death_reason.trainmurdermystery.fell_out_of_train": "坠落列车"
+  "death_reason.trainmurdermystery.fell_out_of_train": "坠落列车",
+
+  "disconnect.trainmurdermystery.mod_required": "你必须安装《哈比快车》模组才能加入此服务器。",
+  "disconnect.trainmurdermystery.version_mismatch": "模组版本不匹配！服务器: %s, 客户端: %s"
 }

@@ -9,6 +9,8 @@ import dev.doctor4t.trainmurdermystery.command.argument.TimeOfDayArgumentType;
 import dev.doctor4t.trainmurdermystery.event.TMMEventHandlers;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.index.*;
+import dev.doctor4t.trainmurdermystery.network.VersionCheckConfigurationTask;
+import dev.doctor4t.trainmurdermystery.network.VersionCheckPayload;
 import dev.doctor4t.trainmurdermystery.util.*;
 import dev.upcraft.datasync.api.DataSyncAPI;
 import dev.upcraft.datasync.api.util.Entitlements;
@@ -17,7 +19,10 @@ import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.serialize.ConstantArgumentSerializer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -36,6 +41,10 @@ import java.util.UUID;
 public class TMM implements ModInitializer {
     public static final String MOD_ID = "trainmurdermystery";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final String MOD_VERSION = FabricLoader.getInstance()
+            .getModContainer(MOD_ID)
+            .map(container -> container.getMetadata().getVersion().getFriendlyString())
+            .orElse("unknown");
 
     public static @NotNull Identifier id(String name) {
         return Identifier.of(MOD_ID, name);
@@ -78,6 +87,29 @@ public class TMM implements ModInitializer {
             ListRolesCommand.register(dispatcher);
             SetEnabledRoleCommand.register(dispatcher);
         }));
+
+        // 版本检查 - 在配置阶段验证客户端 mod 版本
+        PayloadTypeRegistry.configurationS2C().register(VersionCheckPayload.ID, VersionCheckPayload.CODEC);
+        PayloadTypeRegistry.configurationC2S().register(VersionCheckPayload.ID, VersionCheckPayload.CODEC);
+
+        ServerConfigurationConnectionEvents.CONFIGURE.register((handler, server) -> {
+            if (ServerConfigurationNetworking.canSend(handler, VersionCheckPayload.ID)) {
+                handler.addTask(new VersionCheckConfigurationTask());
+            } else {
+                handler.disconnect(Text.translatable("disconnect.trainmurdermystery.mod_required"));
+            }
+        });
+
+        ServerConfigurationNetworking.registerGlobalReceiver(VersionCheckPayload.ID, (payload, context) -> {
+            if (!payload.version().equals(MOD_VERSION)) {
+                context.networkHandler().disconnect(Text.translatable(
+                        "disconnect.trainmurdermystery.version_mismatch",
+                        MOD_VERSION, payload.version()
+                ));
+            } else {
+                context.networkHandler().completeTask(VersionCheckConfigurationTask.KEY);
+            }
+        });
 
         // server lock to supporters
         ServerPlayerEvents.JOIN.register(player -> {

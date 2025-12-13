@@ -31,6 +31,7 @@ import dev.doctor4t.trainmurdermystery.event.GetInstinctHighlight;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import dev.doctor4t.trainmurdermystery.index.*;
+import dev.doctor4t.trainmurdermystery.network.VersionCheckPayload;
 import dev.doctor4t.trainmurdermystery.util.*;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.api.ClientModInitializer;
@@ -38,6 +39,7 @@ import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
+import net.fabricmc.fabric.api.client.networking.v1.ClientConfigurationNetworking;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.block.Block;
@@ -301,6 +303,11 @@ public class TMMClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register((client) -> {
             TMMClient.handParticleManager.tick();
             RoundTextRenderer.tick();
+        });
+
+        // 版本检查 - 响应服务端版本检查请求
+        ClientConfigurationNetworking.registerGlobalReceiver(VersionCheckPayload.ID, (payload, context) -> {
+            context.responseSender().sendPacket(new VersionCheckPayload(TMM.MOD_VERSION));
         });
 
         ClientPlayNetworking.registerGlobalReceiver(ShootMuzzleS2CPayload.ID, new ShootMuzzleS2CPayload.Receiver());

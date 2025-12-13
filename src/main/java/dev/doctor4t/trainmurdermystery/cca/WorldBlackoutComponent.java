@@ -19,6 +19,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
+import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
@@ -32,6 +35,7 @@ public class WorldBlackoutComponent implements AutoSyncedComponent, ServerTickin
     private final World world;
     private final List<BlackoutDetails> blackouts = new ArrayList<>();
     private int ticks = 0;
+    private boolean wasBlackoutActive = false;
 
     public WorldBlackoutComponent(World world) {
         this.world = world;
@@ -40,6 +44,11 @@ public class WorldBlackoutComponent implements AutoSyncedComponent, ServerTickin
     public void reset() {
         for (BlackoutDetails detail : this.blackouts) detail.end(this.world);
         this.blackouts.clear();
+        this.ticks = 0;
+        this.wasBlackoutActive = false;
+        if (this.world instanceof ServerWorld serverWorld) {
+            removeBlackoutEffects(serverWorld);
+        }
     }
 
     @Override
@@ -53,7 +62,20 @@ public class WorldBlackoutComponent implements AutoSyncedComponent, ServerTickin
                 i--;
             }
         }
-        if (this.ticks > 0) this.ticks--;
+
+        // 管理关灯效果
+        if (this.ticks > 0) {
+            this.ticks--;
+            if (this.world instanceof ServerWorld serverWorld) {
+                applyBlackoutEffects(serverWorld);
+            }
+        } else if (this.ticks == 0 && this.wasBlackoutActive) {
+            // 关灯刚结束
+            this.wasBlackoutActive = false;
+            if (this.world instanceof ServerWorld serverWorld) {
+                removeBlackoutEffects(serverWorld);
+            }
+        }
     }
 
     public boolean isBlackoutActive() {
@@ -82,6 +104,13 @@ public class WorldBlackoutComponent implements AutoSyncedComponent, ServerTickin
         if (this.world instanceof ServerWorld serverWorld) for (ServerPlayerEntity player : serverWorld.getPlayers()) {
             player.networkHandler.sendPacket(new PlaySoundS2CPacket(Registries.SOUND_EVENT.getEntry(TMMSounds.AMBIENT_BLACKOUT), SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 100f, 1f, player.getRandom().nextLong()));
         }
+        // 标记关灯已激活并施加初始效果
+        if (this.ticks > 0) {
+            this.wasBlackoutActive = true;
+            if (this.world instanceof ServerWorld serverWorld) {
+                applyBlackoutEffects(serverWorld);
+            }
+        }
         return true;
     }
 
@@ -99,6 +128,58 @@ public class WorldBlackoutComponent implements AutoSyncedComponent, ServerTickin
             BlackoutDetails detail = new BlackoutDetails((NbtCompound) element);
             detail.init(this.world);
             this.blackouts.add(detail);
+        }
+    }
+
+    private void applyBlackoutEffects(ServerWorld serverWorld) {
+        GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
+        AreasWorldComponent areasComponent = AreasWorldComponent.KEY.get(serverWorld);
+
+        for (ServerPlayerEntity player : serverWorld.getPlayers()) {
+            if (!areasComponent.playArea.contains(player.getPos())) {
+                continue;
+            }
+
+            if (!GameFunctions.isPlayerAliveAndSurvival(player)) {
+                continue;
+            }
+
+            boolean isKiller = gameComponent.canUseKillerFeatures(player);
+
+            if (isKiller) {
+                StatusEffectInstance nightVision = new StatusEffectInstance(
+                    StatusEffects.NIGHT_VISION,
+                    40,
+                    0,
+                    false,
+                    false,
+                    true
+                );
+                player.addStatusEffect(nightVision);
+            } else {
+                StatusEffectInstance darkness = new StatusEffectInstance(
+                    StatusEffects.DARKNESS,
+                    40,
+                    0,
+                    false,
+                    false,
+                    true
+                );
+                player.addStatusEffect(darkness);
+            }
+        }
+    }
+
+    private void removeBlackoutEffects(ServerWorld serverWorld) {
+        AreasWorldComponent areasComponent = AreasWorldComponent.KEY.get(serverWorld);
+
+        for (ServerPlayerEntity player : serverWorld.getPlayers()) {
+            if (!areasComponent.playArea.contains(player.getPos())) {
+                continue;
+            }
+
+            player.removeStatusEffect(StatusEffects.NIGHT_VISION);
+            player.removeStatusEffect(StatusEffects.DARKNESS);
         }
     }
 

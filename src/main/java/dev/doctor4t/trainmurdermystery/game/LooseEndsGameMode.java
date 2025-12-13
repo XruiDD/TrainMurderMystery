@@ -78,7 +78,7 @@ public class LooseEndsGameMode extends GameMode {
 
         // game end on win and display
         if (winStatus != GameFunctions.WinStatus.NONE && gameWorldComponent.getGameStatus() == GameWorldComponent.GameStatus.ACTIVE) {
-            GameRoundEndComponent.KEY.get(serverWorld).setRoundEndData(serverWorld.getPlayers(), winStatus);
+            GameRoundEndComponent.KEY.get(serverWorld).setRoundEndData(serverWorld, winStatus);
 
             GameFunctions.stopGame(serverWorld);
         }

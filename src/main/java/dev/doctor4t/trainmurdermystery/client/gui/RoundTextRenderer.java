@@ -2,24 +2,19 @@ package dev.doctor4t.trainmurdermystery.client.gui;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.systems.RenderSystem;
-import dev.doctor4t.trainmurdermystery.api.Faction;
-import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMGameModes;
-import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.cca.GameRoundEndComponent;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import dev.doctor4t.trainmurdermystery.index.TMMSounds;
-import net.minecraft.block.entity.SkullBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.option.GameOptions;
-import net.minecraft.client.util.SkinTextures;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.MutableText;
@@ -27,7 +22,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +35,18 @@ public class RoundTextRenderer {
     private static int killers = 0;
     private static int targets = 0;
     private static int endTime = 0;
+    /**
+     * 获取玩家皮肤纹理
+     * 优先从模组缓存(PlayerListEntry)获取，如果失效则从客户端皮肤服务(SkinProvider)获取
+     */
+    private static Identifier getPlayerTexture(GameProfile profile) {
+        PlayerListEntry entry = TMMClient.PLAYER_ENTRIES_CACHE.get(profile.getId());
+        if (entry != null) {
+            return entry.getSkinTextures().texture();
+        }
 
+        return MinecraftClient.getInstance().getSkinProvider().getSkinTextures(profile).texture();
+    }
     @SuppressWarnings("IntegerDivisionInFloatingPointContext")
     public static void renderHud(TextRenderer renderer, ClientPlayerEntity player, @NotNull DrawContext context) {
         boolean isLooseEnds = GameWorldComponent.KEY.get(player.getWorld()).getGameMode() == TMMGameModes.LOOSE_ENDS;
@@ -253,35 +258,49 @@ public class RoundTextRenderer {
         welcomeTime = 0;
         endTime = END_DURATION;
     }
+
     /**
      * Helper method to render a player card with head and role name
      */
     private static void renderPlayerCard(DrawContext context, TextRenderer renderer, GameRoundEndComponent.RoundEndData entry, int x, int y) {
-        PlayerListEntry playerEntry = TMMClient.PLAYER_ENTRIES_CACHE.get(entry.player().getId());
+        Identifier texture = getPlayerTexture(entry.player());
 
-        // Get role information
         RoleAnnouncementTexts.RoleAnnouncementText role = RoleAnnouncementTexts.getForRole(entry.role());
         Text roleName = role.roleText;
 
-        // Render player head with 2x scale (same as original code)
-        if (playerEntry != null) {
-            Identifier texture = playerEntry.getSkinTextures().texture();
-            if (texture != null) {
-                RenderSystem.enableBlend();
-                context.getMatrices().push();
-                context.getMatrices().scale(2f, 2f, 1f);
-                context.getMatrices().translate(x / 2f, y / 2f, 0);
-                float offColour = entry.wasDead() ? 0.4f : 1f;
-                // Draw base head (8x8)
-                context.drawTexturedQuad(texture, 0, 8, 0, 8, 0, 8 / 64f, 16 / 64f, 8 / 64f, 16 / 64f, 1f, offColour, offColour, 1f);
-                // Draw hat layer
-                context.getMatrices().translate(-0.5, -0.5, 0);
-                context.getMatrices().scale(1.125f, 1.125f, 1f);
-                context.drawTexturedQuad(texture, 0, 8, 0, 8, 0, 40 / 64f, 48 / 64f, 8 / 64f, 16 / 64f, 1f, offColour, offColour, 1f);
-                context.getMatrices().pop();
-            }
-            // Draw death marker (same style as original)
-            if (entry.wasDead()) {
+        float r = 1.0f;
+        float g = 1.0f;
+        float b = 1.0f;
+        if (entry.hasLeft()) {
+            r = 0.2f;
+            g = 0.2f;
+            b = 0.2f;
+        }else if (entry.wasDead()) {
+            r = 1.0f;
+            g = 0.4f;
+            b = 0.4f;
+        }
+
+        if (texture != null) {
+            RenderSystem.enableBlend();
+            context.getMatrices().push();
+            context.getMatrices().scale(2f, 2f, 1f);
+            context.getMatrices().translate(x / 2f, y / 2f, 0);
+
+            // Draw base head (8x8) - 使用 r, g, b
+            context.drawTexturedQuad(texture, 0, 8, 0, 8, 0, 8 / 64f, 16 / 64f, 8 / 64f, 16 / 64f, r, g, b, 1f);
+
+            // Draw hat layer - 使用 r, g, b
+            context.getMatrices().translate(-0.5, -0.5, 0);
+            context.getMatrices().scale(1.125f, 1.125f, 1f);
+            context.drawTexturedQuad(texture, 0, 8, 0, 8, 0, 40 / 64f, 48 / 64f, 8 / 64f, 16 / 64f, r, g, b, 1f);
+
+            context.getMatrices().pop();
+        }
+        // 渲染状态标记（符号）
+        switch (entry.endStatus()) {
+            case DEAD,LEFT_DEAD -> {
+                // 死亡标记 - 红色 X
                 context.getMatrices().push();
                 context.getMatrices().scale(2f, 2f, 1f);
                 context.getMatrices().translate(x / 2f + 5, y / 2f, 0);
@@ -290,37 +309,12 @@ public class RoundTextRenderer {
                 context.drawText(renderer, "x", -renderer.getWidth("x") / 2, 1, 0x550000, false);
                 context.getMatrices().pop();
             }
+            case ALIVE -> {
+            }
         }
 
         // Render role name below head
         context.drawTextWithShadow(renderer, roleName, x + 8 - renderer.getWidth(roleName) / 2, y + 18, role.colour);
-    }
-
-    /**
-     * Helper method to render a player head with death indicator
-     */
-    private static void renderPlayerHead(DrawContext context, TextRenderer renderer, GameRoundEndComponent.RoundEndData entry) {
-        PlayerListEntry playerEntry = TMMClient.PLAYER_ENTRIES_CACHE.get(entry.player().getId());
-        if (playerEntry != null) {
-            Identifier texture = playerEntry.getSkinTextures().texture();
-            if (texture != null) {
-                RenderSystem.enableBlend();
-                context.getMatrices().push();
-                context.getMatrices().translate(8, 0, 0);
-                float offColour = entry.wasDead() ? 0.4f : 1f;
-                context.drawTexturedQuad(texture, 0, 8, 0, 8, 0, 8 / 64f, 16 / 64f, 8 / 64f, 16 / 64f, 1f, offColour, offColour, 1f);
-                context.getMatrices().translate(-0.5, -0.5, 0);
-                context.getMatrices().scale(1.125f, 1.125f, 1f);
-                context.drawTexturedQuad(texture, 0, 8, 0, 8, 0, 40 / 64f, 48 / 64f, 8 / 64f, 16 / 64f, 1f, offColour, offColour, 1f);
-                context.getMatrices().pop();
-            }
-            if (entry.wasDead()) {
-                context.getMatrices().translate(13, 0, 0);
-                context.getMatrices().scale(2f, 1f, 1f);
-                context.drawText(renderer, "x", -renderer.getWidth("x") / 2, 0, 0xE10000, false);
-                context.drawText(renderer, "x", -renderer.getWidth("x") / 2, 1, 0x550000, false);
-            }
-        }
     }
 
 }

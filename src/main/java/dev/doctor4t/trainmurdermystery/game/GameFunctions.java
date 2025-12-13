@@ -401,6 +401,7 @@ public class GameFunctions {
 
         if (victim instanceof ServerPlayerEntity serverPlayerEntity && isPlayerAliveAndSurvival(serverPlayerEntity)) {
             serverPlayerEntity.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
+            GameWorldComponent.KEY.get(victim.getWorld()).markPlayerDead(victim.getUuid());
         } else {
             return;
         }

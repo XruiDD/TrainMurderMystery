@@ -7,6 +7,7 @@ import dev.doctor4t.trainmurdermystery.api.TMMGameModes;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -28,6 +29,7 @@ import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,6 +53,8 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     private int fade = 0;
 
     private final HashMap<UUID, Role> roles = new HashMap<>();
+    private final HashMap<UUID, GameProfile> gameProfiles = new HashMap<>();
+    private final HashSet<UUID> deadPlayers = new HashSet<>();
 
     private int ticksUntilNextResetAttempt = -1;
 
@@ -119,7 +123,8 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     }
 
     public void addRole(PlayerEntity player, Role role) {
-        this.addRole(player.getUuid(), role);
+        this.roles.put(player.getUuid(), role);
+        this.gameProfiles.put(player.getUuid(), player.getGameProfile());
     }
 
     public void addRole(UUID player, Role role) {
@@ -196,7 +201,21 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
 
     public void clearRoleMap() {
         this.roles.clear();
+        this.gameProfiles.clear();
+        this.deadPlayers.clear();
         setPsychosActive(0);
+    }
+
+    public void markPlayerDead(UUID uuid) {
+        this.deadPlayers.add(uuid);
+    }
+
+    public boolean isPlayerDead(UUID uuid) {
+        return this.deadPlayers.contains(uuid);
+    }
+
+    public HashMap<UUID, GameProfile> getGameProfiles() {
+        return this.gameProfiles;
     }
 
     public void queueTrainReset() {
@@ -274,6 +293,26 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         } else {
             this.looseEndWinner = null;
         }
+
+        // Read game profiles
+        this.gameProfiles.clear();
+        if (nbtCompound.contains("GameProfiles")) {
+            NbtList profileList = nbtCompound.getList("GameProfiles", NbtElement.COMPOUND_TYPE);
+            for (NbtElement e : profileList) {
+                NbtCompound profileNbt = (NbtCompound) e;
+                UUID uuid = profileNbt.getUuid("uuid");
+                String name = profileNbt.getString("name");
+                this.gameProfiles.put(uuid, new GameProfile(uuid, name));
+            }
+        }
+
+        // Read dead players
+        this.deadPlayers.clear();
+        if (nbtCompound.contains("DeadPlayers")) {
+            for (NbtElement e : nbtCompound.getList("DeadPlayers", NbtElement.INT_ARRAY_TYPE)) {
+                this.deadPlayers.add(NbtHelper.toUuid(e));
+            }
+        }
     }
 
     private ArrayList<UUID> uuidListFromNbt(NbtCompound nbtCompound, String listName) {
@@ -303,6 +342,23 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         }
 
         if (this.looseEndWinner != null) nbtCompound.putUuid("LooseEndWinner", this.looseEndWinner);
+
+        // Write game profiles
+        NbtList profileList = new NbtList();
+        for (var entry : this.gameProfiles.entrySet()) {
+            NbtCompound profileNbt = new NbtCompound();
+            profileNbt.putUuid("uuid", entry.getKey());
+            profileNbt.putString("name", entry.getValue().getName());
+            profileList.add(profileNbt);
+        }
+        nbtCompound.put("GameProfiles", profileList);
+
+        // Write dead players
+        NbtList deadList = new NbtList();
+        for (UUID uuid : this.deadPlayers) {
+            deadList.add(NbtHelper.fromUuid(uuid));
+        }
+        nbtCompound.put("DeadPlayers", deadList);
     }
 
     private NbtList nbtFromUuidList(List<UUID> list) {

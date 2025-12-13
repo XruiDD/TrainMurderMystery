@@ -85,8 +85,8 @@ public class WorldBlackoutComponent implements AutoSyncedComponent, ServerTickin
     public boolean triggerBlackout() {
         AreasWorldComponent areas = AreasWorldComponent.KEY.get(world);
 
-        Box area = areas.playArea;
-        if (this.ticks > 0) return false;
+        Box area = areas.getPlayArea();
+        if (area == null || this.ticks > 0) return false;
         for (int x = (int) area.minX; x <= (int) area.maxX; x++) {
             for (int y = (int) area.minY; y <= (int) area.maxY; y++) {
                 for (int z = (int) area.minZ; z <= (int) area.maxZ; z++) {
@@ -134,9 +134,10 @@ public class WorldBlackoutComponent implements AutoSyncedComponent, ServerTickin
     private void applyBlackoutEffects(ServerWorld serverWorld) {
         GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
         AreasWorldComponent areasComponent = AreasWorldComponent.KEY.get(serverWorld);
+        Box playArea = areasComponent.getPlayArea();
 
         for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-            if (!areasComponent.playArea.contains(player.getPos())) {
+            if (playArea == null || !playArea.contains(player.getPos())) {
                 continue;
             }
 
@@ -172,9 +173,10 @@ public class WorldBlackoutComponent implements AutoSyncedComponent, ServerTickin
 
     private void removeBlackoutEffects(ServerWorld serverWorld) {
         AreasWorldComponent areasComponent = AreasWorldComponent.KEY.get(serverWorld);
+        Box playArea = areasComponent.getPlayArea();
 
         for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-            if (!areasComponent.playArea.contains(player.getPos())) {
+            if (playArea == null || !playArea.contains(player.getPos())) {
                 continue;
             }
 

@@ -2,12 +2,12 @@ package dev.doctor4t.trainmurdermystery.game;
 
 import com.google.common.collect.Lists;
 import dev.doctor4t.trainmurdermystery.TMM;
-import dev.doctor4t.trainmurdermystery.api.Faction;
 import dev.doctor4t.trainmurdermystery.api.GameMode;
 import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.cca.*;
 import dev.doctor4t.trainmurdermystery.compat.TrainVoicePlugin;
+import dev.doctor4t.trainmurdermystery.config.area.RoomConfig;
 import dev.doctor4t.trainmurdermystery.entity.FirecrackerEntity;
 import dev.doctor4t.trainmurdermystery.entity.NoteEntity;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
@@ -94,7 +94,23 @@ public class GameFunctions {
     public static void startGame(ServerWorld world, GameMode gameMode, int time) {
         GameWorldComponent game = GameWorldComponent.KEY.get(world);
         AreasWorldComponent areas = AreasWorldComponent.KEY.get(world);
-        int playerCount = Math.toIntExact(world.getPlayers().stream().filter(serverPlayerEntity -> (areas.getReadyArea().contains(serverPlayerEntity.getPos()))).count());
+
+        // 检查是否已加载区域配置
+        if (!areas.hasAreaConfiguration()) {
+            for (ServerPlayerEntity player : world.getPlayers()) {
+                player.sendMessage(Text.translatable("game.start_error.no_area_config"), true);
+            }
+            return;
+        }
+
+        Box readyArea = areas.getReadyArea();
+        if (readyArea == null) {
+            for (ServerPlayerEntity player : world.getPlayers()) {
+                player.sendMessage(Text.translatable("game.start_error.no_area_config"), true);
+            }
+            return;
+        }
+        int playerCount = Math.toIntExact(world.getPlayers().stream().filter(serverPlayerEntity -> (readyArea.contains(serverPlayerEntity.getPos()))).count());
         game.setGameMode(gameMode);
         GameTimeComponent.KEY.get(world).setResetTime(time);
 
@@ -147,11 +163,9 @@ public class GameFunctions {
             player.dismountVehicle();
         }
 
-        // teleport players to play area
+        // teleport players to play area (will be overridden by room-specific teleport if rooms are configured)
         for (ServerPlayerEntity player : players) {
             player.changeGameMode(net.minecraft.world.GameMode.ADVENTURE);
-            Vec3d pos = player.getPos().add(areas.getPlayAreaOffset());
-            player.requestTeleport(pos.getX(), pos.getY() + 1, pos.getZ());
         }
 
         // kick non playing players
@@ -185,16 +199,54 @@ public class GameFunctions {
         // select rooms and give keys
         Collections.shuffle(players);
         Map<UUID, Integer> playerRoomMap = new HashMap<>();
-        int roomNumber = 0;
-        for (ServerPlayerEntity serverPlayerEntity : players) {
-            roomNumber = roomNumber % 7 + 1;
-            int finalRoomNumber = roomNumber;
-            playerRoomMap.put(serverPlayerEntity.getUuid(), finalRoomNumber);
+        int totalRooms = areas.getRoomCount();
 
-            // 只给钥匙，信件生成移到giveLettersToPlayers中
-            ItemStack itemStack = new ItemStack(TMMItems.KEY);
-            itemStack.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, component -> new LoreComponent(Text.literal("Room " + finalRoomNumber).getWithStyle(Style.EMPTY.withItalic(false).withColor(0xFF8C00))));
-            serverPlayerEntity.giveItemStack(itemStack);
+        if (totalRooms > 0) {
+            // 有房间配置：使用配置的房间分配和传送
+            Map<Integer, Integer> roomPlayerCounts = new HashMap<>(); // 记录每个房间已分配的玩家数
+
+            for (ServerPlayerEntity serverPlayerEntity : players) {
+                // 找到下一个有空位的房间
+                int roomNumber = findNextAvailableRoom(roomPlayerCounts, areas, totalRooms);
+                int playerIndexInRoom = roomPlayerCounts.getOrDefault(roomNumber, 0);
+
+                playerRoomMap.put(serverPlayerEntity.getUuid(), roomNumber);
+                roomPlayerCounts.put(roomNumber, playerIndexInRoom + 1);
+
+                int finalRoomNumber = roomNumber;
+
+                // 给钥匙
+                ItemStack itemStack = new ItemStack(TMMItems.KEY);
+                itemStack.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, component -> new LoreComponent(Text.literal("Room " + finalRoomNumber).getWithStyle(Style.EMPTY.withItalic(false).withColor(0xFF8C00))));
+                serverPlayerEntity.giveItemStack(itemStack);
+
+                // 传送玩家到对应房间的出生点
+                areas.getSpawnPointForPlayer(roomNumber, playerIndexInRoom).ifPresent(spawnPoint -> {
+                    serverPlayerEntity.requestTeleport(spawnPoint.x(), spawnPoint.y(), spawnPoint.z());
+                    serverPlayerEntity.setYaw(spawnPoint.yaw());
+                    serverPlayerEntity.setPitch(spawnPoint.pitch());
+                });
+            }
+        } else {
+            // 没有房间配置：使用原来的7个房间循环分配
+            int roomNumber = 0;
+            for (ServerPlayerEntity serverPlayerEntity : players) {
+                roomNumber = roomNumber % 7 + 1;
+                int finalRoomNumber = roomNumber;
+                playerRoomMap.put(serverPlayerEntity.getUuid(), finalRoomNumber);
+
+                // 给钥匙
+                ItemStack itemStack = new ItemStack(TMMItems.KEY);
+                itemStack.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, component -> new LoreComponent(Text.literal("Room " + finalRoomNumber).getWithStyle(Style.EMPTY.withItalic(false).withColor(0xFF8C00))));
+                serverPlayerEntity.giveItemStack(itemStack);
+
+                // 使用原来的传送逻辑
+                Vec3d offset = areas.getPlayAreaOffset();
+                if (offset != null) {
+                    Vec3d pos = serverPlayerEntity.getPos().add(offset);
+                    serverPlayerEntity.requestTeleport(pos.getX(), pos.getY() + 1, pos.getZ());
+                }
+            }
         }
 
         gameComponent.setGameStatus(GameWorldComponent.GameStatus.ACTIVE);
@@ -320,9 +372,12 @@ public class GameFunctions {
     }
 
     private static List<ServerPlayerEntity> getReadyPlayerList(ServerWorld serverWorld) {
-        AreasWorldComponent areas =AreasWorldComponent.KEY.get(serverWorld);
-        List<ServerPlayerEntity> players = serverWorld.getPlayers(serverPlayerEntity -> areas.getReadyArea().contains(serverPlayerEntity.getPos()));
-        return players;
+        AreasWorldComponent areas = AreasWorldComponent.KEY.get(serverWorld);
+        Box readyArea = areas.getReadyArea();
+        if (readyArea == null) {
+            return List.of();
+        }
+        return serverWorld.getPlayers(serverPlayerEntity -> readyArea.contains(serverPlayerEntity.getPos()));
     }
 
     public static void finalizeGame(ServerWorld world) {
@@ -367,8 +422,10 @@ public class GameFunctions {
         player.changeGameMode(net.minecraft.world.GameMode.ADVENTURE);
         player.wakeUp();
         AreasWorldComponent.PosWithOrientation spawnPos = AreasWorldComponent.KEY.get(player.getWorld()).getSpawnPos();
-        TeleportTarget teleportTarget = new TeleportTarget(player.getServerWorld(), spawnPos.pos, Vec3d.ZERO, spawnPos.yaw, spawnPos.pitch, TeleportTarget.NO_OP);
-        player.teleportTo(teleportTarget);
+        if (spawnPos != null) {
+            TeleportTarget teleportTarget = new TeleportTarget(player.getServerWorld(), spawnPos.pos, Vec3d.ZERO, spawnPos.yaw, spawnPos.pitch, TeleportTarget.NO_OP);
+            player.teleportTo(teleportTarget);
+        }
 
         ResetPlayer.EVENT.invoker().onReset(player);
     }
@@ -490,10 +547,16 @@ public class GameFunctions {
     public static boolean tryResetTrain(ServerWorld serverWorld) {
         if (serverWorld.getServer().getOverworld().equals(serverWorld)) {
             AreasWorldComponent areas = AreasWorldComponent.KEY.get(serverWorld);
-            BlockPos backupMinPos = BlockPos.ofFloored(areas.getResetTemplateArea().getMinPos());
-            BlockPos backupMaxPos = BlockPos.ofFloored(areas.getResetTemplateArea().getMaxPos());
+            Box resetTemplateArea = areas.getResetTemplateArea();
+            Box resetPasteArea = areas.getResetPasteArea();
+            if (resetTemplateArea == null || resetPasteArea == null) {
+                TMM.LOGGER.warn("Cannot reset train: area configuration not loaded");
+                return false;
+            }
+            BlockPos backupMinPos = BlockPos.ofFloored(resetTemplateArea.getMinPos());
+            BlockPos backupMaxPos = BlockPos.ofFloored(resetTemplateArea.getMaxPos());
             BlockBox backupTrainBox = BlockBox.create(backupMinPos, backupMaxPos);
-            BlockPos trainMinPos = BlockPos.ofFloored(areas.getResetPasteArea().getMinPos());
+            BlockPos trainMinPos = BlockPos.ofFloored(resetPasteArea.getMinPos());
             BlockPos trainMaxPos = trainMinPos.add(backupTrainBox.getDimensions());
             BlockBox trainBox = BlockBox.create(trainMinPos, trainMaxPos);
 
@@ -599,7 +662,31 @@ public class GameFunctions {
     public static int getReadyPlayerCount(World world) {
         List<? extends PlayerEntity> players = world.getPlayers();
         AreasWorldComponent areas = AreasWorldComponent.KEY.get(world);
-        return Math.toIntExact(players.stream().filter(p -> areas.getReadyArea().contains(p.getPos())).count());
+        Box readyArea = areas.getReadyArea();
+        if (readyArea == null) {
+            return 0;
+        }
+        return Math.toIntExact(players.stream().filter(p -> readyArea.contains(p.getPos())).count());
+    }
+
+    /**
+     * 找到下一个有空位的房间
+     * 按顺序遍历房间，找到第一个未满的房间
+     * 如果所有房间都满了，则按顺序从第一个房间开始强制塞人
+     */
+    private static int findNextAvailableRoom(Map<Integer, Integer> roomPlayerCounts, AreasWorldComponent areas, int totalRooms) {
+        // 第一轮：找到有空位的房间
+        for (int i = 1; i <= totalRooms; i++) {
+            int currentCount = roomPlayerCounts.getOrDefault(i, 0);
+            int maxPlayers = areas.getRoomConfig(i).map(RoomConfig::getMaxPlayers).orElse(1);
+            if (currentCount < maxPlayers) {
+                return i;
+            }
+        }
+
+        // 所有房间都满了，按顺序强制塞人
+        int totalPlayers = roomPlayerCounts.values().stream().mapToInt(Integer::intValue).sum();
+        return (totalPlayers % totalRooms) + 1;
     }
 
     public enum WinStatus {

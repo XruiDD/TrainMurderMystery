@@ -19,6 +19,7 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
@@ -439,6 +440,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         }
 
         AreasWorldComponent areas = AreasWorldComponent.KEY.get(serverWorld);
+        Box playArea = areas.getPlayArea();
 
         // attempt to reset the play area
         if (--ticksUntilNextResetAttempt == 0) {
@@ -452,7 +454,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         // if not running and spectators or not in lobby reset them
         if (serverWorld.getTime() % 20 == 0) {
             for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-                if (!isRunning() && (player.isSpectator() && serverWorld.getServer().getPermissionLevel(player.getGameProfile()) < 2 || (GameFunctions.isPlayerAliveAndSurvival(player) && areas.playArea.contains(player.getPos())))) {
+                if (!isRunning() && (player.isSpectator() && serverWorld.getServer().getPermissionLevel(player.getGameProfile()) < 2 || (GameFunctions.isPlayerAliveAndSurvival(player) && playArea != null && playArea.contains(player.getPos())))) {
                     GameFunctions.resetPlayer(player);
                 }
             }
@@ -464,8 +466,8 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
             // spectator limits
             if (trainComponent.getSpeed() > 0) {
                 for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-                    if (!GameFunctions.isPlayerAliveAndSurvival(player) && isBound()) {
-                        GameFunctions.limitPlayerToBox(player, areas.playArea);
+                    if (!GameFunctions.isPlayerAliveAndSurvival(player) && isBound() && playArea != null) {
+                        GameFunctions.limitPlayerToBox(player, playArea);
                     }
                 }
             }
@@ -474,7 +476,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
                 for (ServerPlayerEntity player : serverWorld.getPlayers()) {
                     if (GameFunctions.isPlayerAliveAndSurvival(player)) {
                         // kill players who fell off the train
-                        if (player.getY() < areas.playArea.minY) {
+                        if (playArea != null && player.getY() < playArea.minY) {
                             GameFunctions.killPlayer(player, false, player.getLastAttacker() instanceof PlayerEntity killerPlayer ? killerPlayer : null, GameConstants.DeathReasons.FELL_OUT_OF_TRAIN);
                         }
 

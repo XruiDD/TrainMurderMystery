@@ -68,12 +68,12 @@ public class TMMLangGen extends FabricLanguageProvider {
         builder.add("announcement.loose_ends.goal", "Tie all loose ends before they tie you. Good luck.");
         builder.add("announcement.loose_ends.winner", "%s Wins!");
 
-        builder.add("tip.letter.name", "Dear %s, welcome aboard the Harpy Express!");
-        builder.add("tip.letter.room", "Please find attached your ticket as well as the key for accessing");
+        builder.add("tip.letter.name", "Dear %s, your role is %s. Welcome aboard the Harpy Express!");
+        builder.add("tip.letter.room", "Please find attached your ticket as well as the key to your cabin.");
         builder.add("tip.letter.room.grand_suite", "the Grand Suite");
         builder.add("tip.letter.room.cabin_suite", "your Cabin Suite");
         builder.add("tip.letter.room.twin_cabin", "your Twin Cabin");
-        builder.add("tip.letter.tooltip1", "%s for your trip on the 1st of January 1923.");
+        builder.add("tip.letter.tooltip1", "Enjoy your trip on the 1st of January 1923.");
         builder.add("tip.letter.tooltip2", "La Sirène wishes you a pleasant and safe voyage.");
 
         builder.add("itemGroup.trainmurdermystery.building", "TrainMurderMystery: Building Blocks");
@@ -112,6 +112,7 @@ public class TMMLangGen extends FabricLanguageProvider {
         builder.add("game.win.passengers", "All killers were eliminated: the passengers win!");
         builder.add("game.win.time", "The killers ran out of time: the passengers win!");
         builder.add("game.win.loose_end", "They tied all of their loose ends!");
+        builder.add("game.start_error.no_area_config", "Cannot start game: Area configuration not loaded! Please add a datapack configuration.");
 
         builder.add("key.trainmurdermystery.instinct", "Instinct");
         builder.add("category.trainmurdermystery.keybinds", "Train Murder Mystery");
@@ -140,5 +141,87 @@ public class TMMLangGen extends FabricLanguageProvider {
         builder.add("trainmurdermystery.midnightconfig.disableScreenShake", "Disable Screen Shake");
 
         builder.add("credits.trainmurdermystery.thank_you", "Thank you for playing The Last Voyage of the Harpy Express!\nMe and my team spent a lot of time working\non this mod and we hope you enjoy it.\nIf you do and wish to make a video or stream\nplease make sure to credit my channel,\nvideo and the mod page!\n - RAT / doctor4t");
+
+        // Faction announcements
+        builder.add("announcement.faction.civilian", "Civilians");
+        builder.add("announcement.faction.killer", "Killers");
+        builder.add("announcement.faction.neutral", "Neutral");
+        builder.add("announcement.result.losers", "Losers");
+
+        // Force role commands
+        builder.add("commands.trainmurdermystery.forcerole.invalid", "Invalid role name");
+        builder.add("commands.trainmurdermystery.forcerole.query", "%s is forced to role: %s");
+        builder.add("commands.trainmurdermystery.forcerole.query.none", "%s is not forced to any role");
+        builder.add("commands.trainmurdermystery.forcerole.success", "Forced %s to %s");
+        builder.add("commands.trainmurdermystery.setenabledrole.invalid", "Invalid role name");
+        builder.add("commands.trainmurdermystery.setenabledrole.success", "Role %s is now %s");
+        builder.add("commands.trainmurdermystery.setenabledrole.enabled", "enabled");
+        builder.add("commands.trainmurdermystery.setenabledrole.disabled", "disabled");
+
+        // Shop errors
+        builder.add("shop.error.not_available", "Shop Not Available");
+        builder.add("shop.error.invalid_item", "Invalid Item");
+        builder.add("shop.error.purchase_denied", "Purchase Denied");
+        builder.add("shop.error.purchase_failed", "Purchase Failed");
+
+        // Letter tips
+        builder.add("tip.letter.killer.tooltip1", "Thank you for taking this job.");
+        builder.add("tip.letter.killer.tooltip2", "Please do so with the utmost discretion and do not get caught. Good luck.");
+        builder.add("tip.letter.killer.tooltip3", "P.S.: Don't forget to use your instinct [Left Alt] and use the train's exterior to relocate.");
+        builder.add("tip.letter.vigilante.tooltip1", "Intel suggests there is a killer aboard this train.");
+        builder.add("tip.letter.vigilante.tooltip2", "Your mission: eliminate any threats and protect the civilians.");
+
+        // Config translations
+        builder.add("config.trainmurdermystery.client", "Client");
+        builder.add("config.trainmurdermystery.client.tooltip", "Client-side settings");
+        builder.add("config.trainmurdermystery.ultra_perf_mode", "Ultra Performance Mode");
+        builder.add("config.trainmurdermystery.ultra_perf_mode.desc", "Disables scenery for maximum performance. Lowers render distance to 2.");
+        builder.add("config.trainmurdermystery.disable_screen_shake", "Disable Screen Shake");
+        builder.add("config.trainmurdermystery.disable_screen_shake.desc", "Disables screen shake effects");
+        builder.add("config.trainmurdermystery.server", "Server");
+        builder.add("config.trainmurdermystery.server.tooltip", "Server-side settings (requires operator permissions to take effect)");
+        builder.add("config.trainmurdermystery.backfire_chance", "Backfire Chance");
+        builder.add("config.trainmurdermystery.backfire_chance.desc", "Default weapon backfire probability (0.0-1.0)");
+        builder.add("config.trainmurdermystery.killer_ratio", "Killer Ratio");
+        builder.add("config.trainmurdermystery.killer_ratio.desc", "Default killer ratio (1 killer per X players)");
+        builder.add("config.trainmurdermystery.killer_count", "Killer Count");
+        builder.add("config.trainmurdermystery.killer_count.desc", "Default killer count (0 = use ratio)");
+        builder.add("config.trainmurdermystery.disabled_roles", "Disabled Roles");
+        builder.add("config.trainmurdermystery.disabled_roles.desc", "List of disabled role IDs");
+        builder.add("config.trainmurdermystery.autostart_seconds", "Auto Start Countdown");
+        builder.add("config.trainmurdermystery.autostart_seconds.desc", "Auto start countdown in seconds (0 = disabled)");
+        builder.add("config.trainmurdermystery.autostart_gamemode", "Auto Start Game Mode");
+        builder.add("config.trainmurdermystery.autostart_gamemode.desc", "Game mode for auto start (e.g. trainmurdermystery:murder)");
+        builder.add("config.trainmurdermystery.bound", "Enable Bounds");
+        builder.add("config.trainmurdermystery.bound.desc", "Enable spectator boundary restrictions");
+        builder.add("config.trainmurdermystery.snow", "Snow Effect");
+        builder.add("config.trainmurdermystery.snow.desc", "Enable snow effect");
+        builder.add("config.trainmurdermystery.fog", "Fog Effect");
+        builder.add("config.trainmurdermystery.fog.desc", "Enable fog effect");
+        builder.add("config.trainmurdermystery.hud", "Show HUD");
+        builder.add("config.trainmurdermystery.hud.desc", "Show game HUD");
+        builder.add("config.trainmurdermystery.train_speed", "Train Speed");
+        builder.add("config.trainmurdermystery.train_speed.desc", "Default train speed in km/h");
+        builder.add("config.trainmurdermystery.time_of_day", "Time of Day");
+        builder.add("config.trainmurdermystery.time_of_day.desc", "Default time of day (DAY/NIGHT/SUNDOWN)");
+        builder.add("config.trainmurdermystery.shoot_innocent_punishment", "Shoot Innocent Punishment");
+        builder.add("config.trainmurdermystery.shoot_innocent_punishment.desc", "Punishment type for shooting innocent players");
+
+        // Death reasons
+        builder.add("hud.body.death_info", "Died %ss ago from ");
+        builder.add("death_reason.trainmurdermystery.generic", "Unknown");
+        builder.add("death_reason.trainmurdermystery.knife_stab", "Knife Stab");
+        builder.add("death_reason.trainmurdermystery.gun_shot", "Gun Shot");
+        builder.add("death_reason.trainmurdermystery.gun_shot_backfire", "Gun Backfire");
+        builder.add("death_reason.trainmurdermystery.bat_hit", "Bat Hit");
+        builder.add("death_reason.trainmurdermystery.grenade", "Grenade");
+        builder.add("death_reason.trainmurdermystery.poison", "Poison");
+        builder.add("death_reason.trainmurdermystery.fell_out_of_train", "Fell Out of Train");
+        builder.add("death_reason.trainmurdermystery.escaped", "Escaped");
+        builder.add("death_reason.trainmurdermystery.shot_innocent", "Shot Innocent");
+
+        // Disconnect messages
+        builder.add("disconnect.trainmurdermystery.version_mismatch", "Mod version mismatch! Server: %s, Client: %s");
+        builder.add("disconnect.trainmurdermystery.not_in_ready_area", "The game has started, but you were not in the ready area, so you cannot join!");
     }
 }

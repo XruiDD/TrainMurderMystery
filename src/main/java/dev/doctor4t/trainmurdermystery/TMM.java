@@ -8,6 +8,7 @@ import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.command.*;
 import dev.doctor4t.trainmurdermystery.command.argument.GameModeArgumentType;
 import dev.doctor4t.trainmurdermystery.command.argument.TimeOfDayArgumentType;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfigurationReloader;
 import dev.doctor4t.trainmurdermystery.config.TMMServerConfig;
 import dev.doctor4t.trainmurdermystery.event.TMMEventHandlers;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
@@ -16,12 +17,10 @@ import dev.doctor4t.trainmurdermystery.index.*;
 import dev.doctor4t.trainmurdermystery.network.VersionCheckConfigurationTask;
 import dev.doctor4t.trainmurdermystery.network.VersionCheckPayload;
 import dev.doctor4t.trainmurdermystery.util.*;
-import dev.upcraft.datasync.api.DataSyncAPI;
 import dev.upcraft.datasync.api.util.Entitlements;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
@@ -43,7 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
-import java.util.UUID;
 
 public class TMM implements ModInitializer {
     public static final String MOD_ID = "trainmurdermystery";
@@ -73,6 +71,9 @@ public class TMM implements ModInitializer {
 
         // Init constants
         GameConstants.init();
+
+        // Register area configuration reloader (for datapack support)
+        AreaConfigurationReloader.register();
 
         // Registry initializers
         Reflection.initialize(TMMDataComponentTypes.class);

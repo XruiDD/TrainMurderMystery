@@ -1,0 +1,127 @@
+{
+  "_comment": "=== Train Murder Mystery 区域配置示例 ===",
+  "_comment_usage": "将此文件放置于 data/trainmurdermystery/areas/ 目录下",
+  "_comment_reload": "使用 /reload 命令热重载配置",
+
+  "_comment_spawn_pos": "大厅出生点 - 玩家进入服务器时的出生位置",
+  "spawn_pos": {
+    "x": -872.5,
+    "y": 0.0,
+    "z": -323.0,
+    "yaw": 90.0,
+    "pitch": 0.0
+  },
+
+  "_comment_spectator_spawn_pos": "观众出生点 - 死亡玩家/观察者的出生位置",
+  "spectator_spawn_pos": {
+    "x": -68.0,
+    "y": 133.0,
+    "z": -535.5,
+    "yaw": -90.0,
+    "pitch": 15.0
+  },
+
+  "_comment_ready_area": "准备区域 - 玩家需要站在此区域内才能参与游戏开始",
+  "ready_area": {
+    "minX": -1017.0,
+    "minY": -1.0,
+    "minZ": -364.5,
+    "maxX": -813.0,
+    "maxY": 3.0,
+    "maxZ": -357.5
+  },
+
+  "_comment_play_area_offset": "游戏区域偏移 - 从大厅传送到游戏区的坐标偏移量（用于无房间配置时的后备逻辑）",
+  "play_area_offset": {
+    "x": 963.0,
+    "y": 121.0,
+    "z": -175.0
+  },
+
+  "_comment_play_area": "游戏边界 - 玩家活动范围，低于 minY 会判定为坠落死亡",
+  "play_area": {
+    "minX": -140.0,
+    "minY": 118.0,
+    "minZ": -550.5,
+    "maxX": 230.0,
+    "maxY": 200.0,
+    "maxZ": -520.5
+  },
+
+  "_comment_reset_template_area": "重置模板区域 - 用于复制列车内部结构的模板位置",
+  "reset_template_area": {
+    "minX": -57.0,
+    "minY": 64.0,
+    "minZ": -531.0,
+    "maxX": 177.0,
+    "maxY": 74.0,
+    "maxZ": -541.0
+  },
+
+  "_comment_reset_paste_area": "重置粘贴区域 - 模板结构被粘贴到的目标位置",
+  "reset_paste_area": {
+    "minX": -57.0,
+    "minY": 119.0,
+    "minZ": -531.0,
+    "maxX": 177.0,
+    "maxY": 129.0,
+    "maxZ": -541.0
+  },
+
+  "_comment_rooms": "房间配置列表 - 定义每个房间的出生点和最大人数",
+  "_comment_rooms_detail": "max_players: 可选，默认为 spawn_points 数量。当房间人数超过出生点数量时，循环使用出生点",
+  "_comment_rooms_overflow": "当所有房间都满员时，会按顺序强制分配到房间（1→2→3→...→1→2→3...）",
+  "rooms": [
+    {
+      "_comment": "房间 1 - 双人间示例",
+      "max_players": 2,
+      "spawn_points": [
+        { "x": 10.5, "y": 120.0, "z": -535.5, "yaw": 0.0, "pitch": 0.0 },
+        { "x": 12.5, "y": 120.0, "z": -535.5, "yaw": 0.0, "pitch": 0.0 }
+      ]
+    },
+    {
+      "_comment": "房间 2 - 双人间示例",
+      "max_players": 2,
+      "spawn_points": [
+        { "x": 30.5, "y": 120.0, "z": -535.5, "yaw": 0.0, "pitch": 0.0 },
+        { "x": 32.5, "y": 120.0, "z": -535.5, "yaw": 0.0, "pitch": 0.0 }
+      ]
+    },
+    {
+      "_comment": "房间 3 - 单人间示例",
+      "max_players": 1,
+      "spawn_points": [
+        { "x": 50.5, "y": 120.0, "z": -535.5, "yaw": 0.0, "pitch": 0.0 }
+      ]
+    },
+    {
+      "_comment": "房间 4 - 单人间示例",
+      "max_players": 1,
+      "spawn_points": [
+        { "x": 70.5, "y": 120.0, "z": -535.5, "yaw": 0.0, "pitch": 0.0 }
+      ]
+    },
+    {
+      "_comment": "房间 5 - 单人间示例",
+      "max_players": 1,
+      "spawn_points": [
+        { "x": 90.5, "y": 120.0, "z": -535.5, "yaw": 0.0, "pitch": 0.0 }
+      ]
+    },
+    {
+      "_comment": "房间 6 - 单人间示例",
+      "max_players": 1,
+      "spawn_points": [
+        { "x": 110.5, "y": 120.0, "z": -535.5, "yaw": 0.0, "pitch": 0.0 }
+      ]
+    },
+    {
+      "_comment": "房间 7 - 单人间示例",
+      "max_players": 1,
+      "spawn_points": [
+        { "x": 130.5, "y": 120.0, "z": -535.5, "yaw": 0.0, "pitch": 0.0 }
+      ]
+    }
+  ]
+}

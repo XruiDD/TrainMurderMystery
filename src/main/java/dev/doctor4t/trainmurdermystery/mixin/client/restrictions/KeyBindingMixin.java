@@ -1,8 +1,11 @@
 package dev.doctor4t.trainmurdermystery.mixin.client.restrictions;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
+import dev.doctor4t.trainmurdermystery.event.AllowPlayerChat;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.KeyBinding;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -16,18 +19,19 @@ public abstract class KeyBindingMixin {
 
     @Unique
     private boolean shouldSuppressKey() {
+        boolean result = false;
         if (TMMClient.shouldDisableChat()) {
-            return this.equals(MinecraftClient.getInstance().options.chatKey) ||
+            result = this.equals(MinecraftClient.getInstance().options.chatKey) ||
                     this.equals(MinecraftClient.getInstance().options.commandKey);
         }
-        if (TMMClient.isPlayerAliveAndInSurvival()) {
-            return this.equals(MinecraftClient.getInstance().options.swapHandsKey) ||
+        if (!result && TMMClient.isPlayerAliveAndInSurvival()) {
+            result =  this.equals(MinecraftClient.getInstance().options.swapHandsKey) ||
                     this.equals(MinecraftClient.getInstance().options.jumpKey) ||
                     this.equals(MinecraftClient.getInstance().options.togglePerspectiveKey) ||
                     this.equals(MinecraftClient.getInstance().options.dropKey) ||
                     this.equals(MinecraftClient.getInstance().options.advancementsKey);
         }
-        return false;
+        return result;
     }
 
     @ModifyReturnValue(method = "wasPressed", at = @At("RETURN"))

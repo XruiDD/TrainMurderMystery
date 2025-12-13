@@ -10,9 +10,9 @@ public interface RoleAssigned {
 
     Event<RoleAssigned> EVENT = createArrayBacked(RoleAssigned.class, listeners -> (player, role) -> {
         for (RoleAssigned listener : listeners) {
-            listener.assignModdedRole(player, role);
+            listener.assignRole(player, role);
         }
     });
 
-    void assignModdedRole(PlayerEntity player, Role role);
+    void assignRole(PlayerEntity player, Role role);
 }

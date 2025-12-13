@@ -53,7 +53,7 @@ public class MurderGameMode extends GameMode {
         roleSelector.assignNeutrals(world, gameComponent, players, killerCount);
         roleSelector.assignCivilians(world, gameComponent, players);
         for (ServerPlayerEntity player : players) {
-            RoleAssigned.EVENT.invoker().assignModdedRole(player,gameComponent.getRole(player));
+            RoleAssigned.EVENT.invoker().assignRole(player,gameComponent.getRole(player));
         }
         return total;
     }

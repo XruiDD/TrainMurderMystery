@@ -41,10 +41,15 @@ public class GameRoundEndComponent implements AutoSyncedComponent {
         GameWorldComponent game = GameWorldComponent.KEY.get(this.world);
         for (ServerPlayerEntity player : players) {
             Role playerRole = game.getRole(player);
-            if (winStatus.equals(GameFunctions.WinStatus.KILLERS)) {
-                this.players.add(new RoundEndData(player.getGameProfile(), playerRole.identifier(), !GameFunctions.isPlayerAliveAndSurvival(player),playerRole.getFaction() == Faction.KILLER));
-            } else if (winStatus.equals(GameFunctions.WinStatus.PASSENGERS)) {
-                this.players.add(new RoundEndData(player.getGameProfile(), playerRole.identifier(), !GameFunctions.isPlayerAliveAndSurvival(player),playerRole.getFaction() == Faction.CIVILIAN));
+            switch (winStatus){
+                case NONE:
+                case PASSENGERS:
+                case TIME:
+                    this.players.add(new RoundEndData(player.getGameProfile(), playerRole.identifier(), !GameFunctions.isPlayerAliveAndSurvival(player),playerRole.getFaction() == Faction.CIVILIAN));
+                    break;
+                case KILLERS:
+                    this.players.add(new RoundEndData(player.getGameProfile(), playerRole.identifier(), !GameFunctions.isPlayerAliveAndSurvival(player),playerRole.getFaction() == Faction.KILLER));
+                    break;
             }
         }
         this.winStatus = winStatus;

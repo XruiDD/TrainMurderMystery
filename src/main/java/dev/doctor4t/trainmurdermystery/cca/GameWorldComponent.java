@@ -277,7 +277,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     }
 
     public ShootInnocentPunishment getShootInnocentPunishment() {
-        return shootInnocentPunishment;
+        return shootInnocentPunishment != null ? shootInnocentPunishment : ShootInnocentPunishment.VANILLA;
     }
 
     public void setShootInnocentPunishment(ShootInnocentPunishment punishment) {
@@ -380,7 +380,9 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         nbtCompound.putInt("KillerPlayerRatio", killerPlayerRatio);
 
         // Write shoot innocent punishment
-        nbtCompound.putString("ShootInnocentPunishment", shootInnocentPunishment.name());
+        if (shootInnocentPunishment != null) {
+            nbtCompound.putString("ShootInnocentPunishment", shootInnocentPunishment.name());
+        }
 
         for (Role role : TMMRoles.ROLES) {
             nbtCompound.put(role.identifier().toString(), nbtFromUuidList(getAllWithRole(role)));

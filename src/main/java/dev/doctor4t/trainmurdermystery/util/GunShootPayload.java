@@ -3,13 +3,13 @@ package dev.doctor4t.trainmurdermystery.util;
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
+import dev.doctor4t.trainmurdermystery.config.TMMServerConfig.ShootInnocentPunishment;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import dev.doctor4t.trainmurdermystery.index.TMMDataComponentTypes;
 import dev.doctor4t.trainmurdermystery.index.TMMItems;
 import dev.doctor4t.trainmurdermystery.index.TMMSounds;
 import dev.doctor4t.trainmurdermystery.index.tag.TMMItemTags;
-import dev.doctor4t.trainmurdermystery.config.TMMServerConfig.ShootInnocentPunishment;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.ItemEntity;
@@ -63,50 +63,48 @@ public record GunShootPayload(int target) implements CustomPayload {
 
                 boolean backfire = false;
 
+                // 只有无辜者射击无辜者才会触发惩罚（杀手射击无辜者不受惩罚）
                 if (game.isInnocent(target) && !player.isCreative() && mainHandStack.isOf(revolver)) {
+                    // 所有惩罚类型都会掉落枪支，然后根据类型执行附加惩罚
+                    ShootInnocentPunishment punishment = game.getShootInnocentPunishment();
                     // backfire: if you kill an innocent you have a chance of shooting yourself instead
-                    if (game.isInnocent(player) && player.getRandom().nextFloat() <= game.getBackfireChance()) {
+                    if (punishment == ShootInnocentPunishment.VANILLA && game.isInnocent(player) && player.getRandom().nextFloat() <= game.getBackfireChance()) {
                         backfire = true;
                         GameFunctions.killPlayer(player, true, player, GameConstants.DeathReasons.GUN_BACKFIRE);
-                    } else {
-                        // 应用射杀无辜惩罚
-                        ShootInnocentPunishment punishment = game.getShootInnocentPunishment();
-                        switch (punishment) {
-                            case VANILLA -> {
-                                // 默认行为：掉落枪支
-                                Scheduler.schedule(() -> {
-                                    if (!context.player().getInventory().contains((s) -> s.isIn(TMMItemTags.GUNS))) return;
-                                    player.getInventory().remove((s) -> s.isOf(revolver), 1, player.getInventory());
-                                    ItemEntity item = player.dropItem(revolver.getDefaultStack(), false, false);
-                                    if (item != null) {
-                                        item.setPickupDelay(10);
-                                        item.setThrower(player);
-                                    }
-                                    ServerPlayNetworking.send(player, new GunDropPayload());
-                                    PlayerMoodComponent.KEY.get(player).setMood(0);
-                                }, 4);
+                    } else if(punishment != ShootInnocentPunishment.VANILLA  && game.isInnocent(player)){
+                        Scheduler.schedule(() -> {
+                            if (!context.player().getInventory().contains((s) -> s.isIn(TMMItemTags.GUNS))) return;
+                            player.getInventory().remove((s) -> s.isOf(revolver), 1, player.getInventory());
+                            ItemEntity item = player.dropItem(revolver.getDefaultStack(), false, false);
+                            if (item != null) {
+                                item.setPickupDelay(10);
+                                item.setThrower(player);
                             }
-                            case PREVENT_GUN_PICKUP -> {
-                                // 禁止拾取枪支：掉落枪支并标记玩家
-                                Scheduler.schedule(() -> {
-                                    if (!context.player().getInventory().contains((s) -> s.isIn(TMMItemTags.GUNS))) return;
-                                    player.getInventory().remove((s) -> s.isOf(revolver), 1, player.getInventory());
-                                    ItemEntity item = player.dropItem(revolver.getDefaultStack(), false, false);
-                                    if (item != null) {
-                                        item.setPickupDelay(10);
-                                        item.setThrower(player);
-                                    }
-                                    ServerPlayNetworking.send(player, new GunDropPayload());
-                                    PlayerMoodComponent.KEY.get(player).setMood(0);
-                                    // 标记玩家无法再拾取枪支
+                            ServerPlayNetworking.send(player, new GunDropPayload());
+                            PlayerMoodComponent.KEY.get(player).setMood(0);
+                            switch (punishment) {
+                                case PREVENT_GUN_PICKUP -> {
+                                    // 禁止再拾取枪支
                                     game.addToPreventGunPickup(player);
-                                }, 4);
+                                }
+                                case KILL_SHOOTER -> {
+                                    // 击杀射击者
+                                    GameFunctions.killPlayer(player, true, player, GameConstants.DeathReasons.SHOT_INNOCENT);
+                                }
                             }
-                            case KILL_SHOOTER -> {
-                                // 击杀射击者：射击者和目标同归于尽
-                                GameFunctions.killPlayer(player, true, player, GameConstants.DeathReasons.SHOT_INNOCENT);
+                        }, 4);
+                    } else {
+                        Scheduler.schedule(() -> {
+                            if (!context.player().getInventory().contains((s) -> s.isIn(TMMItemTags.GUNS))) return;
+                            player.getInventory().remove((s) -> s.isOf(revolver), 1, player.getInventory());
+                            ItemEntity item = player.dropItem(revolver.getDefaultStack(), false, false);
+                            if (item != null) {
+                                item.setPickupDelay(10);
+                                item.setThrower(player);
                             }
-                        }
+                            ServerPlayNetworking.send(player, new GunDropPayload());
+                            PlayerMoodComponent.KEY.get(player).setMood(0);
+                        }, 4);
                     }
                 }
 

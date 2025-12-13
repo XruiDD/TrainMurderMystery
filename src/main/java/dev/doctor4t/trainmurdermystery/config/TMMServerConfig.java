@@ -1,5 +1,6 @@
 package dev.doctor4t.trainmurdermystery.config;
 
+import com.google.gson.annotations.SerializedName;
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
@@ -12,6 +13,7 @@ import java.util.List;
 public class TMMServerConfig {
     // 惩罚类型枚举
     public enum ShootInnocentPunishment {
+        @SerializedName(value = "VANILLA", alternate = {"DEFAULT"})
         VANILLA,
         PREVENT_GUN_PICKUP,
         KILL_SHOOTER
@@ -48,6 +50,6 @@ public class TMMServerConfig {
     @SerialEntry(comment = "默认是否启用观察者边界限制")
     public boolean bound = true;
 
-    @SerialEntry(comment = "射杀无辜玩家的惩罚 (DEFAULT/PREVENT_GUN_PICKUP/KILL_SHOOTER)")
-    public ShootInnocentPunishment shootInnocentPunishment = ShootInnocentPunishment.KILL_SHOOTER;
+    @SerialEntry(comment = "射杀无辜玩家的惩罚 (VANILLA/PREVENT_GUN_PICKUP/KILL_SHOOTER)")
+    public ShootInnocentPunishment shootInnocentPunishment = ShootInnocentPunishment.VANILLA;
 }

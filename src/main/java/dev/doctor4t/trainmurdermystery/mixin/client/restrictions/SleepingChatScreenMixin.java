@@ -25,7 +25,7 @@ public abstract class SleepingChatScreenMixin extends ChatScreen {
 
     @WrapMethod(method = "render")
     public void tmm$disableSleepChat(DrawContext context, int mouseX, int mouseY, float delta, Operation<Void> original) {
-        if (!TMMClient.isPlayerAliveAndInSurvival()) {
+        if (!TMMClient.shouldDisableChat()) {
             original.call(context, mouseX, mouseY, delta);
         }
     }

@@ -26,6 +26,7 @@ import dev.doctor4t.trainmurdermystery.client.render.entity.NoteEntityRenderer;
 import dev.doctor4t.trainmurdermystery.client.util.TMMItemTooltips;
 import dev.doctor4t.trainmurdermystery.entity.FirecrackerEntity;
 import dev.doctor4t.trainmurdermystery.entity.NoteEntity;
+import dev.doctor4t.trainmurdermystery.event.AllowPlayerChat;
 import dev.doctor4t.trainmurdermystery.event.GetInstinctHighlight;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
@@ -372,6 +373,44 @@ public class TMMClient implements ClientModInitializer {
 
     public static boolean isPlayerAliveAndInSurvival() {
         return GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player);
+    }
+
+    /**
+     * 判断是否应该禁用聊天
+     * 聊天在大厅阶段（INACTIVE）和旁观者/创造模式下启用
+     * 聊天在游戏过渡和进行中（STARTING/ACTIVE/STOPPING）禁用
+     *
+     * 第三方 Mod 可以通过监听 AllowPlayerChat.EVENT 来覆盖默认限制
+     *
+     * @return true 如果应该禁用聊天, false 如果应该允许聊天
+     */
+    public static boolean shouldDisableChat() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        ClientPlayerEntity player = client.player;
+
+        // 空值安全检查
+        if (player == null) {
+            return false;
+        }
+
+        // 事件优先触发 - 允许第三方 mod 覆盖聊天限制
+        // 任何监听器返回 true 即允许聊天
+        if (AllowPlayerChat.EVENT.invoker().allowChat(player)) {
+            return false; // 事件允许聊天，因此不禁用
+        }
+
+        // 旁观者和创造模式玩家始终可以使用聊天
+        if (!isPlayerAliveAndInSurvival()) {
+            return false;
+        }
+
+        // 如果游戏组件未初始化，安全起见允许聊天
+        if (gameComponent == null) {
+            return false;
+        }
+
+        // 仅在非大厅状态下禁用聊天
+        return gameComponent.getGameStatus() != GameWorldComponent.GameStatus.INACTIVE;
     }
 
     public static boolean isPlayerSpectatingOrCreative() {

@@ -16,10 +16,12 @@ public abstract class KeyBindingMixin {
 
     @Unique
     private boolean shouldSuppressKey() {
+        if (TMMClient.shouldDisableChat()) {
+            return this.equals(MinecraftClient.getInstance().options.chatKey) ||
+                    this.equals(MinecraftClient.getInstance().options.commandKey);
+        }
         if (TMMClient.isPlayerAliveAndInSurvival()) {
             return this.equals(MinecraftClient.getInstance().options.swapHandsKey) ||
-                    this.equals(MinecraftClient.getInstance().options.chatKey) ||
-                    this.equals(MinecraftClient.getInstance().options.commandKey) ||
                     this.equals(MinecraftClient.getInstance().options.jumpKey) ||
                     this.equals(MinecraftClient.getInstance().options.togglePerspectiveKey) ||
                     this.equals(MinecraftClient.getInstance().options.dropKey) ||

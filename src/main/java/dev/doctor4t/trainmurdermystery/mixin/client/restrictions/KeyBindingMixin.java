@@ -25,7 +25,7 @@ public abstract class KeyBindingMixin {
                     this.equals(MinecraftClient.getInstance().options.commandKey);
         }
 
-        if (!result && TMMClient.gameComponent != null &&  TMMClient.gameComponent.isRunning()){
+        if (!result && TMMClient.gameComponent != null && TMMClient.gameComponent.isRunning()){
             result = this.equals(MinecraftClient.getInstance().options.jumpKey);
         }
         if (!result && TMMClient.isPlayerAliveAndInSurvival()) {

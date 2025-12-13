@@ -37,6 +37,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.GameMode;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -159,12 +160,18 @@ public class TMM implements ModInitializer {
                 && game.isInnocent(player)
                 && !game.isPlayerDead(player.getUuid())
                 && GameFunctions.isPlayerAliveAndSurvival(player)) {
+                server.execute(()->GameFunctions.killPlayer(player, true, null, GameConstants.DeathReasons.ESCAPED));
 
-                // 调用 killPlayer 处理死亡逻辑
-                GameFunctions.killPlayer(player, true, null, GameConstants.DeathReasons.ESCAPED);
             }
         });
-
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            ServerPlayerEntity player = handler.getPlayer();
+            ServerWorld world = server.getOverworld();
+            GameWorldComponent game = GameWorldComponent.KEY.get(world);
+            if (game.isPlayerDead(player.getUuid())) {
+                player.changeGameMode(GameMode.SPECTATOR);
+            }
+        });
         Scheduler.init();
     }
 

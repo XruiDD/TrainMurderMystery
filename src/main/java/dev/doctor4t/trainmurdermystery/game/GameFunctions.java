@@ -11,7 +11,7 @@ import dev.doctor4t.trainmurdermystery.config.area.RoomConfig;
 import dev.doctor4t.trainmurdermystery.entity.FirecrackerEntity;
 import dev.doctor4t.trainmurdermystery.entity.NoteEntity;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
-import dev.doctor4t.trainmurdermystery.event.AllowPlayerDeath;
+import dev.doctor4t.trainmurdermystery.event.KillPlayer;
 import dev.doctor4t.trainmurdermystery.event.ResetPlayer;
 import dev.doctor4t.trainmurdermystery.event.ShouldDropOnDeath;
 import dev.doctor4t.trainmurdermystery.index.TMMDataComponentTypes;
@@ -442,7 +442,10 @@ public class GameFunctions {
     public static void killPlayer(PlayerEntity victim, boolean spawnBody, @Nullable PlayerEntity killer, Identifier deathReason) {
         PlayerPsychoComponent component = PlayerPsychoComponent.KEY.get(victim);
 
-        if (!AllowPlayerDeath.EVENT.invoker().allowDeath(victim, deathReason)) return;
+        // Fire BEFORE event
+        KillPlayer.KillResult beforeResult = KillPlayer.BEFORE.invoker().beforeKillPlayer(victim, killer, deathReason);
+        if (beforeResult != null && beforeResult.cancelled()) return;
+
         if (component.getPsychoTicks() > 0) {
             if (component.getArmour() > 0) {
                 component.setArmour(component.getArmour() - 1);
@@ -507,6 +510,9 @@ public class GameFunctions {
         }
 
         TrainVoicePlugin.addPlayer(victim.getUuid());
+
+        // Fire AFTER event
+        KillPlayer.AFTER.invoker().afterKillPlayer(victim, killer, deathReason);
     }
 
     public static boolean shouldDropOnDeath(@NotNull ItemStack stack) {

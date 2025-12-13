@@ -72,7 +72,7 @@ public record GunShootPayload(int target) implements CustomPayload {
                         // 应用射杀无辜惩罚
                         ShootInnocentPunishment punishment = game.getShootInnocentPunishment();
                         switch (punishment) {
-                            case DEFAULT -> {
+                            case VANILLA -> {
                                 // 默认行为：掉落枪支
                                 Scheduler.schedule(() -> {
                                     if (!context.player().getInventory().contains((s) -> s.isIn(TMMItemTags.GUNS))) return;

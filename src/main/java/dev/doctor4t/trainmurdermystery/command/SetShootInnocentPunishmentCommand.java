@@ -15,7 +15,7 @@ public class SetShootInnocentPunishmentCommand {
                 CommandManager.literal("tmm:setShootInnocentPunishment")
                         .requires(source -> source.hasPermissionLevel(2))
                         .then(CommandManager.literal("default")
-                                .executes(context -> execute(context.getSource(), ShootInnocentPunishment.DEFAULT))
+                                .executes(context -> execute(context.getSource(), ShootInnocentPunishment.VANILLA))
                         )
                         .then(CommandManager.literal("preventGunPickup")
                                 .executes(context -> execute(context.getSource(), ShootInnocentPunishment.PREVENT_GUN_PICKUP))
@@ -34,7 +34,7 @@ public class SetShootInnocentPunishmentCommand {
             TMMServerConfig.HANDLER.save();
 
             String punishmentName = switch (punishment) {
-                case DEFAULT -> "默认 (掉落枪支)";
+                case VANILLA -> "仅掉落枪支";
                 case PREVENT_GUN_PICKUP -> "禁止拾取枪支";
                 case KILL_SHOOTER -> "击杀射击者";
             };

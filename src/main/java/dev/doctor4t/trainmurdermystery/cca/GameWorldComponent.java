@@ -68,7 +68,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     private int killerPlayerRatio = 6; // 1 killer per X players
 
     // 射杀无辜惩罚
-    private ShootInnocentPunishment shootInnocentPunishment = ShootInnocentPunishment.DEFAULT;
+    private ShootInnocentPunishment shootInnocentPunishment;
     private final HashSet<UUID> preventGunPickup = new HashSet<>();
 
     public GameWorldComponent(World world) {
@@ -314,7 +314,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
             try {
                 this.shootInnocentPunishment = ShootInnocentPunishment.valueOf(nbtCompound.getString("ShootInnocentPunishment"));
             } catch (IllegalArgumentException e) {
-                this.shootInnocentPunishment = ShootInnocentPunishment.DEFAULT;
+                this.shootInnocentPunishment = ShootInnocentPunishment.VANILLA;
             }
         }
 

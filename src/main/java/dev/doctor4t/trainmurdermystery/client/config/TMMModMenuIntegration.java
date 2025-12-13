@@ -14,7 +14,6 @@ import dev.isxander.yacl3.api.controller.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -214,7 +213,7 @@ public class TMMModMenuIntegration implements ModMenuApi {
                     .name(Text.translatable("config.trainmurdermystery.shoot_innocent_punishment"))
                     .description(OptionDescription.of(Text.translatable("config.trainmurdermystery.shoot_innocent_punishment.desc")))
                     .binding(
-                        TMMServerConfig.ShootInnocentPunishment.DEFAULT,
+                        TMMServerConfig.ShootInnocentPunishment.VANILLA,
                         () -> TMMServerConfig.HANDLER.instance().shootInnocentPunishment,
                         val -> TMMServerConfig.HANDLER.instance().shootInnocentPunishment = val
                     )

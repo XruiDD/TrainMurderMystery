@@ -13,7 +13,7 @@ import java.util.List;
 public class TMMServerConfig {
     // 惩罚类型枚举
     public enum ShootInnocentPunishment {
-        DEFAULT,
+        VANILLA,
         PREVENT_GUN_PICKUP,
         KILL_SHOOTER
     }
@@ -66,5 +66,5 @@ public class TMMServerConfig {
     public TrainWorldComponent.TimeOfDay timeOfDay = TrainWorldComponent.TimeOfDay.NIGHT;
 
     @SerialEntry(comment = "射杀无辜玩家的惩罚 (DEFAULT/PREVENT_GUN_PICKUP/KILL_SHOOTER)")
-    public ShootInnocentPunishment shootInnocentPunishment = ShootInnocentPunishment.DEFAULT;
+    public ShootInnocentPunishment shootInnocentPunishment = ShootInnocentPunishment.KILL_SHOOTER;
 }

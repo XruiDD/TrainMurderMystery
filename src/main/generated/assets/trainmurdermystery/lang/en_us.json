@@ -367,7 +367,5 @@
   "death_reason.trainmurdermystery.grenade": "Grenade",
   "death_reason.trainmurdermystery.poison": "Poison",
   "death_reason.trainmurdermystery.fell_out_of_train": "Fell Out of Train",
-
-  "disconnect.trainmurdermystery.mod_required": "You must install The Last Voyage of the Harpy Express mod to join this server.",
   "disconnect.trainmurdermystery.version_mismatch": "Mod version mismatch! Server: %s, Client: %s"
 }

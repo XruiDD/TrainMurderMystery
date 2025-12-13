@@ -96,7 +96,7 @@ public class TMM implements ModInitializer {
             if (ServerConfigurationNetworking.canSend(handler, VersionCheckPayload.ID)) {
                 handler.addTask(new VersionCheckConfigurationTask());
             } else {
-                handler.disconnect(Text.translatable("disconnect.trainmurdermystery.mod_required"));
+                handler.disconnect(Text.literal("你的所安装哈比列车的模组版本过低！"));
             }
         });
 

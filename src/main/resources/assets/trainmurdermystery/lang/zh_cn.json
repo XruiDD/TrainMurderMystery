@@ -420,5 +420,6 @@
   "death_reason.trainmurdermystery.grenade": "手雷爆炸",
   "death_reason.trainmurdermystery.poison": "中毒",
   "death_reason.trainmurdermystery.fell_out_of_train": "坠落列车",
+  "death_reason.trainmurdermystery.escaped": "退出游戏",
   "disconnect.trainmurdermystery.version_mismatch": "模组版本不匹配！服务器: %s, 客户端: %s"
 }

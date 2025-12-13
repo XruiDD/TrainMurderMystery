@@ -11,6 +11,7 @@ import dev.doctor4t.trainmurdermystery.command.argument.TimeOfDayArgumentType;
 import dev.doctor4t.trainmurdermystery.config.TMMServerConfig;
 import dev.doctor4t.trainmurdermystery.event.TMMEventHandlers;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
+import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import dev.doctor4t.trainmurdermystery.index.*;
 import dev.doctor4t.trainmurdermystery.network.VersionCheckConfigurationTask;
 import dev.doctor4t.trainmurdermystery.network.VersionCheckPayload;
@@ -24,6 +25,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.serialize.ConstantArgumentSerializer;
@@ -31,6 +33,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -143,6 +146,24 @@ public class TMM implements ModInitializer {
 
         // Register event handlers
         TMMEventHandlers.register();
+
+        // 玩家断开连接时处理：无辜阵营玩家退出视为死亡
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            ServerPlayerEntity player = handler.getPlayer();
+            ServerWorld world = server.getOverworld();
+            GameWorldComponent game = GameWorldComponent.KEY.get(world);
+
+            // 只在游戏运行中且玩家是存活的无辜者时处理
+            if (game.isRunning()
+                && game.hasAnyRole(player.getUuid())
+                && game.isInnocent(player)
+                && !game.isPlayerDead(player.getUuid())
+                && GameFunctions.isPlayerAliveAndSurvival(player)) {
+
+                // 调用 killPlayer 处理死亡逻辑
+                GameFunctions.killPlayer(player, true, null, GameConstants.DeathReasons.ESCAPED);
+            }
+        });
 
         Scheduler.init();
     }

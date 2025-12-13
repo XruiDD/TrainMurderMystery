@@ -95,5 +95,6 @@ public interface GameConstants {
         Identifier GRENADE = TMM.id("grenade");
         Identifier POISON = TMM.id("poison");
         Identifier FELL_OUT_OF_TRAIN = TMM.id("fell_out_of_train");
+        Identifier ESCAPED = TMM.id("escaped");
     }
 }

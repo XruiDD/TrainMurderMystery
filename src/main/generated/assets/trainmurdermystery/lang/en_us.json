@@ -397,5 +397,6 @@
   "death_reason.trainmurdermystery.grenade": "Grenade",
   "death_reason.trainmurdermystery.poison": "Poison",
   "death_reason.trainmurdermystery.fell_out_of_train": "Fell Out of Train",
+  "death_reason.trainmurdermystery.escaped": "退出游戏",
   "disconnect.trainmurdermystery.version_mismatch": "Mod version mismatch! Server: %s, Client: %s"
 }

@@ -2,6 +2,12 @@ package dev.doctor4t.trainmurdermystery.cca;
 
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration.SceneryConfig;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration.VisibilityConfig;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration.FogConfig;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration.CameraShakeConfig;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration.SnowParticlesConfig;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration.VisualConfig;
 import dev.doctor4t.trainmurdermystery.config.area.AreaConfigurationManager;
 import dev.doctor4t.trainmurdermystery.config.area.RoomConfig;
 import dev.doctor4t.trainmurdermystery.config.area.SpawnPoint;
@@ -92,6 +98,14 @@ public class AreasWorldComponent implements AutoSyncedComponent {
     private Box syncedResetTemplateArea;
     private Box syncedResetPasteArea;
 
+    // 渲染配置同步缓存
+    private SceneryConfig syncedScenery;
+    private VisibilityConfig syncedVisibility;
+    private FogConfig syncedFog;
+    private CameraShakeConfig syncedCameraShake;
+    private SnowParticlesConfig syncedSnowParticles;
+    private VisualConfig syncedVisual;
+
     // ========== Helper 方法 ==========
 
     private AreaConfiguration getConfigurationOrNull() {
@@ -143,6 +157,82 @@ public class AreasWorldComponent implements AutoSyncedComponent {
     @Nullable
     public Box getResetPasteArea() {
         return getFromConfigOrSynced(c -> c.resetPasteArea().toBox(), syncedResetPasteArea);
+    }
+
+    // ========== 渲染配置 Getter 方法（带默认值）==========
+
+    /**
+     * 获取风景瓦片配置
+     * 服务端从配置获取，客户端从同步缓存获取，未配置则返回默认值
+     */
+    public SceneryConfig getSceneryConfig() {
+        AreaConfiguration config = getConfigurationOrNull();
+        if (config != null) {
+            return config.getSceneryOrDefault();
+        }
+        return syncedScenery != null ? syncedScenery : SceneryConfig.DEFAULT;
+    }
+
+    /**
+     * 获取可见距离配置
+     */
+    public VisibilityConfig getVisibilityConfig() {
+        AreaConfiguration config = getConfigurationOrNull();
+        if (config != null) {
+            return config.getVisibilityOrDefault();
+        }
+        return syncedVisibility != null ? syncedVisibility : VisibilityConfig.DEFAULT;
+    }
+
+    /**
+     * 获取雾效果配置
+     */
+    public FogConfig getFogConfig() {
+        AreaConfiguration config = getConfigurationOrNull();
+        if (config != null) {
+            return config.getFogOrDefault();
+        }
+        return syncedFog != null ? syncedFog : FogConfig.DEFAULT;
+    }
+
+    /**
+     * 获取相机震动配置
+     */
+    public CameraShakeConfig getCameraShakeConfig() {
+        AreaConfiguration config = getConfigurationOrNull();
+        if (config != null) {
+            return config.getCameraShakeOrDefault();
+        }
+        return syncedCameraShake != null ? syncedCameraShake : CameraShakeConfig.DEFAULT;
+    }
+
+    /**
+     * 获取雪花粒子配置
+     */
+    public SnowParticlesConfig getSnowParticlesConfig() {
+        AreaConfiguration config = getConfigurationOrNull();
+        if (config != null) {
+            return config.getSnowParticlesOrDefault();
+        }
+        return syncedSnowParticles != null ? syncedSnowParticles : SnowParticlesConfig.DEFAULT;
+    }
+
+    /**
+     * 获取视觉效果配置
+     */
+    public VisualConfig getVisualConfig() {
+        AreaConfiguration config = getConfigurationOrNull();
+        if (config != null) {
+            return config.getVisualOrDefault();
+        }
+        return syncedVisual != null ? syncedVisual : VisualConfig.DEFAULT;
+    }
+
+    /**
+     * 是否为静态地图（不渲染移动风景）
+     */
+    public boolean isStaticMap() {
+        return getVisualConfig().staticMap();
     }
 
     // ========== Setter 方法 ==========
@@ -266,6 +356,57 @@ public class AreasWorldComponent implements AutoSyncedComponent {
         if (tag.contains("resetPasteAreaMinX")) {
             this.syncedResetPasteArea = getBoxFromNbt(tag, "resetPasteArea");
         }
+
+        // 渲染配置同步
+        if (tag.contains("sceneryTileWidthChunks")) {
+            this.syncedScenery = new SceneryConfig(
+                tag.getInt("sceneryTileWidthChunks"),
+                tag.getInt("sceneryTileLengthChunks"),
+                tag.getInt("sceneryHeightOffset")
+            );
+        }
+        if (tag.contains("visibilityDay")) {
+            this.syncedVisibility = new VisibilityConfig(
+                tag.getInt("visibilityDay"),
+                tag.getInt("visibilityNight"),
+                tag.getInt("visibilitySundown")
+            );
+        }
+        if (tag.contains("fogStart")) {
+            this.syncedFog = new FogConfig(
+                tag.getBoolean("fogEnabled"),
+                tag.getFloat("fogStart"),
+                tag.getFloat("fogEndMoving"),
+                tag.getFloat("fogEndStationary"),
+                tag.getInt("fogNightColor")
+            );
+        }
+        if (tag.contains("cameraShakeEnabled")) {
+            this.syncedCameraShake = new CameraShakeConfig(
+                tag.getBoolean("cameraShakeEnabled"),
+                tag.getFloat("cameraShakeAmplitudeIndoor"),
+                tag.getFloat("cameraShakeAmplitudeOutdoor"),
+                tag.getFloat("cameraShakeStrengthIndoor"),
+                tag.getFloat("cameraShakeStrengthOutdoor")
+            );
+        }
+        if (tag.contains("snowParticlesCount")) {
+            this.syncedSnowParticles = new SnowParticlesConfig(
+                tag.getBoolean("snowParticlesEnabled"),
+                tag.getInt("snowParticlesCount"),
+                tag.getFloat("snowParticlesSpawnOffsetX"),
+                tag.getFloat("snowParticlesSpawnRangeY"),
+                tag.getFloat("snowParticlesSpawnRangeZ")
+            );
+        }
+        if (tag.contains("visualHud")) {
+            this.syncedVisual = new VisualConfig(
+                tag.getBoolean("visualStaticMap"),
+                tag.getBoolean("visualHud"),
+                tag.getInt("visualTrainSpeed"),
+                tag.getString("visualTimeOfDay")
+            );
+        }
     }
 
     @Override
@@ -280,6 +421,44 @@ public class AreasWorldComponent implements AutoSyncedComponent {
             writeBoxToNbt(tag, config.playArea().toBox(), "playArea");
             writeBoxToNbt(tag, config.resetTemplateArea().toBox(), "resetTemplateArea");
             writeBoxToNbt(tag, config.resetPasteArea().toBox(), "resetPasteArea");
+
+            // 渲染配置同步（始终写入，使用默认值）
+            SceneryConfig scenery = config.getSceneryOrDefault();
+            tag.putInt("sceneryTileWidthChunks", scenery.tileWidthChunks());
+            tag.putInt("sceneryTileLengthChunks", scenery.tileLengthChunks());
+            tag.putInt("sceneryHeightOffset", scenery.heightOffset());
+
+            VisibilityConfig visibility = config.getVisibilityOrDefault();
+            tag.putInt("visibilityDay", visibility.day());
+            tag.putInt("visibilityNight", visibility.night());
+            tag.putInt("visibilitySundown", visibility.sundown());
+
+            FogConfig fog = config.getFogOrDefault();
+            tag.putBoolean("fogEnabled", fog.enabled());
+            tag.putFloat("fogStart", fog.start());
+            tag.putFloat("fogEndMoving", fog.endMoving());
+            tag.putFloat("fogEndStationary", fog.endStationary());
+            tag.putInt("fogNightColor", fog.nightColor());
+
+            CameraShakeConfig cameraShake = config.getCameraShakeOrDefault();
+            tag.putBoolean("cameraShakeEnabled", cameraShake.enabled());
+            tag.putFloat("cameraShakeAmplitudeIndoor", cameraShake.amplitudeIndoor());
+            tag.putFloat("cameraShakeAmplitudeOutdoor", cameraShake.amplitudeOutdoor());
+            tag.putFloat("cameraShakeStrengthIndoor", cameraShake.strengthIndoor());
+            tag.putFloat("cameraShakeStrengthOutdoor", cameraShake.strengthOutdoor());
+
+            SnowParticlesConfig snowParticles = config.getSnowParticlesOrDefault();
+            tag.putBoolean("snowParticlesEnabled", snowParticles.enabled());
+            tag.putInt("snowParticlesCount", snowParticles.count());
+            tag.putFloat("snowParticlesSpawnOffsetX", snowParticles.spawnOffsetX());
+            tag.putFloat("snowParticlesSpawnRangeY", snowParticles.spawnRangeY());
+            tag.putFloat("snowParticlesSpawnRangeZ", snowParticles.spawnRangeZ());
+
+            VisualConfig visual = config.getVisualOrDefault();
+            tag.putBoolean("visualStaticMap", visual.staticMap());
+            tag.putBoolean("visualHud", visual.hud());
+            tag.putInt("visualTrainSpeed", visual.trainSpeed());
+            tag.putString("visualTimeOfDay", visual.timeOfDay());
         }
     }
 }

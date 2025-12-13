@@ -17,7 +17,4 @@ public class TMMClientConfig {
 
     @SerialEntry(comment = "启用超级性能模式（降低渲染距离）")
     public boolean ultraPerfMode = false;
-
-    @SerialEntry(comment = "禁用屏幕震动效果")
-    public boolean disableScreenShake = false;
 }

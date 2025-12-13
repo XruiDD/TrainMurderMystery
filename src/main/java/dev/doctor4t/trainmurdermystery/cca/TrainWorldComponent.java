@@ -1,7 +1,9 @@
 package dev.doctor4t.trainmurdermystery.cca;
 
 import dev.doctor4t.trainmurdermystery.TMM;
-import dev.doctor4t.trainmurdermystery.config.TMMServerConfig;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration.FogConfig;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration.SnowParticlesConfig;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration.VisualConfig;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ServerWorld;
@@ -26,13 +28,7 @@ public class TrainWorldComponent implements AutoSyncedComponent, ServerTickingCo
 
     public TrainWorldComponent(World world) {
         this.world = world;
-        // 应用服务器配置默认值
-        TMMServerConfig config = TMMServerConfig.HANDLER.instance();
-        this.snow = config.snow;
-        this.fog = config.fog;
-        this.hud = config.hud;
-        this.speed = config.trainSpeed;
-        this.timeOfDay = config.timeOfDay;
+        // 使用硬编码默认值，游戏开始时会从 datapack 配置加载
     }
 
     private void sync() {
@@ -100,7 +96,22 @@ public class TrainWorldComponent implements AutoSyncedComponent, ServerTickingCo
         this.setSnow(nbtCompound.getBoolean("Snow"));
         this.setFog(nbtCompound.getBoolean("Fog"));
         this.setHud(nbtCompound.getBoolean("Hud"));
-        this.setTimeOfDay(TimeOfDay.valueOf(nbtCompound.getString("TimeOfDay")));
+        this.setTimeOfDay(parseTimeOfDaySafe(nbtCompound.getString("TimeOfDay")));
+    }
+
+    /**
+     * 安全地解析 TimeOfDay 字符串，无效值返回默认值 NIGHT
+     */
+    private static TimeOfDay parseTimeOfDaySafe(String value) {
+        if (value == null || value.isEmpty()) {
+            return TimeOfDay.NIGHT;
+        }
+        try {
+            return TimeOfDay.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            TMM.LOGGER.warn("Invalid TimeOfDay value: '{}', using default NIGHT", value);
+            return TimeOfDay.NIGHT;
+        }
     }
 
     @Override
@@ -135,10 +146,17 @@ public class TrainWorldComponent implements AutoSyncedComponent, ServerTickingCo
     }
 
     public void reset() {
-        this.snow = true;
-        this.fog = true;
-        this.hud = true;
-        this.speed = 130;
+        // 从 datapack 配置读取默认值
+        AreasWorldComponent areas = AreasWorldComponent.KEY.get(this.world);
+        SnowParticlesConfig snowConfig = areas.getSnowParticlesConfig();
+        FogConfig fogConfig = areas.getFogConfig();
+        VisualConfig visualConfig = areas.getVisualConfig();
+
+        this.snow = snowConfig.enabled();
+        this.fog = fogConfig.enabled();
+        this.hud = visualConfig.hud();
+        this.speed = visualConfig.trainSpeed();
+        this.timeOfDay = parseTimeOfDaySafe(visualConfig.timeOfDay());
         this.time = 0;
         this.sync();
     }

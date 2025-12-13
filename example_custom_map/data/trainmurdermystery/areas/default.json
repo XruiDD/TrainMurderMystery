@@ -129,5 +129,59 @@
         { "x": 119.5, "y": 122, "z": -535, "yaw": -180.0, "pitch": 0.0 }
       ]
     }
-  ]
+  ],
+
+  "_comment_scenery": "风景区块配置 - 控制列车外风景的渲染参数（可选，有默认值）",
+  "_comment_scenery_detail": "tile_width_chunks: 区块宽度(区块数), tile_length_chunks: 区块长度(区块数), height_offset: 风景高度偏移",
+  "scenery": {
+    "tile_width_chunks": 15,
+    "tile_length_chunks": 32,
+    "height_offset": 116
+  },
+
+  "_comment_visibility": "可见距离配置 - 根据时间段控制风景渲染距离（可选，有默认值）",
+  "visibility": {
+    "day": 160,
+    "night": 160,
+    "sundown": 320
+  },
+
+  "_comment_fog": "雾效果配置 - 控制雾的渲染参数（可选，有默认值）",
+  "_comment_fog_detail": "enabled: 是否启用雾效果, start: 雾起始距离, end_moving: 列车移动时结束距离, end_stationary: 静止时结束距离, night_color: 夜间雾颜色(ARGB十六进制)",
+  "fog": {
+    "enabled": true,
+    "start": 0,
+    "end_moving": 130,
+    "end_stationary": 200,
+    "night_color": "E406060B"
+  },
+
+  "_comment_camera_shake": "相机震动配置 - 控制列车行驶时的屏幕震动效果（可选，有默认值）",
+  "_comment_camera_shake_detail": "enabled: 是否启用, amplitude: 震动幅度, strength: 震动力度 (indoor=室内, outdoor=室外)",
+  "camera_shake": {
+    "enabled": true,
+    "amplitude_indoor": 0.0025,
+    "amplitude_outdoor": 0.01,
+    "strength_indoor": 0.5,
+    "strength_outdoor": 1.0
+  },
+
+  "_comment_snow_particles": "雪花粒子配置 - 控制暴风雪天气时的雪花粒子效果（可选，有默认值）",
+  "_comment_snow_particles_detail": "enabled: 是否启用雪花效果, count: 每tick粒子数量, spawn_offset_x: X偏移, spawn_range_y/z: Y/Z方向范围",
+  "snow_particles": {
+    "enabled": true,
+    "count": 200,
+    "spawn_offset_x": -20,
+    "spawn_range_y": 10,
+    "spawn_range_z": 10
+  },
+
+  "_comment_visual": "视觉效果配置 - 控制列车运行时的默认视觉参数（可选，有默认值）",
+  "_comment_visual_detail": "static_map: 静态地图模式(禁用所有列车特效), hud: 是否显示HUD, train_speed: 列车速度(km/h), time_of_day: 时间(DAY/NIGHT/SUNDOWN)",
+  "visual": {
+    "static_map": false,
+    "hud": true,
+    "train_speed": 130,
+    "time_of_day": "NIGHT"
+  }
 }

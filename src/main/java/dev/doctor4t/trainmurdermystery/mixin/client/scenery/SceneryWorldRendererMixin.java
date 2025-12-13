@@ -3,6 +3,8 @@ package dev.doctor4t.trainmurdermystery.mixin.client.scenery;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.doctor4t.trainmurdermystery.cca.TrainWorldComponent;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration.SceneryConfig;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration.VisibilityConfig;
 import it.unimi.dsi.fastutil.objects.ObjectListIterator;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.GlUniform;
@@ -35,14 +37,28 @@ public class SceneryWorldRendererMixin {
             cancellable = true)
     private void tmm$renderScenery(RenderLayer renderLayer, double x, double y, double z, Matrix4f matrix4f, Matrix4f positionMatrix, CallbackInfo ci, @Local ObjectListIterator<ChunkBuilder.BuiltChunk> objectListIterator, @Local ShaderProgram shaderProgram) {
         if (TMMClient.isTrainMoving()) {
+            // 空值检查
+            if (TMMClient.areasComponent == null || TMMClient.trainComponent == null) return;
+
             GlUniform glUniform = shaderProgram.chunkOffset;
+
+            // 从配置获取参数
+            SceneryConfig sceneryConfig = TMMClient.areasComponent.getSceneryConfig();
+            VisibilityConfig visibilityConfig = TMMClient.areasComponent.getVisibilityConfig();
 
             float trainSpeed = TMMClient.getTrainSpeed(); // in kmh
             int chunkSize = 16;
-            int tileWidth = 15 * chunkSize;
-            int height = 116;
-            int tileLength = 32 * chunkSize;
-            int tileSize = tileLength * 3;
+            int tileWidth = sceneryConfig.getTileWidth();
+            int height = sceneryConfig.heightOffset();
+            int tileLength = sceneryConfig.getTileLength();
+            int tileSize = sceneryConfig.getTileSize();
+
+            // 根据时间段获取可见距离
+            int visibility = switch (TMMClient.trainComponent.getTimeOfDay()) {
+                case DAY -> visibilityConfig.day();
+                case NIGHT -> visibilityConfig.night();
+                case SUNDOWN -> visibilityConfig.sundown();
+            };
 
             float time = TMMClient.trainComponent.getTime() + client.getRenderTickCounter().getTickDelta(true);
 
@@ -50,6 +66,8 @@ public class SceneryWorldRendererMixin {
             while (isTranslucent ? objectListIterator.hasNext() : objectListIterator.hasPrevious()) {
                 boolean tooFar = false;
 
+                // cameraEntity 空值检查
+                if (client.cameraEntity == null) continue;
                 ChunkPos chunkPos = new ChunkPos(client.cameraEntity.getBlockPos());
                 client.chunkCullingEnabled = false;
 
@@ -84,7 +102,7 @@ public class SceneryWorldRendererMixin {
                             finalZ = v3;
                         }
 
-                        if (Math.abs(finalX) < (TMMClient.trainComponent.getTimeOfDay() == TrainWorldComponent.TimeOfDay.SUNDOWN ? 320 : 160)) {
+                        if (Math.abs(finalX) < visibility) {
                             glUniform.set(
                                     finalX,
                                     finalY,

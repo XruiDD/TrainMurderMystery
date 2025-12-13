@@ -6,6 +6,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import dev.doctor4t.trainmurdermystery.cca.TrainWorldComponent;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.client.util.AlwaysVisibleFrustum;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration.FogConfig;
 import net.minecraft.client.render.*;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
@@ -20,23 +21,34 @@ public abstract class WorldRendererMixin {
 
     @Inject(method = "method_52816", at = @At(value = "RETURN"), cancellable = true)
     private static void tmm$setFrustumToAlwaysVisible(Frustum frustum, @NotNull CallbackInfoReturnable<Frustum> cir) {
-        cir.setReturnValue(new AlwaysVisibleFrustum(frustum));
+        // 只在列车移动时使用 AlwaysVisibleFrustum，静态地图使用默认 frustum culling
+        if (TMMClient.isTrainMoving()) {
+            cir.setReturnValue(new AlwaysVisibleFrustum(frustum));
+        }
     }
 
     @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/WorldRenderer;renderSky(Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;FLnet/minecraft/client/render/Camera;ZLjava/lang/Runnable;)V"))
     public void tmm$disableSky(WorldRenderer instance, Matrix4f matrix4f, Matrix4f projectionMatrix, float tickDelta, Camera camera, boolean thickFog, Runnable fogCallback, Operation<Void> original) {
-        if (!TMMClient.isTrainMoving() || TMMClient.trainComponent.getTimeOfDay() == TrainWorldComponent.TimeOfDay.SUNDOWN)
+        // 空值检查：trainComponent 为 null 时使用原版天空渲染
+        if (!TMMClient.isTrainMoving() || (TMMClient.trainComponent != null && TMMClient.trainComponent.getTimeOfDay() == TrainWorldComponent.TimeOfDay.SUNDOWN))
             original.call(instance, matrix4f, projectionMatrix, tickDelta, camera, thickFog, fogCallback);
     }
 
     @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/BackgroundRenderer;applyFog(Lnet/minecraft/client/render/Camera;Lnet/minecraft/client/render/BackgroundRenderer$FogType;FZF)V"))
     public void tmm$applyBlizzardFog(Camera camera, BackgroundRenderer.FogType fogType, float viewDistance, boolean thickFog, float tickDelta, Operation<Void> original) {
         if (TMMClient.trainComponent != null && TMMClient.trainComponent.isFoggy()) {
+            // 空值检查，使用默认配置
+            FogConfig fogConfig = TMMClient.areasComponent != null
+                ? TMMClient.areasComponent.getFogConfig()
+                : FogConfig.DEFAULT;
             if (TMMClient.isTrainMoving()) {
-                tmm$doFog(0, 130);
+                tmm$doFog(fogConfig.start(), fogConfig.endMoving());
             } else {
-                tmm$doFog(0, 200);
+                tmm$doFog(fogConfig.start(), fogConfig.endStationary());
             }
+        } else {
+            // 雾效果禁用时使用原版渲染
+            original.call(camera, fogType, viewDistance, thickFog, tickDelta);
         }
     }
 

@@ -1,7 +1,6 @@
 package dev.doctor4t.trainmurdermystery.config;
 
 import dev.doctor4t.trainmurdermystery.TMM;
-import dev.doctor4t.trainmurdermystery.cca.TrainWorldComponent;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
@@ -48,22 +47,6 @@ public class TMMServerConfig {
     // Bound 设置
     @SerialEntry(comment = "默认是否启用观察者边界限制")
     public boolean bound = true;
-
-    // Visual 设置
-    @SerialEntry(comment = "默认是否启用下雪效果")
-    public boolean snow = true;
-
-    @SerialEntry(comment = "默认是否启用雾效果")
-    public boolean fog = true;
-
-    @SerialEntry(comment = "默认是否显示HUD")
-    public boolean hud = true;
-
-    @SerialEntry(comment = "默认列车速度 (km/h)")
-    public int trainSpeed = 130;
-
-    @SerialEntry(comment = "默认时间 (DAY/NIGHT/SUNDOWN)")
-    public TrainWorldComponent.TimeOfDay timeOfDay = TrainWorldComponent.TimeOfDay.NIGHT;
 
     @SerialEntry(comment = "射杀无辜玩家的惩罚 (DEFAULT/PREVENT_GUN_PICKUP/KILL_SHOOTER)")
     public ShootInnocentPunishment shootInnocentPunishment = ShootInnocentPunishment.KILL_SHOOTER;

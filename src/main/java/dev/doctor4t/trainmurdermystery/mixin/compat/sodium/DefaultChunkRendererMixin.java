@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.compat.SodiumShaderInterface;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration.SceneryConfig;
 import net.caffeinemc.mods.sodium.client.gl.buffer.GlBufferUsage;
 import net.caffeinemc.mods.sodium.client.gl.buffer.GlMutableBuffer;
 import net.caffeinemc.mods.sodium.client.gl.device.CommandList;
@@ -107,12 +108,20 @@ public abstract class DefaultChunkRendererMixin {
         tmm_buffer.putFloat(sectionIndex * 16 + 8, 0);
 
         if (TMMClient.isTrainMoving()) {
+            // 空值检查
+            if (TMMClient.trainComponent == null) return;
+
+            // 从配置获取 scenery 参数，无配置时使用默认值
+            SceneryConfig sceneryConfig = TMMClient.areasComponent != null
+                ? TMMClient.areasComponent.getSceneryConfig()
+                : SceneryConfig.DEFAULT;
+
             float trainSpeed = TMMClient.getTrainSpeed();
             int chunkSize = 16;
-            int tileWidth = 15 * chunkSize;
-            int height = 116;
-            int tileLength = 32 * chunkSize;
-            int tileSize = tileLength * 3;
+            int tileWidth = sceneryConfig.getTileWidth();
+            int height = sceneryConfig.heightOffset();
+            int tileLength = sceneryConfig.getTileLength();
+            int tileSize = sceneryConfig.getTileSize();
             float time = TMMClient.trainComponent.getTime() + MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(true);
 
             BlockPos blockPos = new BlockPos(

@@ -1,8 +1,8 @@
 package dev.doctor4t.trainmurdermystery.mixin.client.scenery;
 
 import dev.doctor4t.trainmurdermystery.TMM;
-import dev.doctor4t.trainmurdermystery.config.TMMClientConfig;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration.CameraShakeConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.Camera;
@@ -33,21 +33,29 @@ public class CameraMixin {
 
     @Inject(method = "update", at = @At("RETURN"))
     private void tmm$doScreenshake(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo ci) {
-        if (TMMClient.isTrainMoving() && !TMMClientConfig.HANDLER.instance().disableScreenShake) {
+        // 空值检查
+        if (TMMClient.areasComponent == null) return;
+        CameraShakeConfig shakeConfig = TMMClient.areasComponent.getCameraShakeConfig();
+
+        if (TMMClient.isTrainMoving() && shakeConfig.enabled()) {
             Camera camera = (Camera) (Object) this;
 
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
+            if (player == null) return;
+
             int age = player.age;
-            float v = (1 + (1 - TMMClient.moodComponent.getMood())) * 2.5f;
-            float amplitude = .0025f;
-            float strength = 0.5f;
+            // moodComponent 可能为 null，使用默认值 1.0f
+            float mood = TMMClient.moodComponent != null ? TMMClient.moodComponent.getMood() : 1.0f;
+            float v = (1 + (1 - mood)) * 2.5f;
+            float amplitude = shakeConfig.amplitudeIndoor();
+            float strength = shakeConfig.strengthIndoor();
 
             float yawOffset = 0;
             float pitchOffset = 0;
 
             if (TMM.isSkyVisibleAdjacent(player)) {
-                amplitude = .01f;
-                strength = 1f;
+                amplitude = shakeConfig.amplitudeOutdoor();
+                strength = shakeConfig.strengthOutdoor();
 
                 if (TMM.isExposedToWind(player)) {
                     yawOffset = 1.5f * randomizeOffset(10);

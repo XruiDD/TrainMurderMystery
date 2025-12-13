@@ -1,6 +1,7 @@
 package dev.doctor4t.trainmurdermystery.mixin.client.scenery;
 
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
+import dev.doctor4t.trainmurdermystery.config.area.AreaConfiguration.SnowParticlesConfig;
 import dev.doctor4t.trainmurdermystery.index.TMMBlocks;
 import dev.doctor4t.trainmurdermystery.index.TMMParticles;
 import net.minecraft.client.MinecraftClient;
@@ -61,11 +62,20 @@ public abstract class ClientWorldMixin extends World {
     @Inject(method = "tick", at = @At("TAIL"))
     public void tmm$addSnowflakes(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
         if (TMMClient.isTrainMoving() && TMMClient.getTrainComponent().isSnowing()) {
+            // 空值检查
+            if (TMMClient.areasComponent == null) return;
             ClientPlayerEntity player = client.player;
+            if (player == null) return;
+
+            SnowParticlesConfig snowConfig = TMMClient.areasComponent.getSnowParticlesConfig();
             Random random = player.getRandom();
-            for (int i = 0; i < 200; i++) {
+            for (int i = 0; i < snowConfig.count(); i++) {
                 Vec3d playerVel = player.getMovement();
-                Vec3d pos = new Vec3d(player.getX() - 20f + random.nextFloat() + playerVel.getX(), player.getY() + (random.nextFloat() * 2 - 1) * 10f + playerVel.getY(), player.getZ() + (random.nextFloat() * 2 - 1) * 10f + playerVel.getZ());
+                Vec3d pos = new Vec3d(
+                    player.getX() + snowConfig.spawnOffsetX() + random.nextFloat() + playerVel.getX(),
+                    player.getY() + (random.nextFloat() * 2 - 1) * snowConfig.spawnRangeY() + playerVel.getY(),
+                    player.getZ() + (random.nextFloat() * 2 - 1) * snowConfig.spawnRangeZ() + playerVel.getZ()
+                );
                 if (this.client.world.isSkyVisible(BlockPos.ofFloored(pos))) {
                     this.addParticle(TMMParticles.SNOWFLAKE, pos.getX(), pos.getY(), pos.getZ(), 2 + playerVel.getX(), playerVel.getY(), playerVel.getZ());
                 }

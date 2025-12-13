@@ -5,7 +5,6 @@ import com.terraformersmc.modmenu.api.ModMenuApi;
 import dev.doctor4t.ratatouille.client.util.OptionLocker;
 import dev.doctor4t.trainmurdermystery.api.TMMGameModes;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
-import dev.doctor4t.trainmurdermystery.cca.TrainWorldComponent;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.config.TMMClientConfig;
 import dev.doctor4t.trainmurdermystery.config.TMMServerConfig;
@@ -45,19 +44,6 @@ public class TMMModMenuIntegration implements ModMenuApi {
                     )
                     .controller(TickBoxControllerBuilder::create)
                     .build())
-
-                // 禁用屏幕震动
-                .option(Option.<Boolean>createBuilder()
-                    .name(Text.translatable("config.trainmurdermystery.disable_screen_shake"))
-                    .description(OptionDescription.of(Text.translatable("config.trainmurdermystery.disable_screen_shake.desc")))
-                    .binding(
-                        false,
-                        () -> TMMClientConfig.HANDLER.instance().disableScreenShake,
-                        val -> TMMClientConfig.HANDLER.instance().disableScreenShake = val
-                    )
-                    .controller(TickBoxControllerBuilder::create)
-                    .build())
-
                 .build())
 
             // 服务端配置类别
@@ -144,68 +130,6 @@ public class TMMModMenuIntegration implements ModMenuApi {
                         val -> TMMServerConfig.HANDLER.instance().bound = val
                     )
                     .controller(TickBoxControllerBuilder::create)
-                    .build())
-
-                // 下雪效果
-                .option(Option.<Boolean>createBuilder()
-                    .name(Text.translatable("config.trainmurdermystery.snow"))
-                    .description(OptionDescription.of(Text.translatable("config.trainmurdermystery.snow.desc")))
-                    .binding(
-                        true,
-                        () -> TMMServerConfig.HANDLER.instance().snow,
-                        val -> TMMServerConfig.HANDLER.instance().snow = val
-                    )
-                    .controller(TickBoxControllerBuilder::create)
-                    .build())
-
-                // 雾效果
-                .option(Option.<Boolean>createBuilder()
-                    .name(Text.translatable("config.trainmurdermystery.fog"))
-                    .description(OptionDescription.of(Text.translatable("config.trainmurdermystery.fog.desc")))
-                    .binding(
-                        true,
-                        () -> TMMServerConfig.HANDLER.instance().fog,
-                        val -> TMMServerConfig.HANDLER.instance().fog = val
-                    )
-                    .controller(TickBoxControllerBuilder::create)
-                    .build())
-
-                // HUD显示
-                .option(Option.<Boolean>createBuilder()
-                    .name(Text.translatable("config.trainmurdermystery.hud"))
-                    .description(OptionDescription.of(Text.translatable("config.trainmurdermystery.hud.desc")))
-                    .binding(
-                        true,
-                        () -> TMMServerConfig.HANDLER.instance().hud,
-                        val -> TMMServerConfig.HANDLER.instance().hud = val
-                    )
-                    .controller(TickBoxControllerBuilder::create)
-                    .build())
-
-                // 列车速度
-                .option(Option.<Integer>createBuilder()
-                    .name(Text.translatable("config.trainmurdermystery.train_speed"))
-                    .description(OptionDescription.of(Text.translatable("config.trainmurdermystery.train_speed.desc")))
-                    .binding(
-                        130,
-                        () -> TMMServerConfig.HANDLER.instance().trainSpeed,
-                        val -> TMMServerConfig.HANDLER.instance().trainSpeed = val
-                    )
-                    .controller(opt -> IntegerFieldControllerBuilder.create(opt)
-                        .min(0).max(500))
-                    .build())
-
-                // 时间
-                .option(Option.<TrainWorldComponent.TimeOfDay>createBuilder()
-                    .name(Text.translatable("config.trainmurdermystery.time_of_day"))
-                    .description(OptionDescription.of(Text.translatable("config.trainmurdermystery.time_of_day.desc")))
-                    .binding(
-                        TrainWorldComponent.TimeOfDay.NIGHT,
-                        () -> TMMServerConfig.HANDLER.instance().timeOfDay,
-                        val -> TMMServerConfig.HANDLER.instance().timeOfDay = val
-                    )
-                    .controller(opt -> EnumControllerBuilder.create(opt)
-                        .enumClass(TrainWorldComponent.TimeOfDay.class))
                     .build())
 
                 // 射杀无辜惩罚

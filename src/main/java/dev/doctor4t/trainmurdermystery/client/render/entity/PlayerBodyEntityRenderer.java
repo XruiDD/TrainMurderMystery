@@ -45,12 +45,16 @@ public class PlayerBodyEntityRenderer<T extends LivingEntity, M extends EntityMo
         float ease = Easing.CUBIC_IN.ease(clamp, 0, -1, 1);
         if (ease > -1) {
             matrixStack.translate(0, ease, 0);
-            float alpha = TMMClient.moodComponent.isLowerThanDepressed() ? MathHelper.lerp(MathHelper.clamp(Easing.SINE_IN.ease(Math.min(1f, (float) playerBodyEntity.age / 100f), 0, 1, 1), 0, 1), 1f, 0f) : 1f;
+            // moodComponent 空值检查
+            boolean isLowerThanDepressed = TMMClient.moodComponent != null && TMMClient.moodComponent.isLowerThanDepressed();
+            float alpha = isLowerThanDepressed ? MathHelper.lerp(MathHelper.clamp(Easing.SINE_IN.ease(Math.min(1f, (float) playerBodyEntity.age / 100f), 0, 1, 1), 0, 1), 1f, 0f) : 1f;
             this.renderBody(playerBodyEntity, f, g, matrixStack, vertexConsumerProvider, light, alpha);
         }
         matrixStack.pop();
 
-        renderSkeleton(playerBodyEntity, f, g, matrixStack, vertexConsumerProvider, light, TMMClient.moodComponent.isLowerThanDepressed() ? 0f : 1f);
+        // moodComponent 空值检查
+        boolean isLowerThanDepressed = TMMClient.moodComponent != null && TMMClient.moodComponent.isLowerThanDepressed();
+        renderSkeleton(playerBodyEntity, f, g, matrixStack, vertexConsumerProvider, light, isLowerThanDepressed ? 0f : 1f);
     }
 
     public void renderBody(PlayerBodyEntity livingEntity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, float alpha) {

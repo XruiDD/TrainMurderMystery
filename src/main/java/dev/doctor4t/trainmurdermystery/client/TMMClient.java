@@ -10,6 +10,7 @@ import dev.doctor4t.trainmurdermystery.config.TMMClientConfig;
 import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.block_entity.SprinklerBlockEntity;
+import dev.doctor4t.trainmurdermystery.cca.AreasWorldComponent;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
 import dev.doctor4t.trainmurdermystery.cca.TrainWorldComponent;
@@ -77,6 +78,7 @@ public class TMMClient implements ClientModInitializer {
     public static GameWorldComponent gameComponent;
     public static TrainWorldComponent trainComponent;
     public static PlayerMoodComponent moodComponent;
+    public static AreasWorldComponent areasComponent;
 
     public static final Map<UUID, PlayerListEntry> PLAYER_ENTRIES_CACHE = Maps.newHashMap();
 
@@ -215,7 +217,10 @@ public class TMMClient implements ClientModInitializer {
         ClientTickEvents.START_WORLD_TICK.register(clientWorld -> {
             gameComponent = GameWorldComponent.KEY.get(clientWorld);
             trainComponent = TrainWorldComponent.KEY.get(clientWorld);
-            moodComponent = PlayerMoodComponent.KEY.get(MinecraftClient.getInstance().player);
+            areasComponent = AreasWorldComponent.KEY.get(clientWorld);
+            // player 可能在世界初始化时为 null
+            ClientPlayerEntity player = MinecraftClient.getInstance().player;
+            moodComponent = player != null ? PlayerMoodComponent.KEY.get(player) : null;
         });
 
         // Lock options
@@ -331,10 +336,14 @@ public class TMMClient implements ClientModInitializer {
     }
 
     public static float getTrainSpeed() {
-        return trainComponent.getSpeed();
+        return trainComponent != null ? trainComponent.getSpeed() : 0;
     }
 
     public static boolean isTrainMoving() {
+        // 静态地图始终返回 false
+        if (areasComponent != null && areasComponent.isStaticMap()) {
+            return false;
+        }
         return trainComponent != null && trainComponent.getSpeed() > 0;
     }
 

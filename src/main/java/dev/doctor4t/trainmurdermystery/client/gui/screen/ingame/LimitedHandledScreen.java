@@ -575,7 +575,8 @@ public abstract class LimitedHandledScreen<T extends ScreenHandler> extends Scre
     public final void tick() {
         super.tick();
 
-        if (TMMClient.gameComponent.getFade() > 0) {
+        // gameComponent 空值检查
+        if (TMMClient.gameComponent != null && TMMClient.gameComponent.getFade() > 0) {
             this.client.player.closeHandledScreen();
         }
 

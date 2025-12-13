@@ -15,6 +15,10 @@ public class EntityRendererMixin<T extends Entity> {
     // changes color parameter constant
     @ModifyArg(method = "renderLabelIfPresent", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/font/TextRenderer;draw(Lnet/minecraft/text/Text;FFIZLorg/joml/Matrix4f;Lnet/minecraft/client/render/VertexConsumerProvider;Lnet/minecraft/client/font/TextRenderer$TextLayerType;II)I", ordinal = 1), index = 3)
     protected int renderLabelIfPresent(int color, @Local(argsOnly = true) T entity) {
-        return TMMClient.gameComponent.isRole(entity.getUuid(), TMMRoles.KILLER) ? Colors.RED : color;
+        // gameComponent 空值检查
+        if (TMMClient.gameComponent != null && TMMClient.gameComponent.isRole(entity.getUuid(), TMMRoles.KILLER)) {
+            return Colors.RED;
+        }
+        return color;
     }
 }

@@ -8,6 +8,7 @@ import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
 import dev.doctor4t.trainmurdermystery.cca.PlayerPoisonComponent;
+import dev.doctor4t.trainmurdermystery.cca.PlayerStaminaComponent;
 import dev.doctor4t.trainmurdermystery.event.AllowPlayerPunching;
 import dev.doctor4t.trainmurdermystery.event.IsPlayerPunchable;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
@@ -24,7 +25,6 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.Unit;
@@ -48,8 +48,6 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     public abstract float getAttackCooldownProgress(float baseTime);
 
     @Unique
-    private float sprintingTicks;
-    @Unique
     private Scheduler.ScheduledTask poisonSleepTask;
 
     protected PlayerEntityMixin(EntityType<? extends LivingEntity> entityType, World world) {
@@ -72,15 +70,35 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         if (GameFunctions.isPlayerAliveAndSurvival((PlayerEntity) (Object) this) && gameComponent != null && gameComponent.isRunning()) {
             Role role = gameComponent.getRole((PlayerEntity) (Object) this);
             if (role != null && role.getMaxSprintTime() >= 0) {
+                PlayerStaminaComponent staminaComponent = PlayerStaminaComponent.KEY.get(this);
+                float sprintingTicks = staminaComponent.getSprintingTicks();
+                int maxSprintTime = role.getMaxSprintTime();
+                boolean exhausted = staminaComponent.isExhausted();
+
                 if (this.isSprinting()) {
                     sprintingTicks = Math.max(sprintingTicks - 1, 0);
                 } else {
-                    sprintingTicks = Math.min(sprintingTicks + 0.25f, role.getMaxSprintTime());
+                    sprintingTicks = Math.min(sprintingTicks + 0.25f, maxSprintTime);
                 }
 
+                // 疲惫机制
                 if (sprintingTicks <= 0) {
                     this.setSprinting(false);
+                    exhausted = true; // 进入疲惫状态
                 }
+
+                // 疲惫状态下阻止疾跑，直到恢复到阈值
+                if (exhausted) {
+                    this.setSprinting(false);
+                    // 恢复到20%时解除疲惫
+                    if (sprintingTicks >= maxSprintTime * staminaComponent.getExhaustionRecoveryThreshold()) {
+                        exhausted = false;
+                    }
+                }
+
+                staminaComponent.setSprintingTicks(sprintingTicks);
+                staminaComponent.setMaxSprintTime(maxSprintTime);
+                staminaComponent.setExhausted(exhausted);
             }
         }
     }
@@ -149,15 +167,5 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         if (!(stack.getItem() instanceof CocktailItem)) {
             PlayerMoodComponent.KEY.get(this).eatFood();
         }
-    }
-
-    @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
-    private void tmm$saveData(NbtCompound nbt, CallbackInfo ci) {
-        nbt.putFloat("sprintingTicks", this.sprintingTicks);
-    }
-
-    @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
-    private void tmm$readData(NbtCompound nbt, CallbackInfo ci) {
-        this.sprintingTicks = nbt.getFloat("sprintingTicks");
     }
 }

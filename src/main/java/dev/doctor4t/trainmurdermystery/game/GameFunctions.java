@@ -154,12 +154,9 @@ public class GameFunctions {
             player.requestTeleport(pos.getX(), pos.getY() + 1, pos.getZ());
         }
 
-        // teleport non playing players
+        // kick non playing players
         for (ServerPlayerEntity player : serverWorld.getPlayers(serverPlayerEntity -> !players.contains(serverPlayerEntity))) {
-            player.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
-
-            AreasWorldComponent.PosWithOrientation spectatorSpawnPos = areas.getSpectatorSpawnPos();
-            player.teleport(serverWorld, spectatorSpawnPos.pos.getX(), spectatorSpawnPos.pos.getY(), spectatorSpawnPos.pos.getZ(), spectatorSpawnPos.yaw, spectatorSpawnPos.pitch);
+            player.networkHandler.disconnect(Text.translatable("disconnect.trainmurdermystery.not_in_ready_area"));
         }
 
         // clear items, clear previous game data

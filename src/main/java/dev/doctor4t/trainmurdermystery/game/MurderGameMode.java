@@ -6,6 +6,7 @@ import dev.doctor4t.trainmurdermystery.api.TMMRoles;
 import dev.doctor4t.trainmurdermystery.cca.*;
 import dev.doctor4t.trainmurdermystery.event.CheckWinCondition;
 import dev.doctor4t.trainmurdermystery.event.RoleAssigned;
+import dev.doctor4t.trainmurdermystery.index.TMMItems;
 import dev.doctor4t.trainmurdermystery.util.AnnounceWelcomePayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -68,6 +69,10 @@ public class MurderGameMode extends GameMode {
             Role role = gameWorldComponent.getRole(player);
             String roleId = role != null ? role.identifier().toString() : TMMRoles.CIVILIAN.identifier().toString();
             ServerPlayNetworking.send(player, new AnnounceWelcomePayload(roleId, killerCount, players.size() - killerCount));
+            player.getItemCooldownManager().set(TMMItems.REVOLVER,
+                    GameConstants.getInTicks(1, 0));
+            player.getItemCooldownManager().set(TMMItems.KNIFE,
+                    GameConstants.getInTicks(0, 40));
         }
     }
 

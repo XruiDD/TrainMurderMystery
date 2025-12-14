@@ -4,10 +4,6 @@ import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import dev.doctor4t.trainmurdermystery.index.TMMSounds;
 import dev.doctor4t.trainmurdermystery.util.KnifeStabPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.block.BedBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.enums.BedPart;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
@@ -19,8 +15,6 @@ import net.minecraft.util.UseAction;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,35 +43,10 @@ public class KnifeItem extends Item {
             return;
         HitResult collision = getKnifeTarget(attacker);
         if (collision instanceof EntityHitResult entityHitResult) {
-            Entity target = entityHitResult.getEntity();
-            ClientPlayNetworking.send(new KnifeStabPayload(target.getId()));
-        } else if(collision instanceof BlockHitResult blockHitResult) {
-            BlockPos blockPos = blockHitResult.getBlockPos();
-            BlockState state = world.getBlockState(blockPos);
-            if (state.getBlock() instanceof BedBlock) {
-                BedPart part = state.get(BedBlock.PART);
-                Direction facing = state.get(BedBlock.FACING);
-                BlockPos headPos;
-                if (part == BedPart.HEAD) {
-                    headPos = blockPos;
-                } else {
-                    headPos = blockPos.offset(facing);
-                }
-                for (PlayerEntity target : world.getPlayers()) {
-                    if (!target.isSleeping()) {
-                        continue;
-                    }
-                    Optional<BlockPos> sleepingPosOpt = target.getSleepingPosition();
-                    if (sleepingPosOpt.isEmpty()) {
-                        continue;
-                    }
-                    BlockPos sleepingPos = sleepingPosOpt.get();
-                    if (sleepingPos.equals(headPos) || sleepingPos.equals(blockPos)) {
-                        ClientPlayNetworking.send(new KnifeStabPayload(target.getId()));
-                        break;
-                    }
-                }
-            }
+            ClientPlayNetworking.send(new KnifeStabPayload(entityHitResult.getEntity().getId()));
+        } else if (collision instanceof BlockHitResult blockHitResult) {
+            Optional<PlayerEntity> sleepingPlayer = RevolverItem.findSleepingPlayerOnBed(world, blockHitResult);
+            sleepingPlayer.ifPresent(target -> ClientPlayNetworking.send(new KnifeStabPayload(target.getId())));
         }
     }
 

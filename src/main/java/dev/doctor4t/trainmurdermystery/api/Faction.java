@@ -6,6 +6,12 @@ package dev.doctor4t.trainmurdermystery.api;
  */
 public enum Faction {
     /**
+     * No faction - used for NO_ROLE and unassigned players.
+     * Players with this faction are not considered for win conditions.
+     */
+    NONE,
+
+    /**
      * Civilian faction - roles with isInnocent=true.
      * Win when all killers are eliminated or time runs out.
      */
@@ -29,7 +35,8 @@ public enum Faction {
      * @return the faction the role belongs to
      */
     public static Faction fromRole(Role role) {
-        if (role == null) return CIVILIAN;
+        if (role == null) return NONE;
+        if (role == TMMRoles.NO_ROLE) return NONE;
         if (role.isInnocent()) return CIVILIAN;
         if (role.canUseKiller()) return KILLER;
         return NEUTRAL;

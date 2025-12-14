@@ -36,6 +36,49 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         return forcedRoles.computeIfAbsent(role, k -> new ArrayList<>());
     }
 
+    /**
+     * Adds a player to the forced role list for the specified role.
+     * If the player is already in another role's forced list, they will be removed from it first.
+     * This prevents the same player from being forced into multiple roles.
+     *
+     * @param role the role to force the player into
+     * @param uuid the UUID of the player
+     */
+    public void addForcedRole(Role role, UUID uuid) {
+        // Remove player from all other forced role lists first
+        for (Map.Entry<Role, List<UUID>> entry : forcedRoles.entrySet()) {
+            entry.getValue().remove(uuid);
+        }
+        // Add to the specified role's list
+        getForcedForRole(role).add(uuid);
+    }
+
+    /**
+     * Removes a player from all forced role lists.
+     *
+     * @param uuid the UUID of the player to remove
+     */
+    public void removeForcedRole(UUID uuid) {
+        for (List<UUID> uuids : forcedRoles.values()) {
+            uuids.remove(uuid);
+        }
+    }
+
+    /**
+     * Gets the forced role for a specific player, if any.
+     *
+     * @param uuid the UUID of the player
+     * @return the role the player is forced into, or null if not forced
+     */
+    public @Nullable Role getForcedRoleForPlayer(UUID uuid) {
+        for (Map.Entry<Role, List<UUID>> entry : forcedRoles.entrySet()) {
+            if (entry.getValue().contains(uuid)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
     public int reset() {
         this.forcedRoles.clear();
         return 1;

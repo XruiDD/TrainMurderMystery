@@ -16,9 +16,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.UUID;
-
 public class ForceRoleCommand {
     public static final SimpleCommandExceptionType INVALID_ROLE_EXCEPTION = new SimpleCommandExceptionType(Text.translatable("commands.trainmurdermystery.forcerole.invalid"));
 
@@ -37,17 +34,11 @@ public class ForceRoleCommand {
     private static int query(@NotNull ServerCommandSource source, @NotNull ServerPlayerEntity targetPlayer) {
         return TMM.executeSupporterCommand(source, () -> {
             ScoreboardRoleSelectorComponent component = ScoreboardRoleSelectorComponent.KEY.get(source.getServer().getScoreboard());
-            boolean hasForced = false;
-            for (Role role : TMMRoles.ROLES) {
-                if (TMMRoles.SPECIAL_ROLES.contains(role)) continue;
-                List<UUID> forcedList = component.getForcedForRole(role);
-                if (forcedList.contains(targetPlayer.getUuid())) {
-                    Text roleText = Text.literal(role.identifier().getPath()).withColor(role.color());
-                    source.sendFeedback(() -> Text.translatable("commands.trainmurdermystery.forcerole.query", targetPlayer.getDisplayName(), roleText), false);
-                    hasForced = true;
-                }
-            }
-            if (!hasForced) {
+            Role forcedRole = component.getForcedRoleForPlayer(targetPlayer.getUuid());
+            if (forcedRole != null) {
+                Text roleText = Text.literal(forcedRole.identifier().getPath()).withColor(forcedRole.color());
+                source.sendFeedback(() -> Text.translatable("commands.trainmurdermystery.forcerole.query", targetPlayer.getDisplayName(), roleText), false);
+            } else {
                 source.sendFeedback(() -> Text.translatable("commands.trainmurdermystery.forcerole.query.none", targetPlayer.getDisplayName()), false);
             }
         });
@@ -60,10 +51,8 @@ public class ForceRoleCommand {
                 final Role finalRole = role;
                 return TMM.executeSupporterCommand(source, () -> {
                     ScoreboardRoleSelectorComponent component = ScoreboardRoleSelectorComponent.KEY.get(source.getServer().getScoreboard());
-                    List<UUID> forcedList = component.getForcedForRole(finalRole);
-                    if (!forcedList.contains(targetPlayer.getUuid())) {
-                        forcedList.add(targetPlayer.getUuid());
-                    }
+                    // Use addForcedRole to safely add the player, removing them from other forced roles first
+                    component.addForcedRole(finalRole, targetPlayer.getUuid());
                     Text roleText = Text.literal(finalRole.identifier().getPath()).withColor(finalRole.color());
                     source.sendFeedback(() -> Text.translatable("commands.trainmurdermystery.forcerole.success", roleText, targetPlayer.getDisplayName()), true);
                 });

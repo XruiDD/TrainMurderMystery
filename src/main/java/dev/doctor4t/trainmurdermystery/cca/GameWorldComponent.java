@@ -168,6 +168,18 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         return roles.get(uuid);
     }
 
+    public List<UUID> getAllAlivePlayers()
+    {
+        List<UUID> ret = new ArrayList<>();
+        roles.forEach((uuid, playerRole) -> {
+            if (hasAnyRole((uuid)) && !deadPlayers.contains(uuid))
+            {
+                ret.add(uuid);
+            }
+        });
+        return ret;
+    }
+
     public List<UUID> getAllPlayers()
     {
         List<UUID> ret = new ArrayList<>();

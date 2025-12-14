@@ -32,6 +32,7 @@ public class ListRolesCommand {
 
             // Faction tag
             Text factionTag = switch (faction) {
+                case NONE -> Text.literal("[None] ").withColor(CIVILIAN_COLOR);
                 case CIVILIAN -> Text.literal("[Civilian] ").withColor(CIVILIAN_COLOR);
                 case KILLER -> Text.literal("[Killer] ").withColor(KILLER_COLOR);
                 case NEUTRAL -> Text.literal("[Neutral] ").withColor(NEUTRAL_COLOR);

@@ -158,7 +158,7 @@ public class GameFunctions {
         serverWorld.getGameRules().get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(9999, serverWorld.getServer());
         serverWorld.getServer().setDifficulty(Difficulty.PEACEFUL, true);
 
-        // dismount all players as it can cause issues
+
         for (ServerPlayerEntity player : serverWorld.getPlayers()) {
             player.dismountVehicle();
         }
@@ -168,9 +168,16 @@ public class GameFunctions {
             player.changeGameMode(net.minecraft.world.GameMode.ADVENTURE);
         }
 
+
         // kick non playing players
         for (ServerPlayerEntity player : serverWorld.getPlayers(serverPlayerEntity -> !players.contains(serverPlayerEntity))) {
-            player.networkHandler.disconnect(Text.translatable("disconnect.trainmurdermystery.not_in_ready_area"));
+            if(player.hasPermissionLevel(1)){
+                player.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
+                AreasWorldComponent.PosWithOrientation spectatorSpawnPos = areas.getSpectatorSpawnPos();
+                player.teleport(serverWorld, spectatorSpawnPos.pos.getX(), spectatorSpawnPos.pos.getY(), spectatorSpawnPos.pos.getZ(), spectatorSpawnPos.yaw, spectatorSpawnPos.pitch);
+            } else {
+                player.networkHandler.disconnect(Text.translatable("disconnect.trainmurdermystery.not_in_ready_area"));
+            }
         }
 
         // clear items, clear previous game data

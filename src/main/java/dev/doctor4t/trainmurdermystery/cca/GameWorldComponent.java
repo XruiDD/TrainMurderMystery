@@ -168,6 +168,17 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         return roles.get(uuid);
     }
 
+    public List<UUID> getAllPlayers()
+    {
+        List<UUID> ret = new ArrayList<>();
+        roles.forEach((uuid, playerRole) -> {
+            if (hasAnyRole((uuid))) {
+                ret.add(uuid);
+            }
+        });
+        return ret;
+    }
+
     public List<UUID> getAllKillerTeamPlayers() {
         List<UUID> ret = new ArrayList<>();
         roles.forEach((uuid, playerRole) -> {
@@ -202,7 +213,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     }
 
     public boolean hasAnyRole(@NotNull UUID uuid) {
-        return this.roles.containsKey(uuid) && this.roles.get(uuid) != TMMRoles.NO_ROLE;
+        return this.roles.get(uuid) != null && this.roles.get(uuid) != TMMRoles.NO_ROLE;
     }
 
     public boolean canUseKillerFeatures(@NotNull PlayerEntity player) {

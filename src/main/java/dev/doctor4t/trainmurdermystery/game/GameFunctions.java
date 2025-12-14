@@ -204,7 +204,7 @@ public class GameFunctions {
         gameComponent.queueTrainReset();
 
         // select rooms and give keys
-        Collections.shuffle(players);
+        Random random = new Random();
         Map<UUID, Integer> playerRoomMap = new HashMap<>();
         int totalRooms = areas.getRoomCount();
 
@@ -213,8 +213,8 @@ public class GameFunctions {
             Map<Integer, Integer> roomPlayerCounts = new HashMap<>(); // 记录每个房间已分配的玩家数
 
             for (ServerPlayerEntity serverPlayerEntity : players) {
-                // 找到下一个有空位的房间
-                int roomNumber = findNextAvailableRoom(roomPlayerCounts, areas, totalRooms);
+                // 随机选择一个有空位的房间
+                int roomNumber = findRandomAvailableRoom(roomPlayerCounts, areas, totalRooms, random);
                 int playerIndexInRoom = roomPlayerCounts.getOrDefault(roomNumber, 0);
 
                 playerRoomMap.put(serverPlayerEntity.getUuid(), roomNumber);
@@ -688,18 +688,24 @@ public class GameFunctions {
     }
 
     /**
-     * 找到下一个有空位的房间
-     * 按顺序遍历房间，找到第一个未满的房间
+     * 随机选择一个有空位的房间
+     * 从所有未满的房间中随机选择一个
      * 如果所有房间都满了，则按顺序从第一个房间开始强制塞人
      */
-    private static int findNextAvailableRoom(Map<Integer, Integer> roomPlayerCounts, AreasWorldComponent areas, int totalRooms) {
-        // 第一轮：找到有空位的房间
+    private static int findRandomAvailableRoom(Map<Integer, Integer> roomPlayerCounts, AreasWorldComponent areas, int totalRooms, Random random) {
+        // 收集所有有空位的房间
+        List<Integer> availableRooms = new ArrayList<>();
         for (int i = 1; i <= totalRooms; i++) {
             int currentCount = roomPlayerCounts.getOrDefault(i, 0);
             int maxPlayers = areas.getRoomConfig(i).map(RoomConfig::getMaxPlayers).orElse(1);
             if (currentCount < maxPlayers) {
-                return i;
+                availableRooms.add(i);
             }
+        }
+
+        // 如果有空位的房间，随机选择一个
+        if (!availableRooms.isEmpty()) {
+            return availableRooms.get(random.nextInt(availableRooms.size()));
         }
 
         // 所有房间都满了，按顺序强制塞人

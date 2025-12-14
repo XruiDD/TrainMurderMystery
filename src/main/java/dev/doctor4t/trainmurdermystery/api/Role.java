@@ -30,10 +30,10 @@ public final class Role {
         this.isInnocent = isInnocent;
         this.canUseKiller = canUseKiller;
         this.moodType = moodType;
-        this.maxSprintTime = maxSprintTime;
         if (maxSprintTime == Integer.MAX_VALUE){
             maxSprintTime = -1;
         }
+        this.maxSprintTime = maxSprintTime;
         this.canSeeTime = canSeeTime;
     }
 

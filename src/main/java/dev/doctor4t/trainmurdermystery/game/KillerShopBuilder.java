@@ -28,14 +28,9 @@ public class KillerShopBuilder {
      * @param context the shop context to populate
      */
     public static void buildShop(PlayerEntity player, BuildShopEntries.ShopContext context) {
-        // Check if player can use killer features
         if (!GameWorldComponent.KEY.get(player.getWorld()).canUseKillerFeatures(player)) {
-            // Not a killer - clear all entries to deny shop access
-            context.clearEntries();
             return;
         }
-
-        // Killer player - add all shop items
         addWeapons(context);
         addPoisons(context);
         addTools(context);

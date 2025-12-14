@@ -20,14 +20,17 @@ public abstract class KeyBindingMixin {
     @Unique
     private boolean shouldSuppressKey() {
         boolean result = false;
+        //在大厅聊天，在游戏内不可以，旁观和创造始终可以
         if (TMMClient.shouldDisableChat()) {
             result = this.equals(MinecraftClient.getInstance().options.chatKey) ||
                     this.equals(MinecraftClient.getInstance().options.commandKey);
         }
-
-        if (!result && TMMClient.gameComponent != null && TMMClient.gameComponent.isRunning()){
+        if(result) return result;
+        //游戏开始之后不能跳跃，旁观者跳过
+        if (TMMClient.gameComponent != null && TMMClient.gameComponent.isRunning() && !TMMClient.isPlayerAliveAndInSurvival()){
             result = this.equals(MinecraftClient.getInstance().options.jumpKey);
         }
+        //其他键位始终不允许，防止出现bug
         if (!result && TMMClient.isPlayerAliveAndInSurvival()) {
             result = this.equals(MinecraftClient.getInstance().options.swapHandsKey) ||
                     this.equals(MinecraftClient.getInstance().options.togglePerspectiveKey) ||

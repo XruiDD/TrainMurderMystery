@@ -1,7 +1,7 @@
 package dev.doctor4t.trainmurdermystery.client.gui;
 
 import dev.doctor4t.trainmurdermystery.cca.PlayerShopComponent;
-import dev.doctor4t.trainmurdermystery.util.ShopUtils;
+import dev.doctor4t.trainmurdermystery.event.CanSeeMoney;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -17,8 +17,9 @@ public class StoreRenderer {
     public static float offsetDelta = 0f;
 
     public static void renderHud(TextRenderer renderer, @NotNull ClientPlayerEntity player, @NotNull DrawContext context, float delta) {
-        // Check shop access
-        if (!ShopUtils.canAccessShop(player)) {
+        // Check if player can see money display
+        CanSeeMoney.Result result = CanSeeMoney.EVENT.invoker().canSee(player);
+        if (result != CanSeeMoney.Result.ALLOW) {
             return;
         }
 

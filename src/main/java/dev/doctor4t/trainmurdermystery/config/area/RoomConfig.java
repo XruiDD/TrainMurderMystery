@@ -11,12 +11,23 @@ import java.util.Optional;
  */
 public record RoomConfig(
     List<SpawnPoint> spawnPoints,
-    Optional<Integer> maxPlayers
+    Optional<Integer> maxPlayers,
+    Optional<String> name
 ) {
     public static final Codec<RoomConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         SpawnPoint.CODEC.listOf().fieldOf("spawn_points").forGetter(RoomConfig::spawnPoints),
-        Codec.INT.optionalFieldOf("max_players").forGetter(RoomConfig::maxPlayers)
+        Codec.INT.optionalFieldOf("max_players").forGetter(RoomConfig::maxPlayers),
+        Codec.STRING.optionalFieldOf("name").forGetter(RoomConfig::name)
     ).apply(instance, RoomConfig::new));
+
+    /**
+     * 获取房间名称
+     * 如果没有设置则返回 "Room X"（X为房间号）
+     * @param roomNumber 房间号（1-based）
+     */
+    public String getName(int roomNumber) {
+        return name.orElse("Room " + roomNumber);
+    }
 
     /**
      * 获取房间最大玩家数

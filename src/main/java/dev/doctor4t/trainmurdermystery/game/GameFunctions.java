@@ -215,9 +215,14 @@ public class GameFunctions {
 
                 int finalRoomNumber = roomNumber;
 
+                // 获取房间名（如果配置了自定义名称则使用，否则默认 "Room X"）
+                String roomName = areas.getRoomConfig(finalRoomNumber)
+                    .map(config -> config.getName(finalRoomNumber))
+                    .orElse("Room " + finalRoomNumber);
+
                 // 给钥匙
                 ItemStack itemStack = new ItemStack(TMMItems.KEY);
-                itemStack.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, component -> new LoreComponent(Text.literal("Room " + finalRoomNumber).getWithStyle(Style.EMPTY.withItalic(false).withColor(0xFF8C00))));
+                itemStack.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, component -> new LoreComponent(Text.literal(roomName).getWithStyle(Style.EMPTY.withItalic(false).withColor(0xFF8C00))));
                 serverPlayerEntity.giveItemStack(itemStack);
 
                 // 传送玩家到对应房间的出生点

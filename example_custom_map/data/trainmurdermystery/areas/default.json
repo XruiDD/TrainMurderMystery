@@ -70,10 +70,12 @@
 
   "_comment_rooms": "房间配置列表 - 定义每个房间的出生点和最大人数",
   "_comment_rooms_detail": "max_players: 可选，默认为 spawn_points 数量。当房间人数超过出生点数量时，循环使用出生点",
+  "_comment_rooms_name": "name: 可选，自定义房间名称，显示在钥匙上。如不设置则默认为 'Room X'",
   "_comment_rooms_overflow": "当所有房间都满员时，会按顺序强制分配到房间（1→2→3→...→1→2→3...）",
   "rooms": [
     {
-      "_comment": "房间 1 - 豪华三人间示例",
+      "_comment": "房间 1 - 豪华三人间示例（自定义房间名）",
+      "name": "Room 1",
       "max_players": 3,
       "spawn_points": [
         { "x": 11, "y": 122.5, "z": -535.5, "yaw": -90.0, "pitch": 0.0 },
@@ -82,7 +84,8 @@
       ]
     },
     {
-      "_comment": "房间 2 - 豪华双人间示例",
+      "_comment": "房间 2 - 豪华双人间示例（自定义房间名）",
+      "name": "Room 2",
       "max_players": 2,
       "spawn_points": [
         { "x": 64, "y": 122.5, "z": -535.5, "yaw": -270.0, "pitch": 0.0 },
@@ -90,7 +93,7 @@
       ]
     },
     {
-      "_comment": "房间 3 - 豪华双人间示例",
+      "_comment": "房间 3 - 豪华双人间示例（未设置name，默认显示 'Room 3'）",
       "max_players": 2,
       "spawn_points": [
         { "x": 67, "y": 122.5, "z": -535.5, "yaw": -90.0, "pitch": 0.0 },

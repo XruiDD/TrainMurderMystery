@@ -438,13 +438,22 @@ public class TMMClient implements ClientModInitializer {
     }
 
     public static int getInstinctHighlight(Entity target) {
-        if (!isInstinctEnabled()) return -1;
-
         // 触发事件，允许附属 mod 自定义高亮
-        int eventColor = GetInstinctHighlight.EVENT.invoker().getHighlight(target);
-        if (eventColor != -1) {
-            return eventColor;
+        GetInstinctHighlight.HighlightResult eventResult = GetInstinctHighlight.EVENT.invoker().getHighlight(target);
+        if (eventResult != null) {
+            // 显式跳过
+            if (eventResult.isSkip()) {
+                return -1;
+            }
+            // 检查是否需要按键
+            if (eventResult.requiresKeybind() && !isInstinctEnabled()) {
+                return -1;
+            }
+            return eventResult.color();
         }
+
+        // 默认逻辑需要按键
+        if (!isInstinctEnabled()) return -1;
 
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
         if (target instanceof PlayerEntity) {

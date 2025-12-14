@@ -83,13 +83,15 @@ public class RoundTextRenderer {
             GameRoundEndComponent roundEnd = GameRoundEndComponent.KEY.get(player.getWorld());
             if (roundEnd.getWinStatus() == GameFunctions.WinStatus.NONE) return;
             Text endText = null;
+            String winRolePath = null;
 
             if (roundEnd.getWinStatus() == GameFunctions.WinStatus.NEUTRAL)
             {
-                List<GameRoundEndComponent. RoundEndData> players = roundEnd.getPlayers();
                 for (GameRoundEndComponent.RoundEndData entry : roundEnd.getPlayers()) {
                     if(entry.isWinner()){
                         endText = RoleAnnouncementTexts.getForRole(entry.role()).winText;
+                        winRolePath = entry.role().getPath();
+                        break;
                     }
                 }
             }else {
@@ -106,7 +108,7 @@ public class RoundTextRenderer {
             context.getMatrices().pop();
             context.getMatrices().push();
             context.getMatrices().scale(1.2f, 1.2f, 1f);
-            MutableText winMessage = Text.translatable("game.win." + roundEnd.getWinStatus().name().toLowerCase().toLowerCase());
+            MutableText winMessage = Text.translatable("game.win." + (winRolePath != null ? winRolePath : roundEnd.getWinStatus().name().toLowerCase()));
             int winMessageWidth = renderer.getWidth(winMessage);
             context.drawTextWithShadow(renderer, winMessage, -winMessageWidth / 2, -4, 0xFFFFFF);
             context.getMatrices().pop();

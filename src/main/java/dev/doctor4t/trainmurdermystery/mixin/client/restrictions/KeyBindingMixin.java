@@ -27,7 +27,7 @@ public abstract class KeyBindingMixin {
         }
         if(result) return result;
         //游戏开始之后不能跳跃，旁观者跳过
-        if (TMMClient.gameComponent != null && TMMClient.gameComponent.isRunning() && !TMMClient.isPlayerAliveAndInSurvival()){
+        if (TMMClient.gameComponent != null && TMMClient.gameComponent.isRunning() && TMMClient.isPlayerAliveAndInSurvival()){
             result = this.equals(MinecraftClient.getInstance().options.jumpKey);
         }
         //其他键位始终不允许，防止出现bug

@@ -131,7 +131,7 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         int existingNeutralCount = 0;
         for (ServerPlayerEntity player : players) {
             Role role = gameComponent.getRole(player);
-            if (role != null && role.getFaction() == Faction.NEUTRAL) {
+            if (role != null && role.getFaction() == Faction.NEUTRAL && role != TMMRoles.NO_ROLE) {
                 existingNeutralCount++;
             }
         }

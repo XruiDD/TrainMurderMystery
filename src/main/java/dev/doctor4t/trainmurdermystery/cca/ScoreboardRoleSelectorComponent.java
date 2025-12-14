@@ -57,6 +57,15 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
     }
 
     public int assignKillers(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int killerCount) {
+        // Collect already assigned killer roles (from forced roles)
+        Set<Role> assignedKillerRoles = new HashSet<>();
+        for (ServerPlayerEntity player : players) {
+            Role role = gameComponent.getRole(player);
+            if (role != null && role.getFaction() == Faction.KILLER) {
+                assignedKillerRoles.add(role);
+            }
+        }
+
         // Count already assigned killers (from forced roles)
         int existingKillerCount = 0;
         for (ServerPlayerEntity player : players) {
@@ -72,9 +81,10 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
 
         // Collect available non-vanilla killer faction roles (each can only be assigned once)
+        // Filter out roles that are already assigned
         ArrayList<Role> availableSpecialKillerRoles = new ArrayList<>();
         for (Role role : TMMRoles.ROLES) {
-            if (role.getFaction() == Faction.KILLER && !TMMRoles.VANILLA_ROLES.contains(role) && TMMRoles.isRoleEnabled(role)) {
+            if (role.getFaction() == Faction.KILLER && !TMMRoles.VANILLA_ROLES.contains(role) && TMMRoles.isRoleEnabled(role) && !assignedKillerRoles.contains(role)) {
                 availableSpecialKillerRoles.add(role);
             }
         }
@@ -127,29 +137,30 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
     }
 
     public int assignNeutrals(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int neutralCount) {
-        // Count already assigned neutrals (from forced roles)
-        int existingNeutralCount = 0;
+        // Collect already assigned neutral roles (from forced roles)
+        Set<Role> assignedNeutralRoles = new HashSet<>();
         for (ServerPlayerEntity player : players) {
             Role role = gameComponent.getRole(player);
             if (role != null && role.getFaction() == Faction.NEUTRAL && role != TMMRoles.NO_ROLE) {
-                existingNeutralCount++;
+                assignedNeutralRoles.add(role);
             }
         }
 
         // Adjust neutral count by subtracting existing neutrals
-        neutralCount = Math.max(0, neutralCount - existingNeutralCount);
+        neutralCount = Math.max(0, neutralCount - assignedNeutralRoles.size());
 
         // Collect available non-vanilla neutral faction roles (each can only be assigned once)
+        // Filter out roles that are already assigned
         ArrayList<Role> availableNeutralRoles = new ArrayList<>();
         for (Role role : TMMRoles.ROLES) {
-            if (role.getFaction() == Faction.NEUTRAL && !TMMRoles.VANILLA_ROLES.contains(role) && TMMRoles.isRoleEnabled(role)) {
+            if (role.getFaction() == Faction.NEUTRAL && !TMMRoles.VANILLA_ROLES.contains(role) && TMMRoles.isRoleEnabled(role) && !assignedNeutralRoles.contains(role)) {
                 availableNeutralRoles.add(role);
             }
         }
 
         // If no special neutral roles registered, skip neutral assignment
         if (availableNeutralRoles.isEmpty()) {
-            return existingNeutralCount;
+            return assignedNeutralRoles.size();
         }
 
         shuffle(availableNeutralRoles, world.getRandom());
@@ -157,7 +168,7 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         // Get available players
         ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
 
-        int assignedCount = existingNeutralCount;
+        int assignedCount = assignedNeutralRoles.size();
         // Assign neutral roles randomly (one role per player, one player per role)
         for (ServerPlayerEntity player : availablePlayers) {
             if (neutralCount <= 0) break;
@@ -176,10 +187,20 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         // Get available players
         ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
 
+        // Collect already assigned civilian roles (from forced roles)
+        Set<Role> assignedCivilianRoles = new HashSet<>();
+        for (ServerPlayerEntity player : players) {
+            Role role = gameComponent.getRole(player);
+            if (role != null && role.getFaction() == Faction.CIVILIAN) {
+                assignedCivilianRoles.add(role);
+            }
+        }
+
         // Collect available non-vanilla civilian faction roles (each can only be assigned once)
+        // Filter out roles that are already assigned
         ArrayList<Role> availableSpecialCivilianRoles = new ArrayList<>();
         for (Role role : TMMRoles.ROLES) {
-            if (role.getFaction() == Faction.CIVILIAN && !TMMRoles.VANILLA_ROLES.contains(role) && TMMRoles.isRoleEnabled(role)) {
+            if (role.getFaction() == Faction.CIVILIAN && !TMMRoles.VANILLA_ROLES.contains(role) && TMMRoles.isRoleEnabled(role) && !assignedCivilianRoles.contains(role)) {
                 availableSpecialCivilianRoles.add(role);
             }
         }

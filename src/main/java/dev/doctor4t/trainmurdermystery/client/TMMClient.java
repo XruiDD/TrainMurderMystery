@@ -27,6 +27,7 @@ import dev.doctor4t.trainmurdermystery.client.render.entity.NoteEntityRenderer;
 import dev.doctor4t.trainmurdermystery.client.util.TMMItemTooltips;
 import dev.doctor4t.trainmurdermystery.entity.FirecrackerEntity;
 import dev.doctor4t.trainmurdermystery.entity.NoteEntity;
+import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
 import dev.doctor4t.trainmurdermystery.event.AllowPlayerChat;
 import dev.doctor4t.trainmurdermystery.event.GetInstinctHighlight;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
@@ -456,9 +457,9 @@ public class TMMClient implements ClientModInitializer {
         if (!isInstinctEnabled()) return -1;
 
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
-        if (target instanceof PlayerEntity) {
-            if (!(target).isSpectator()) {
-                if (GameFunctions.isPlayerSpectatingOrCreative(MinecraftClient.getInstance().player)) {
+        if (GameFunctions.isPlayerSpectatingOrCreative(MinecraftClient.getInstance().player)) {
+            if (target instanceof PlayerEntity) {
+                if (!(target).isSpectator()) {
                     Role role = gameWorldComponent.getRole((PlayerEntity) target);
                     if (role == null) {
                         return TMMRoles.CIVILIAN.color();
@@ -467,7 +468,14 @@ public class TMMClient implements ClientModInitializer {
                     }
                 }
             }
+            if (target instanceof ItemEntity || target instanceof NoteEntity || target instanceof FirecrackerEntity)
+                return 0xDB9D00;
+            if(target instanceof PlayerBodyEntity body)
+            {
+                return Objects.requireNonNullElse(gameWorldComponent.getRole(body.getPlayerUuid()), TMMRoles.CIVILIAN).color();
+            }
         }
+
 //        if (target instanceof PlayerBodyEntity) return 0x606060;
         if (target instanceof ItemEntity || target instanceof NoteEntity || target instanceof FirecrackerEntity)
             return 0xDB9D00;

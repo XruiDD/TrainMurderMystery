@@ -473,17 +473,20 @@ public class TMMClient implements ClientModInitializer {
             return 0xDB9D00;
         if (target instanceof PlayerEntity player) {
             if (GameFunctions.isPlayerSpectatingOrCreative(player)) return -1;
-            if (isKiller() && gameComponent.canUseKillerFeatures(player)) return MathHelper.hsvToRgb(0F, 1.0F, 0.6F);
-            if (gameComponent.isInnocent(player)) {
-                float mood = PlayerMoodComponent.KEY.get(target).getMood();
-                if (mood < GameConstants.DEPRESSIVE_MOOD_THRESHOLD) {
-                    return 0x171DC6;
-                } else if (mood < GameConstants.MID_MOOD_THRESHOLD) {
-                    return 0x1FAFAF;
+            if (isKiller()){
+                if(gameWorldComponent.canUseKillerFeatures(player)){
+                    return MathHelper.hsvToRgb(0F, 1.0F, 0.6F);
                 } else {
-                    return 0x4EDD35;
+                    float mood = PlayerMoodComponent.KEY.get(target).getMood();
+                    if (mood < GameConstants.DEPRESSIVE_MOOD_THRESHOLD) {
+                        return 0x171DC6;
+                    } else if (mood < GameConstants.MID_MOOD_THRESHOLD) {
+                        return 0x1FAFAF;
+                    } else {
+                        return 0x4EDD35;
+                    }
                 }
-            }
+            };
             if (isPlayerSpectatingOrCreative()) return 0xFFFFFF;
         }
         return -1;

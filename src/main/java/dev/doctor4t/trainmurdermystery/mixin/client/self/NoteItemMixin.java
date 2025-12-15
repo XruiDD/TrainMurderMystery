@@ -22,9 +22,9 @@ public class NoteItemMixin {
 
     @Inject(method = "use", at = @At("HEAD"))
     private void useClient(@NotNull World world, PlayerEntity user, Hand hand, CallbackInfoReturnable<TypedActionResult<ItemStack>> cir) {
-        if (!user.isSneaking()) {
+        if (!world.isClient() || !user.isSneaking()) {
             return;
         }
-        MinecraftClient.getInstance().setScreen(new NoteScreen());
+        MinecraftClient.getInstance().execute(() -> MinecraftClient.getInstance().setScreen(new NoteScreen()));
     }
 }

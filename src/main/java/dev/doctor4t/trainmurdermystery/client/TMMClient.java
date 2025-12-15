@@ -4,12 +4,10 @@ import com.google.common.collect.Maps;
 import dev.doctor4t.ratatouille.client.util.OptionLocker;
 import dev.doctor4t.ratatouille.client.util.ambience.AmbienceUtil;
 import dev.doctor4t.ratatouille.client.util.ambience.BackgroundAmbience;
-import dev.doctor4t.ratatouille.client.util.ambience.BlockEntityAmbience;
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.config.TMMClientConfig;
 import dev.doctor4t.trainmurdermystery.api.Role;
 import dev.doctor4t.trainmurdermystery.api.TMMRoles;
-import dev.doctor4t.trainmurdermystery.block_entity.SprinklerBlockEntity;
 import dev.doctor4t.trainmurdermystery.cca.AreasWorldComponent;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
@@ -247,7 +245,7 @@ public class TMMClient implements ClientModInitializer {
         ClientTickEvents.START_WORLD_TICK.register(clientWorld -> {
             prevInstinctLightLevel = instinctLightLevel;
             // instinct night vision
-            if (TMMClient.isInstinctEnabled()) {
+            if (TMMClient.isInstinctEnabledAndIsKiller()) {
                 instinctLightLevel += .1f;
             } else {
                 instinctLightLevel -= .1f;
@@ -454,7 +452,7 @@ public class TMMClient implements ClientModInitializer {
         }
 
         // 默认逻辑需要按键
-        if (!isInstinctEnabled() || !isKiller()) return -1;
+        if (!isInstinctEnabledAndIsKiller()) return -1;
 
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
         if (GameFunctions.isPlayerSpectatingOrCreative(MinecraftClient.getInstance().player)) {
@@ -500,10 +498,12 @@ public class TMMClient implements ClientModInitializer {
         return -1;
     }
 
-    public static boolean isInstinctEnabled() {
-        return instinctKeybind.isPressed() && ((isPlayerAliveAndInSurvival()) || isPlayerSpectatingOrCreative());
+    public static boolean isInstinctEnabledAndIsKiller() {
+        return instinctKeybind.isPressed() && ((isPlayerAliveAndInSurvival() && isKiller())|| isPlayerSpectatingOrCreative());
     }
-
+    public static boolean isInstinctEnabled() {
+        return instinctKeybind.isPressed() && isPlayerAliveAndInSurvival();
+    }
     public static int getLockedRenderDistance(boolean ultraPerfMode) {
         return ultraPerfMode ? 2 : 32;
     }

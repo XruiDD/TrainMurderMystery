@@ -4,6 +4,7 @@ import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
 import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
 import dev.doctor4t.trainmurdermystery.config.TMMServerConfig.ShootInnocentPunishment;
+import dev.doctor4t.trainmurdermystery.event.ShouldPunishGunShooter;
 import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import dev.doctor4t.trainmurdermystery.index.TMMDataComponentTypes;
@@ -64,7 +65,14 @@ public record GunShootPayload(int target) implements CustomPayload {
                 boolean backfire = false;
 
                 // 只有无辜者射击无辜者才会触发惩罚（杀手射击无辜者不受惩罚）
-                if (game.isInnocent(target) && !player.isCreative() && mainHandStack.isOf(revolver)) {
+                // 允许其他模组通过事件取消或自定义惩罚
+                ShouldPunishGunShooter.PunishResult punishResult = ShouldPunishGunShooter.EVENT.invoker().shouldPunish(player, target);
+
+                // 处理自定义惩罚
+                if (punishResult != null && punishResult.hasCustomPunishment()) {
+                    Scheduler.schedule(punishResult::executeCustomPunishment, 4);
+                } else if (game.isInnocent(target) && !player.isCreative() && mainHandStack.isOf(revolver)
+                        && (punishResult == null || punishResult.shouldPunish())) {
                     // 所有惩罚类型都会掉落枪支，然后根据类型执行附加惩罚
                     ShootInnocentPunishment punishment = game.getShootInnocentPunishment();
                     // backfire: if you kill an innocent you have a chance of shooting yourself instead

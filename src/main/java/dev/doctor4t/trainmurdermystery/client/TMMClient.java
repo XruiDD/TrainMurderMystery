@@ -454,7 +454,7 @@ public class TMMClient implements ClientModInitializer {
         }
 
         // 默认逻辑需要按键
-        if (!isInstinctEnabled()) return -1;
+        if (!isInstinctEnabled() || !isKiller()) return -1;
 
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
         if (GameFunctions.isPlayerSpectatingOrCreative(MinecraftClient.getInstance().player)) {
@@ -501,7 +501,7 @@ public class TMMClient implements ClientModInitializer {
     }
 
     public static boolean isInstinctEnabled() {
-        return instinctKeybind.isPressed() && ((isKiller() && isPlayerAliveAndInSurvival()) || isPlayerSpectatingOrCreative());
+        return instinctKeybind.isPressed() && ((isPlayerAliveAndInSurvival()) || isPlayerSpectatingOrCreative());
     }
 
     public static int getLockedRenderDistance(boolean ultraPerfMode) {

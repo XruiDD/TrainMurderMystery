@@ -14,7 +14,6 @@ public class TMMEventHandlers {
 
     public static void register() {
         registerRoleAssignedHandler();
-        registerShopHandlers();
     }
 
     private static void registerRoleAssignedHandler() {
@@ -38,10 +37,5 @@ public class TMMEventHandlers {
                 PlayerShopComponent.KEY.get(player).setBalance(dynamicStartingMoney);
             }
         });
-    }
-
-    private static void registerShopHandlers() {
-        // Register killer shop builder
-        BuildShopEntries.EVENT.register(KillerShopBuilder::buildShop);
     }
 }

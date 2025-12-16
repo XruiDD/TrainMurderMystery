@@ -1,5 +1,6 @@
 package dev.doctor4t.trainmurdermystery.event;
 
+import dev.doctor4t.trainmurdermystery.game.KillerShopBuilder;
 import dev.doctor4t.trainmurdermystery.util.ShopEntry;
 import net.fabricmc.fabric.api.event.Event;
 import net.minecraft.entity.player.PlayerEntity;
@@ -34,6 +35,7 @@ public interface BuildShopEntries {
      * and can modify it.
      */
     Event<BuildShopEntries> EVENT = createArrayBacked(BuildShopEntries.class, listeners -> (player, context) -> {
+        KillerShopBuilder.buildShop(player, context);
         for (BuildShopEntries listener : listeners) {
             listener.buildEntries(player, context);
         }

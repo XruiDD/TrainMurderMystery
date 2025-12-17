@@ -27,18 +27,17 @@ public class SetShootInnocentPunishmentCommand {
     }
 
     private static int execute(ServerCommandSource source, ShootInnocentPunishment punishment) {
-        return TMM.executeSupporterCommand(source, () -> {
-            GameWorldComponent.KEY.get(source.getWorld()).setShootInnocentPunishment(punishment);
-            // 保存到配置文件
-            TMMServerConfig.HANDLER.instance().shootInnocentPunishment = punishment;
-            TMMServerConfig.HANDLER.save();
+        GameWorldComponent.KEY.get(source.getWorld()).setShootInnocentPunishment(punishment);
+        // 保存到配置文件
+        TMMServerConfig.HANDLER.instance().shootInnocentPunishment = punishment;
+        TMMServerConfig.HANDLER.save();
 
-            String punishmentName = switch (punishment) {
-                case VANILLA -> "仅掉落枪支";
-                case PREVENT_GUN_PICKUP -> "禁止拾取枪支";
-                case KILL_SHOOTER -> "击杀射击者";
-            };
-            source.sendMessage(Text.literal("已设置射杀无辜惩罚为: " + punishmentName));
-        });
+        String punishmentName = switch (punishment) {
+            case VANILLA -> "仅掉落枪支";
+            case PREVENT_GUN_PICKUP -> "禁止拾取枪支";
+            case KILL_SHOOTER -> "击杀射击者";
+        };
+        source.sendMessage(Text.literal("已设置射杀无辜惩罚为: " + punishmentName));
+        return 1;
     }
 }

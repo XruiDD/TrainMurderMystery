@@ -8,6 +8,7 @@ import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.entity.NoteEntity;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
 import dev.doctor4t.trainmurdermystery.event.CanSeeBodyRole;
+import dev.doctor4t.trainmurdermystery.event.ShouldShowCohort;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -46,10 +47,12 @@ public class RoleNameRenderer {
             return;
         float range = GameFunctions.isPlayerSpectatingOrCreative(player) ? 8f : 2f;
         Role targetPlayerRole = null;
+        PlayerEntity targetPlayer = null; // 保存目标玩家引用，用于事件调用
         if (ProjectileUtil.getCollision(player, entity -> entity instanceof PlayerEntity, range) instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() instanceof PlayerEntity target) {
             nametagAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 4, nametagAlpha, 1f);
             // Get target's role for spectator/creative mode display
             targetPlayerRole = component.getRole(target);
+            targetPlayer = target; // 保存目标玩家
             nametag = target.getDisplayName();
             if (component.canUseKillerFeatures(target)) {
                 targetRole = TrainRole.KILLER;
@@ -73,10 +76,24 @@ public class RoleNameRenderer {
             }
             int nameWidth = renderer.getWidth(nametag);
             context.drawTextWithShadow(renderer, nametag, -nameWidth / 2, 16, MathHelper.packRgb(1f, 1f, 1f) | ((int) (nametagAlpha * 255) << 24));
-            if (component.isRunning()) {
+            if (component.isRunning() && targetPlayer != null) {
                 TrainRole playerRole = TrainRole.BYSTANDER;
                 if (component.canUseKillerFeatures(player)) playerRole = TrainRole.KILLER;
-                if (playerRole == TrainRole.KILLER && targetRole == TrainRole.KILLER) {
+
+                // 检查是否应该显示cohort提示
+                boolean shouldShowCohort;
+
+                // 先触发事件，允许附属mod自定义
+                ShouldShowCohort.CohortResult eventResult = ShouldShowCohort.EVENT.invoker().getCohortResult(player, targetPlayer);
+                if (eventResult != null) {
+                    // 事件返回了明确结果，使用事件结果
+                    shouldShowCohort = eventResult.shouldShow();
+                } else {
+                    // 事件未处理，使用默认逻辑：两个杀手之间显示cohort
+                    shouldShowCohort = (playerRole == TrainRole.KILLER && targetRole == TrainRole.KILLER);
+                }
+
+                if (shouldShowCohort) {
                     context.getMatrices().translate(0, 20 + renderer.fontHeight, 0);
                     MutableText roleText = Text.translatable("game.tip.cohort");
                     int roleWidth = renderer.getWidth(roleText);

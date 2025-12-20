@@ -1,4 +1,9 @@
 ------------------------------------------------------
+Wathe 1.3.2 - 1.21.1
+------------------------------------------------------
+- Fixed the horn not starting the murder mystery game mode at night how intended
+
+------------------------------------------------------
 Wathe 1.3.1 - 1.21.1
 ------------------------------------------------------
 - Fixed map effect not initializing when being manually changed with the mapVariables command

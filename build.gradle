@@ -40,12 +40,6 @@ repositories {
 		url "https://maven.ladysnake.org/releases"
 	}
 
-	// YACL
-	maven {
-		name 'Xander Maven'
-		url 'https://maven.isxander.dev/releases'
-	}
-
 	maven {
         url "https://maven.uuid.gg/releases"
         name "Datasync"
@@ -57,12 +51,12 @@ repositories {
 }
 
 loom {
-	accessWidenerPath = file("src/main/resources/trainmurdermystery.accesswidener")
+	accessWidenerPath = file("src/main/resources/wathe.accesswidener")
 }
 
 fabricApi {
 	configureDataGeneration() {
-		modId = "trainmurdermystery"
+		modId = "wathe"
 		client = true
 	}
 }
@@ -85,8 +79,8 @@ dependencies {
 	modImplementation include ("org.ladysnake.cardinal-components-api:cardinal-components-world:${project.cca_version}")
 	modImplementation include ("org.ladysnake.cardinal-components-api:cardinal-components-entity:${project.cca_version}")
 	modImplementation include ("org.ladysnake.cardinal-components-api:cardinal-components-scoreboard:${project.cca_version}")
-	// YACL
-	modImplementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
+	// Midnightlib
+	modIncludeImplementation "maven.modrinth:midnightlib:${project.midnightlib_version}"
 
 	// Runtime mods
 	modLocalImplementation "com.terraformersmc:modmenu:${mod_menu_version}"

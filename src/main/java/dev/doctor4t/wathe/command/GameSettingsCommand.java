@@ -59,6 +59,10 @@ public class GameSettingsCommand {
                                                 .then(CommandManager.argument("dividend", IntegerArgumentType.integer(3))
                                                         .executes(context -> setVigilanteDividend(context.getSource(), IntegerArgumentType.getInteger(context, "dividend")))
                                                 )
+                                        ).then(CommandManager.literal("neutral")
+                                                .then(CommandManager.argument("dividend", IntegerArgumentType.integer(3))
+                                                        .executes(context -> setNeutralDividend(context.getSource(), IntegerArgumentType.getInteger(context, "dividend")))
+                                                )
                                         )
                                 )
                                 .then(CommandManager.literal("bounds")
@@ -115,6 +119,12 @@ public class GameSettingsCommand {
     private static int setVigilanteDividend(ServerCommandSource source, int dividend) {
         return Wathe.executeSupporterCommand(source,
                 () -> GameWorldComponent.KEY.get(source.getWorld()).setVigilanteDividend(dividend)
+        );
+    }
+
+    private static int setNeutralDividend(ServerCommandSource source, int dividend) {
+        return Wathe.executeSupporterCommand(source,
+                () -> GameWorldComponent.KEY.get(source.getWorld()).setNeutralDividend(dividend)
         );
     }
 

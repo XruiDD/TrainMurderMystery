@@ -35,7 +35,7 @@ public class MurderGameMode extends GameMode {
         roleSelector.assignForcedRoles(world, gameComponent, players);
         int total = roleSelector.assignKillers(world, gameComponent, players, (int) Math.floor((double) players.size() / gameComponent.getKillerDividend()));
         roleSelector.assignVigilantes(world, gameComponent, players,  (int) Math.floor((double) players.size() / gameComponent.getVigilanteDividend()));
-        roleSelector.assignNeutrals(world, gameComponent, players, total);
+        roleSelector.assignNeutrals(world, gameComponent, players, gameComponent.getNeutralDividend());
         roleSelector.assignCivilians(world, gameComponent, players);
         for (ServerPlayerEntity player : players) {
             RoleAssigned.EVENT.invoker().assignRole(player, gameComponent.getRole(player));

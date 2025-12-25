@@ -68,8 +68,9 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     private ShootInnocentPunishment shootInnocentPunishment;
     private final HashSet<UUID> preventGunPickup = new HashSet<>();
 
-    private int killerDividend = 5;
-    private int vigilanteDividend = 5;
+    private int killerDividend = 6;
+    private int vigilanteDividend = 6;
+    private int neutralDividend = 6;
 
     public GameWorldComponent(World world) {
         this.world = world;
@@ -304,6 +305,16 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         this.preventGunPickup.clear();
     }
 
+
+    public int getNeutralDividend() {
+        return neutralDividend;
+    }
+
+    public void setNeutralDividend(int neutralDividend) {
+        this.neutralDividend = neutralDividend;
+        this.sync();
+    }
+
     public int getKillerDividend() {
         return killerDividend;
     }
@@ -345,6 +356,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
 
         this.killerDividend = nbtCompound.getInt("KillerDividend") > 0 ? nbtCompound.getInt("KillerDividend") : 6;
         this.vigilanteDividend = nbtCompound.getInt("VigilanteDividend") > 0 ? nbtCompound.getInt("VigilanteDividend") : 6;
+        this.neutralDividend = nbtCompound.getInt("NeutralDividend") > 0 ? nbtCompound.getInt("NeutralDividend") : 6;
 
         for (Role role : WatheRoles.ROLES) {
             this.setRoles(uuidListFromNbt(nbtCompound, role.identifier().toString()), role);
@@ -412,6 +424,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
 
         nbtCompound.putInt("KillerDividend", killerDividend);
         nbtCompound.putInt("VigilanteDividend", vigilanteDividend);
+        nbtCompound.putInt("NeutralDividend", neutralDividend);
 
         for (Role role : WatheRoles.ROLES) {
             nbtCompound.put(role.identifier().toString(), nbtFromUuidList(getAllWithRole(role)));

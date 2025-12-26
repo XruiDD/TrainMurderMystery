@@ -2,6 +2,7 @@ package dev.doctor4t.wathe.block;
 
 import dev.doctor4t.wathe.api.event.AllowPlayerOpenLockedDoor;
 import dev.doctor4t.wathe.block_entity.SmallDoorBlockEntity;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.TrainWorldComponent;
 import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.index.WatheSounds;
@@ -31,7 +32,7 @@ public class TrainDoorBlock extends SmallDoorBlock {
                 return ActionResult.PASS;
             }
 
-            if (player.isCreative() || TrainWorldComponent.KEY.get(world).getSpeed() == 0  || AllowPlayerOpenLockedDoor.EVENT.invoker().allowOpen(player)) {
+            if (player.isCreative() || GameWorldComponent.KEY.get(world).getGameStatus() == GameWorldComponent.GameStatus.INACTIVE  || AllowPlayerOpenLockedDoor.EVENT.invoker().allowOpen(player)) {
                 return open(state, world, entity, lowerPos);
             } else {
                 boolean hasLockpick = player.getMainHandStack().isOf(WatheItems.LOCKPICK);

@@ -54,7 +54,7 @@
 			"wathe:rolecounter",
 			"wathe:note",
 			"wathe:stamina",
-			"wathe:mapEnhancements"
+			"wathe:map_enhancements"
 		],
 		"loom:injected_interfaces": {
 			"net/minecraft/class_5483/class_5496" : ["dev/doctor4t/wathe/util/BlockSettingsAdditions"]

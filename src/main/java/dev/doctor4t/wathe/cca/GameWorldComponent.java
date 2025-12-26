@@ -6,10 +6,7 @@ import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtHelper;
-import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.*;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -71,6 +68,9 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     private int killerDividend = 6;
     private int vigilanteDividend = 6;
     private int neutralDividend = 6;
+
+    // Disabled roles (persisted)
+    private final HashSet<Identifier> disabledRoles = new HashSet<>();
 
     public GameWorldComponent(World world) {
         this.world = world;
@@ -333,6 +333,24 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         this.sync();
     }
 
+    // Role enabled/disabled management
+    public boolean isRoleEnabled(Role role) {
+        return !disabledRoles.contains(role.identifier());
+    }
+
+    public void setRoleEnabled(Role role, boolean enabled) {
+        if (enabled) {
+            disabledRoles.remove(role.identifier());
+        } else {
+            disabledRoles.add(role.identifier());
+        }
+        this.sync();
+    }
+
+    public HashSet<Identifier> getDisabledRoles() {
+        return disabledRoles;
+    }
+
     @Override
     public void readFromNbt(@NotNull NbtCompound nbtCompound, RegistryWrapper.WrapperLookup wrapperLookup) {
 
@@ -395,6 +413,14 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
                 this.preventGunPickup.add(NbtHelper.toUuid(e));
             }
         }
+
+        // Read disabled roles
+        this.disabledRoles.clear();
+        if (nbtCompound.contains("DisabledRoles")) {
+            for (NbtElement e : nbtCompound.getList("DisabledRoles", NbtElement.STRING_TYPE)) {
+                this.disabledRoles.add(Identifier.of(e.asString()));
+            }
+        }
     }
 
     private ArrayList<UUID> uuidListFromNbt(NbtCompound nbtCompound, String listName) {
@@ -455,6 +481,13 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
             preventGunPickupList.add(NbtHelper.fromUuid(uuid));
         }
         nbtCompound.put("PreventGunPickup", preventGunPickupList);
+
+        // Write disabled roles
+        NbtList disabledRolesList = new NbtList();
+        for (Identifier roleId : this.disabledRoles) {
+            disabledRolesList.add(NbtString.of(roleId.toString()));
+        }
+        nbtCompound.put("DisabledRoles", disabledRolesList);
     }
 
     private NbtList nbtFromUuidList(List<UUID> list) {
@@ -505,10 +538,10 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         }
 
         if (serverWorld.getServer().getOverworld().equals(serverWorld)) {
-            TrainWorldComponent trainComponent = TrainWorldComponent.KEY.get(serverWorld);
+            GameWorldComponent trainComponent = GameWorldComponent.KEY.get(serverWorld);
 
             // spectator limits
-            if (trainComponent.getSpeed() > 0) {
+            if (trainComponent.getGameStatus() != GameStatus.INACTIVE) {
                 for (ServerPlayerEntity player : serverWorld.getPlayers()) {
                     if (!GameFunctions.isPlayerAliveAndSurvival(player) && isBound() && playArea != null) {
                         GameFunctions.limitPlayerToBox(player, playArea);

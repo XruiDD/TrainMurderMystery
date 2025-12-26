@@ -19,7 +19,6 @@ public class WatheRoles {
     public static final ArrayList<Role> SPECIAL_ROLES = new ArrayList<>();
     public static final ArrayList<Role> VANILLA_ROLES = new ArrayList<>();
     private static final Map<Identifier, Role> ROLES_REGISTRY = new HashMap<>();
-    private static final Set<Role> DISABLED_ROLES = new HashSet<>();
 
     public static final Role DISCOVERY_CIVILIAN = new Role(Wathe.id("discovery_civilian"), 0x36E51B, true, false, Role.MoodType.NONE, -1, true);
     public static final Role NO_ROLE = new Role(Wathe.id("no_role"), 0xFFFFFF, false, false, Role.MoodType.NONE, -1, false);
@@ -27,7 +26,6 @@ public class WatheRoles {
     public static final Role VIGILANTE = new Role(Wathe.id("vigilante"), 0x1B8AE5, true, false, Role.MoodType.REAL, GameConstants.getInTicks(0, 10), false);
     public static final Role KILLER = new Role(Wathe.id("killer"), 0xC13838, false, true, Role.MoodType.FAKE, -1, true);
     public static final Role LOOSE_END = new Role(Wathe.id("loose_end"), 0x9F0000, false, false, Role.MoodType.NONE, -1, false);
-
 
     static {
         SPECIAL_ROLES.add(LOOSE_END);
@@ -56,21 +54,5 @@ public class WatheRoles {
     }
     public static @Nullable Role getRole(Identifier id) {
         return ROLES_REGISTRY.get(id);
-    }
-
-    public static void setRoleEnabled(Role role, boolean enabled) {
-        if (enabled) {
-            DISABLED_ROLES.remove(role);
-        } else {
-            DISABLED_ROLES.add(role);
-        }
-    }
-
-    public static boolean isRoleEnabled(Role role) {
-        return !DISABLED_ROLES.contains(role);
-    }
-
-    public static Set<Role> getDisabledRoles() {
-        return DISABLED_ROLES;
     }
 }

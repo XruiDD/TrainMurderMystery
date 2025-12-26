@@ -29,7 +29,7 @@ import java.util.Optional;
  * 这个组件完全独立于 MapVariablesWorldComponent，不影响与上游的兼容性
  */
 public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
-    public static final ComponentKey<MapEnhancementsWorldComponent> KEY = ComponentRegistry.getOrCreate(Wathe.id("mapEnhancements"), MapEnhancementsWorldComponent.class);
+    public static final ComponentKey<MapEnhancementsWorldComponent> KEY = ComponentRegistry.getOrCreate(Wathe.id("map_enhancements"), MapEnhancementsWorldComponent.class);
     private final World world;
 
     public MapEnhancementsWorldComponent(World world) {

@@ -15,6 +15,8 @@ import dev.doctor4t.wathe.command.argument.RoleSuggestionProvider;
 import dev.doctor4t.wathe.game.GameConstants;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
@@ -51,7 +53,7 @@ public class GameSettingsCommand {
                                 )
                                 .then(CommandManager.literal("roleDividend")
                                         .then(CommandManager.literal("killer")
-                                                .then(CommandManager.argument("dividend", IntegerArgumentType.integer(3))
+                                                .then(CommandManager.argument("dividend", IntegerArgumentType.integer(3, 6))
                                                         .executes(context -> setKillerDividend(context.getSource(), IntegerArgumentType.getInteger(context, "dividend")))
                                                 )
                                         )
@@ -141,11 +143,11 @@ public class GameSettingsCommand {
         return Wathe.executeSupporterCommand(source, () -> {
             GameWorldComponent.KEY.get(source.getWorld()).setShootInnocentPunishment(punishment);
 
-            String punishmentName = switch (punishment) {
-                case PREVENT_GUN_PICKUP -> "prevent gun pickup";
-                case KILL_SHOOTER -> "kill shooter";
+            Text punishmentName = switch (punishment) {
+                case PREVENT_GUN_PICKUP -> Text.translatable("commands.wathe.gamesettings.shootinnocentpunishment.preventgunpickup");
+                case KILL_SHOOTER -> Text.translatable("commands.wathe.gamesettings.shootinnocentpunishment.killshooter");
             };
-            source.sendMessage(Text.literal("Set shoot innocent punishment to: " + punishmentName));
+            source.sendFeedback(() -> Text.translatable("commands.wathe.gamesettings.shootinnocentpunishment.success", punishmentName), true);
         });
     }
 
@@ -153,7 +155,7 @@ public class GameSettingsCommand {
         for (Role role : WatheRoles.ROLES) {
             if (WatheRoles.SPECIAL_ROLES.contains(role)) continue;
             if (role.identifier().getPath().equals(roleName)) {
-                WatheRoles.setRoleEnabled(role, enabled);
+                GameWorldComponent.KEY.get(source.getWorld()).setRoleEnabled(role, enabled);
                 Text roleText = Text.literal(role.identifier().getPath()).withColor(role.color());
                 Text statusText = enabled
                         ? Text.translatable("commands.wathe.setenabledrole.enabled")
@@ -166,37 +168,60 @@ public class GameSettingsCommand {
     }
 
     private static int listRoles(ServerCommandSource source) {
-        MutableText message = Text.literal("Roles:").withColor(Colors.GRAY);
+        MutableText message = Text.translatable("commands.wathe.listroles.header").withColor(Colors.GRAY);
 
         for (Role role : WatheRoles.ROLES) {
+            if (WatheRoles.SPECIAL_ROLES.contains(role)) {
+                continue;
+            }
+
             message.append("\n");
-            String roleName = role.identifier().getPath();
+            String roleId = role.identifier().getPath();
             Faction faction = role.getFaction();
 
             // Faction tag
-            Text factionTag = switch (faction) {
-                case NONE -> Text.literal("[None] ").withColor(CIVILIAN_COLOR);
-                case CIVILIAN -> Text.literal("[Civilian] ").withColor(CIVILIAN_COLOR);
-                case KILLER -> Text.literal("[Killer] ").withColor(KILLER_COLOR);
-                case NEUTRAL -> Text.literal("[Neutral] ").withColor(NEUTRAL_COLOR);
+            String factionKey = switch (faction) {
+                case NONE -> "faction.wathe.none";
+                case CIVILIAN -> "faction.wathe.civilian";
+                case KILLER -> "faction.wathe.killer";
+                case NEUTRAL -> "faction.wathe.neutral";
             };
+            int factionColor = switch (faction) {
+                case NONE, CIVILIAN -> CIVILIAN_COLOR;
+                case KILLER -> KILLER_COLOR;
+                case NEUTRAL -> NEUTRAL_COLOR;
+            };
+            Text factionTag = Text.literal("[").withColor(factionColor)
+                    .append(Text.translatable(factionKey))
+                    .append(Text.literal("] "));
             message.append(factionTag);
 
-            // Role name
-            message.append(Text.literal(roleName).withColor(role.color()));
+            String roleKey = "announcement.role." + roleId;
+            MutableText roleName = Text.translatable(roleKey).withColor(role.color());
 
-            // Special tag
-            if (WatheRoles.SPECIAL_ROLES.contains(role)) {
-                message.append(Text.literal(" (special)").withColor(Colors.LIGHT_GRAY));
-            }
+            boolean isEnabled = GameWorldComponent.KEY.get(source.getWorld()).isRoleEnabled(role);
+            String command = "/wathe:gameSettings set enableRole " + roleId + " " + !isEnabled;
+            String hoverKey = isEnabled ? "commands.wathe.listroles.click_to_disable" : "commands.wathe.listroles.click_to_enable";
 
-            // Enabled/Disabled status
-            if (!WatheRoles.SPECIAL_ROLES.contains(role)) {
-                if (WatheRoles.isRoleEnabled(role)) {
-                    message.append(Text.literal(" [ON]").withColor(ENABLED_COLOR));
-                } else {
-                    message.append(Text.literal(" [OFF]").withColor(DISABLED_COLOR));
-                }
+            roleName = roleName
+                    .styled(style -> style
+                            .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command))
+                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.translatable(hoverKey)))
+                            .withUnderline(true)
+                    );
+
+            message.append(roleName);
+
+            if (GameWorldComponent.KEY.get(source.getWorld()).isRoleEnabled(role)) {
+                message.append(Text.literal(" [")
+                        .append(Text.translatable("commands.wathe.listroles.enabled"))
+                        .append(Text.literal("]"))
+                        .withColor(ENABLED_COLOR));
+            } else {
+                message.append(Text.literal(" [")
+                        .append(Text.translatable("commands.wathe.listroles.disabled"))
+                        .append(Text.literal("]"))
+                        .withColor(DISABLED_COLOR));
             }
         }
 

@@ -127,7 +127,7 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         // Filter out roles that are already assigned
         ArrayList<Role> availableSpecialKillerRoles = new ArrayList<>();
         for (Role role : WatheRoles.ROLES) {
-            if (role.getFaction() == Faction.KILLER && !WatheRoles.VANILLA_ROLES.contains(role) && WatheRoles.isRoleEnabled(role) && !assignedKillerRoles.contains(role)) {
+            if (role.getFaction() == Faction.KILLER && !WatheRoles.VANILLA_ROLES.contains(role) && gameComponent.isRoleEnabled(role) && !assignedKillerRoles.contains(role)) {
                 availableSpecialKillerRoles.add(role);
             }
         }
@@ -196,7 +196,7 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         // Filter out roles that are already assigned
         ArrayList<Role> availableNeutralRoles = new ArrayList<>();
         for (Role role : WatheRoles.ROLES) {
-            if (role.getFaction() == Faction.NEUTRAL && !WatheRoles.VANILLA_ROLES.contains(role) && WatheRoles.isRoleEnabled(role) && !assignedNeutralRoles.contains(role)) {
+            if (role.getFaction() == Faction.NEUTRAL && !WatheRoles.VANILLA_ROLES.contains(role) && gameComponent.isRoleEnabled(role) && !assignedNeutralRoles.contains(role)) {
                 availableNeutralRoles.add(role);
             }
         }
@@ -243,7 +243,7 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         // Filter out roles that are already assigned
         ArrayList<Role> availableSpecialCivilianRoles = new ArrayList<>();
         for (Role role : WatheRoles.ROLES) {
-            if (role.getFaction() == Faction.CIVILIAN && !WatheRoles.VANILLA_ROLES.contains(role) && WatheRoles.isRoleEnabled(role) && !assignedCivilianRoles.contains(role)) {
+            if (role.getFaction() == Faction.CIVILIAN && !WatheRoles.VANILLA_ROLES.contains(role) && gameComponent.isRoleEnabled(role) && !assignedCivilianRoles.contains(role)) {
                 availableSpecialCivilianRoles.add(role);
             }
         }

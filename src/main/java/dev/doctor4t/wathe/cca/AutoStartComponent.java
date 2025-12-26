@@ -43,7 +43,7 @@ public class AutoStartComponent implements AutoSyncedComponent, CommonTickingCom
 
         GameMode gameMode = gameWorldComponent.getGameMode();
         if (GameFunctions.getReadyPlayerCount(world) >= gameMode.minPlayerCount) {
-            if (this.time-- <= 0 && this.world instanceof ServerWorld serverWorld) {
+            if (this.time-- == 0 && this.world instanceof ServerWorld serverWorld) {
                 if (gameWorldComponent.getGameStatus() == GameWorldComponent.GameStatus.INACTIVE) {
                     GameFunctions.startGame(serverWorld, gameMode, gameWorldComponent.getMapEffect(), GameConstants.getInTicks(gameMode.defaultStartTime, 0));
                     return;

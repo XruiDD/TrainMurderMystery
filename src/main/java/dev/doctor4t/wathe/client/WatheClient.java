@@ -315,11 +315,11 @@ public class WatheClient implements ClientModInitializer {
     }
 
     public static float getTrainSpeed() {
-        return trainComponent != null ? trainComponent.getSpeed() : 0;
+        return  gameComponent == null || gameComponent.getGameStatus() == GameWorldComponent.GameStatus.INACTIVE ? 0 : trainComponent != null ? trainComponent.getSpeed() : 0;
     }
 
     public static boolean isTrainMoving() {
-        return trainComponent != null && trainComponent.getSpeed() > 0;
+        return gameComponent != null && gameComponent.getGameStatus() != GameWorldComponent.GameStatus.INACTIVE && trainComponent != null && trainComponent.getSpeed() > 0;
     }
 
     public static class CustomModelProvider implements ModelLoadingPlugin {
@@ -478,7 +478,7 @@ public class WatheClient implements ClientModInitializer {
         return instinctKeybind.isPressed() && ((isPlayerAliveAndInSurvival() && isKiller())|| isPlayerSpectatingOrCreative());
     }
     public static boolean isInstinctEnabled() {
-        return instinctKeybind.isPressed() && isPlayerAliveAndInSurvival();
+        return instinctKeybind.isPressed();
     }
     public static int getLockedRenderDistance(boolean ultraPerfMode) {
         return ultraPerfMode ? 2 : 32;

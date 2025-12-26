@@ -49,6 +49,8 @@ public class WatheLangGen extends FabricLanguageProvider {
         builder.add("announcement.title.vigilante", "Vigilantes");
         builder.add("announcement.title.killer", "Killers");
         builder.add("announcement.title.loose_end", "Loose Ends");
+        builder.add("announcement.title.discovery_civilian", "Discovery Civilians");
+        builder.add("announcement.title.no_role", "No Role");
 
         builder.add("announcement.welcome", "Welcome aboard %s");
         builder.add("announcement.premise", "There is a killer aboard the train.");
@@ -153,6 +155,9 @@ public class WatheLangGen extends FabricLanguageProvider {
                     backfire: When a civilian shoots an innocent, chance said civilian will shoot themselves instead. 0 (default) is 0%, 1 is 100%.
                     roleDividend: The amount of players for which 1 of the role will be chosen (default: 5 for both roles). E.g: 4 -> 1 in 4 players will be that role, meaning 2 of that role for 8 people, 3 for 12, etc...
                     bounds: Enable or disable game bounds that limit spectators to the play area.
+                    shootInnocentPunishment: Set the punishment when a player shoots an innocent. Options: preventGunPickup (drops gun), killShooter (backfire).
+                    enableRole: Enable or disable specific roles. Use 'listRoles' to see all available roles and their status.
+                    listRoles: Display all roles with their factions and enabled/disabled status. Click on non-special roles to toggle them.
                 """);
 
         builder.add("commands.supporter_only", "Super silly supporter commands are reserved for Patreon and YouTube members; if you wanna try them out, please consider supporting! <3");
@@ -179,6 +184,25 @@ public class WatheLangGen extends FabricLanguageProvider {
         builder.add("commands.wathe.setenabledrole.success", "Role %s is now %s");
         builder.add("commands.wathe.setenabledrole.enabled", "enabled");
         builder.add("commands.wathe.setenabledrole.disabled", "disabled");
+
+        // Faction names
+        builder.add("faction.wathe.none", "None");
+        builder.add("faction.wathe.civilian", "Civilian");
+        builder.add("faction.wathe.killer", "Killer");
+        builder.add("faction.wathe.neutral", "Neutral");
+
+        // List roles UI
+        builder.add("commands.wathe.listroles.header", "Roles:");
+        builder.add("commands.wathe.listroles.enabled", "ON");
+        builder.add("commands.wathe.listroles.disabled", "OFF");
+        builder.add("commands.wathe.listroles.click_to_toggle", "Click to toggle");
+        builder.add("commands.wathe.listroles.click_to_enable", "Click to enable");
+        builder.add("commands.wathe.listroles.click_to_disable", "Click to disable");
+
+        // Shoot innocent punishment
+        builder.add("commands.wathe.gamesettings.shootinnocentpunishment.success", "Shoot innocent punishment set to: %s");
+        builder.add("commands.wathe.gamesettings.shootinnocentpunishment.preventgunpickup", "Prevent Gun Pickup");
+        builder.add("commands.wathe.gamesettings.shootinnocentpunishment.killshooter", "Kill Shooter");
 
         // Shop errors
         builder.add("shop.error.not_available", "Shop Not Available");

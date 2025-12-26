@@ -7,6 +7,7 @@ import dev.doctor4t.wathe.api.MapEffect;
 import dev.doctor4t.wathe.api.event.GameEvents;
 import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.api.WatheRoles;
+import dev.doctor4t.wathe.api.event.ResetPlayer;
 import dev.doctor4t.wathe.cca.*;
 import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import dev.doctor4t.wathe.config.datapack.RoomConfig;
@@ -153,7 +154,6 @@ public class GameFunctions {
             player.dismountVehicle();
         }
 
-        // teleport players to play area (will be overridden by room-specific teleport if rooms are configured)
         for (ServerPlayerEntity player : players) {
             player.changeGameMode(net.minecraft.world.GameMode.ADVENTURE);
         }
@@ -183,10 +183,10 @@ public class GameFunctions {
             PlayerShopComponent.KEY.get(serverPlayerEntity).reset();
             PlayerStaminaComponent.KEY.get(serverPlayerEntity).reset();
             TrainVoicePlugin.resetPlayer(serverPlayerEntity.getUuid());
-
             // remove item cooldowns
             HashSet<Item> copy = new HashSet<>(serverPlayerEntity.getItemCooldownManager().entries.keySet());
             for (Item item : copy) serverPlayerEntity.getItemCooldownManager().remove(item);
+            ResetPlayer.EVENT.invoker().onReset(serverPlayerEntity);
         }
         gameComponent.clearRoleMap();
         gameComponent.clearPreventGunPickup(); // 清空射杀无辜惩罚列表
@@ -199,6 +199,9 @@ public class GameFunctions {
         Random random = new Random();
         Map<UUID, Integer> playerRoomMap = new HashMap<>();
         int totalRooms = enhancements.getRoomCount();
+
+        // map effect initialize
+        gameComponent.getMapEffect().initializeMapEffects(serverWorld, players);
 
         if (totalRooms > 0) {
             // 有房间配置：使用配置的房间分配和传送
@@ -252,8 +255,6 @@ public class GameFunctions {
                 }
             }
         }
-        // map effect initialize
-        gameComponent.getMapEffect().initializeMapEffects(serverWorld, players);
 
         gameComponent.setGameStatus(GameWorldComponent.GameStatus.ACTIVE);
         gameComponent.sync();
@@ -399,7 +400,7 @@ public class GameFunctions {
         for (FirecrackerEntity entity : world.getEntitiesByType(WatheEntities.FIRECRACKER, entity -> true))
             entity.discard();
         for (NoteEntity entity : world.getEntitiesByType(WatheEntities.NOTE, entity -> true)) entity.discard();
-
+        for (ItemEntity item : world.getEntitiesByType(EntityType.ITEM, playerBodyEntity -> true)) item.discard();
         // reset all players
         for (ServerPlayerEntity player : world.getPlayers()) {
             resetPlayer(player);
@@ -432,6 +433,7 @@ public class GameFunctions {
         MapVariablesWorldComponent.PosWithOrientation spawnPos = MapVariablesWorldComponent.KEY.get(player.getWorld()).getSpawnPos();
         TeleportTarget teleportTarget = new TeleportTarget(player.getServerWorld(), spawnPos.pos, Vec3d.ZERO, spawnPos.yaw, spawnPos.pitch, TeleportTarget.NO_OP);
         player.teleportTo(teleportTarget);
+        ResetPlayer.EVENT.invoker().onReset(player);
     }
 
     public static boolean isPlayerEliminated(PlayerEntity player) {

@@ -4,6 +4,7 @@ import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.client.gui.RoleAnnouncementTexts;
 import dev.doctor4t.wathe.client.gui.RoundTextRenderer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -26,6 +27,14 @@ public record AnnounceWelcomePayload(String role, int killers, int targets) impl
             Identifier roleId = Identifier.tryParse(payload.role());
             RoleAnnouncementTexts.RoleAnnouncementText roleText = RoleAnnouncementTexts.getForRole(roleId);
             RoundTextRenderer.startWelcome(roleText, payload.killers(), payload.targets());
+            MinecraftClient client = context.client();
+
+            client.debugChunkInfo = false;
+            client.chunkCullingEnabled = false;
+            client.debugChunkOcclusion = false;
+            client.wireFrame = false;
+            client.getDebugHud().clear();
+            client.getEntityRenderDispatcher().setRenderHitboxes(false);
         }
     }
 }

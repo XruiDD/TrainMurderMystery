@@ -22,7 +22,7 @@ public class TrainWorldComponent implements AutoSyncedComponent, ServerTickingCo
     private int time = 0;
     private boolean snow = false;
     private boolean fog = false;
-    private boolean hud = false;
+    private boolean hud = true;
     private TimeOfDay timeOfDay = TimeOfDay.DAY;
 
     public TrainWorldComponent(World world) {

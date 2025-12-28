@@ -113,21 +113,18 @@ public class GameSettingsCommand {
     }
 
     private static int setKillerDividend(ServerCommandSource source, int dividend) {
-        return Wathe.executeSupporterCommand(source,
-                () -> GameWorldComponent.KEY.get(source.getWorld()).setKillerDividend(dividend)
-        );
+        GameWorldComponent.KEY.get(source.getWorld()).setKillerDividend(dividend);
+        return 1;
     }
 
     private static int setVigilanteDividend(ServerCommandSource source, int dividend) {
-        return Wathe.executeSupporterCommand(source,
-                () -> GameWorldComponent.KEY.get(source.getWorld()).setVigilanteDividend(dividend)
-        );
+        GameWorldComponent.KEY.get(source.getWorld()).setVigilanteDividend(dividend);
+        return 1;
     }
 
     private static int setNeutralDividend(ServerCommandSource source, int dividend) {
-        return Wathe.executeSupporterCommand(source,
-                () -> GameWorldComponent.KEY.get(source.getWorld()).setNeutralDividend(dividend)
-        );
+        GameWorldComponent.KEY.get(source.getWorld()).setNeutralDividend(dividend);
+        return 1;
     }
 
     private static int enableBounds(ServerCommandSource source, boolean enabled) {
@@ -140,15 +137,14 @@ public class GameSettingsCommand {
     }
 
     private static int setShootInnocentPunishment(ServerCommandSource source, GameWorldComponent.ShootInnocentPunishment punishment) {
-        return Wathe.executeSupporterCommand(source, () -> {
-            GameWorldComponent.KEY.get(source.getWorld()).setShootInnocentPunishment(punishment);
+        GameWorldComponent.KEY.get(source.getWorld()).setShootInnocentPunishment(punishment);
 
-            Text punishmentName = switch (punishment) {
-                case PREVENT_GUN_PICKUP -> Text.translatable("commands.wathe.gamesettings.shootinnocentpunishment.preventgunpickup");
-                case KILL_SHOOTER -> Text.translatable("commands.wathe.gamesettings.shootinnocentpunishment.killshooter");
-            };
-            source.sendFeedback(() -> Text.translatable("commands.wathe.gamesettings.shootinnocentpunishment.success", punishmentName), true);
-        });
+        Text punishmentName = switch (punishment) {
+            case PREVENT_GUN_PICKUP -> Text.translatable("commands.wathe.gamesettings.shootinnocentpunishment.preventgunpickup");
+            case KILL_SHOOTER -> Text.translatable("commands.wathe.gamesettings.shootinnocentpunishment.killshooter");
+        };
+        source.sendFeedback(() -> Text.translatable("commands.wathe.gamesettings.shootinnocentpunishment.success", punishmentName), true);
+        return 1;
     }
 
     private static int setEnabledRole(@NotNull ServerCommandSource source, @NotNull String roleName, boolean enabled) throws CommandSyntaxException {

@@ -20,8 +20,7 @@ public record MapEnhancementsConfiguration(
     Optional<SceneryConfig> scenery,
     Optional<VisibilityConfig> visibility,
     Optional<FogConfig> fog,
-    Optional<CameraShakeConfig> cameraShake,
-    Optional<SnowParticlesConfig> snowParticles
+    Optional<CameraShakeConfig> cameraShake
 ) {
 
     /**
@@ -103,8 +102,7 @@ public record MapEnhancementsConfiguration(
         SceneryConfig.CODEC.optionalFieldOf("scenery").forGetter(MapEnhancementsConfiguration::scenery),
         VisibilityConfig.CODEC.optionalFieldOf("visibility").forGetter(MapEnhancementsConfiguration::visibility),
         FogConfig.CODEC.optionalFieldOf("fog").forGetter(MapEnhancementsConfiguration::fog),
-        CameraShakeConfig.CODEC.optionalFieldOf("camera_shake").forGetter(MapEnhancementsConfiguration::cameraShake),
-        SnowParticlesConfig.CODEC.optionalFieldOf("snow_particles").forGetter(MapEnhancementsConfiguration::snowParticles)
+        CameraShakeConfig.CODEC.optionalFieldOf("camera_shake").forGetter(MapEnhancementsConfiguration::cameraShake)
     ).apply(instance, MapEnhancementsConfiguration::new));
 
     // ========== 便捷获取方法（带默认值）==========
@@ -123,10 +121,6 @@ public record MapEnhancementsConfiguration(
 
     public CameraShakeConfig getCameraShakeOrDefault() {
         return cameraShake.orElse(CameraShakeConfig.DEFAULT);
-    }
-
-    public SnowParticlesConfig getSnowParticlesOrDefault() {
-        return snowParticles.orElse(SnowParticlesConfig.DEFAULT);
     }
 
     // ========== 房间配置相关方法 ==========

@@ -67,15 +67,10 @@ public abstract class ClientWorldMixin extends World {
             ClientPlayerEntity player = client.player;
             if (player == null) return;
 
-            SnowParticlesConfig snowConfig = WatheClient.mapEnhancementsWorldComponent.getSnowParticlesConfig();
             Random random = player.getRandom();
-            for (int i = 0; i < snowConfig.count(); i++) {
+            for (int i = 0; i < 200; i++) {
                 Vec3d playerVel = player.getMovement();
-                Vec3d pos = new Vec3d(
-                    player.getX() + snowConfig.spawnOffsetX() + random.nextFloat() + playerVel.getX(),
-                    player.getY() + (random.nextFloat() * 2 - 1) * snowConfig.spawnRangeY() + playerVel.getY(),
-                    player.getZ() + (random.nextFloat() * 2 - 1) * snowConfig.spawnRangeZ() + playerVel.getZ()
-                );
+                Vec3d pos = new Vec3d(player.getX() - 20f + random.nextFloat() + playerVel.getX(), player.getY() + (random.nextFloat() * 2 - 1) * 10f + playerVel.getY(), player.getZ() + (random.nextFloat() * 2 - 1) * 10f + playerVel.getZ());
                 if (this.client.world.isSkyVisible(BlockPos.ofFloored(pos))) {
                     this.addParticle(WatheParticles.SNOWFLAKE, pos.getX(), pos.getY(), pos.getZ(), 2 + playerVel.getX(), playerVel.getY(), playerVel.getZ());
                 }

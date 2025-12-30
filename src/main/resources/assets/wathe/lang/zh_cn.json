@@ -365,9 +365,13 @@
   "wathe.map_variables.set": "已将地图变量 %s 设置为 %s。",
   "wathe.midnightconfig.disableScreenShake": "禁用屏幕震动",
   "wathe.midnightconfig.title": "哈比特快号的最后航程 - 配置",
-  "wathe.midnightconfig.ultraPerfMode": "超高性能模式",
-  "wathe.midnightconfig.ultraPerfMode.tooltip": "禁用场景装饰以换取最高性能，但会降低视觉效果。渲染距离将被限制为 2。",
-
+  "wathe.midnightconfig.enum.SnowModeConfig.BOX_COLLIDER": "碰撞优化",
+  "wathe.midnightconfig.enum.SnowModeConfig.NO_OPTIMIZATION": "默认",
+  "wathe.midnightconfig.enum.SnowModeConfig.TURN_OFF": "无粒子",
+  "wathe.midnightconfig.snowOptLevel": "雪花粒子模式",
+  "wathe.midnightconfig.snowOptLevel.tooltip": "雪花粒子碰撞的渲染优化方式。\n\n“碰撞优化”可能并不适用于所有地图。",
+  "wathe.midnightconfig.snowflakeChance": "雪花粒子数量 (%)",
+  "wathe.midnightconfig.snowflakeChance.tooltip": "控制雪花粒子生成的几率。\n0 为关闭，100 为最大。",
 
   "tip.note": "我应该先写点什么",
   "death_reason.wathe.generic": "未知",

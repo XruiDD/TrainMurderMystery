@@ -19,6 +19,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.profiler.Profiler;
+import net.minecraft.world.Heightmap;
 import net.minecraft.world.MutableWorldProperties;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
@@ -60,19 +61,42 @@ public abstract class ClientWorldMixin extends World {
         BLOCK_MARKER_ITEMS.add(WatheBlocks.LIGHT_BARRIER.asItem());
     }
 
+    private final BlockPos.Mutable mutablePos = new BlockPos.Mutable();
+
     @Inject(method = "tick", at = @At("TAIL"))
     public void wathe$addSnowflakes(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-        if (WatheClient.isTrainMoving() && WatheClient.getTrainComponent().isSnowing() && WatheConfig.snowOptLevel != WatheConfig.SnowModeConfig.TURN_OFF) {
-            ClientPlayerEntity player = client.player;
-            if (player == null) return;
+        if (!WatheClient.isTrainMoving()
+                || !WatheClient.getTrainComponent().isSnowing()
+                || WatheConfig.snowOptLevel == WatheConfig.SnowModeConfig.TURN_OFF) {
+            return;
+        }
 
-            Random random = player.getRandom();
-            for (int i = 0; i < 200; i++) {
-                Vec3d playerVel = player.getMovement();
-                Vec3d pos = new Vec3d(player.getX() - 20f + random.nextFloat() + playerVel.getX(), player.getY() + (random.nextFloat() * 2 - 1) * 10f + playerVel.getY(), player.getZ() + (random.nextFloat() * 2 - 1) * 10f + playerVel.getZ());
-                if (this.client.world.isSkyVisible(BlockPos.ofFloored(pos))) {
-                    this.addParticle(WatheParticles.SNOWFLAKE, pos.getX(), pos.getY(), pos.getZ(), 2 + playerVel.getX(), playerVel.getY(), playerVel.getZ());
-                }
+        ClientPlayerEntity player = client.player;
+        ClientWorld world = this.client.world;
+        if (player == null || world == null) return;
+
+        Random random = player.getRandom();
+        int snowFlakeCount = WatheConfig.snowflakeChance * 2;
+
+        double playerX = player.getX();
+        double playerY = player.getY();
+        double playerZ = player.getZ();
+        Vec3d playerVel = player.getMovement();
+        double velX = playerVel.getX();
+        double velY = playerVel.getY();
+        double velZ = playerVel.getZ();
+
+        for (int i = 0; i < snowFlakeCount; i++) {
+            double posX = playerX - 20f + random.nextFloat() + velX;
+            double posY = playerY + (random.nextFloat() * 2 - 1) * 10f + velY;
+            double posZ = playerZ + (random.nextFloat() * 2 - 1) * 10f + velZ;
+
+            int topY = world.getTopY(Heightmap.Type.MOTION_BLOCKING, (int) posX, (int) posZ);
+
+            if (posY >= topY) {
+                this.addParticle(WatheParticles.SNOWFLAKE,
+                        posX, posY, posZ,
+                        2 + velX, velY, velZ);
             }
         }
     }

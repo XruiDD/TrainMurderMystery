@@ -6,7 +6,6 @@
   "mixins": [
     "AbstractBlockInvoker",
     "AbstractBlockSettingsMixin",
-    "DedicatedPlayerManagerMixin",
     "EntityMixin",
     "HungerManagerMixin",
     "ItemEntityMixin",

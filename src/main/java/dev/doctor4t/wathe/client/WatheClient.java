@@ -228,6 +228,7 @@ public class WatheClient implements ClientModInitializer {
 
         // Lock options
         OptionLocker.overrideOption("gamma", 0d);
+        OptionLocker.overrideOption("entityDistanceScaling",5.0);
         OptionLocker.overrideOption("showSubtitles", false);
         OptionLocker.overrideOption("autoJump", false);
         OptionLocker.overrideOption("renderClouds", CloudRenderMode.OFF);

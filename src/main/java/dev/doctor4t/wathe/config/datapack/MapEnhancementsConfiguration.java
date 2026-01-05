@@ -24,20 +24,18 @@ public record MapEnhancementsConfiguration(
 ) {
 
     /**
-     * 风景瓦片配置
+     * 风景配置
      */
-    public record SceneryConfig(int tileWidthChunks, int tileLengthChunks, int heightOffset) {
-        public static final SceneryConfig DEFAULT = new SceneryConfig(15, 32, 116);
+    public record SceneryConfig(int heightOffset, int minX, int maxX, int minZ, int maxZ) {
+        public static final SceneryConfig DEFAULT = new SceneryConfig(116, -208, 303, -896, -177);
 
         public static final Codec<SceneryConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.INT.fieldOf("tile_width_chunks").forGetter(SceneryConfig::tileWidthChunks),
-            Codec.INT.fieldOf("tile_length_chunks").forGetter(SceneryConfig::tileLengthChunks),
-            Codec.INT.fieldOf("height_offset").forGetter(SceneryConfig::heightOffset)
+            Codec.INT.optionalFieldOf("height_offset", 116).forGetter(SceneryConfig::heightOffset),
+            Codec.INT.optionalFieldOf("min_x", -208).forGetter(SceneryConfig::minX),
+            Codec.INT.optionalFieldOf("max_x", 303).forGetter(SceneryConfig::maxX),
+            Codec.INT.optionalFieldOf("min_z", -896).forGetter(SceneryConfig::minZ),
+            Codec.INT.optionalFieldOf("max_z", -177).forGetter(SceneryConfig::maxZ)
         ).apply(instance, SceneryConfig::new));
-
-        public int getTileWidth() { return tileWidthChunks * 16; }
-        public int getTileLength() { return tileLengthChunks * 16; }
-        public int getTileSize() { return getTileLength() * 3; }
     }
 
     /**

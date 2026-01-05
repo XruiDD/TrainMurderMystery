@@ -30,7 +30,6 @@ public record AnnounceWelcomePayload(String role, int killers, int targets) impl
             MinecraftClient client = context.client();
 
             client.debugChunkInfo = false;
-            client.chunkCullingEnabled = false;
             client.debugChunkOcclusion = false;
             client.wireFrame = false;
             client.getDebugHud().clear();

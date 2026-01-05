@@ -47,10 +47,10 @@ public class SceneryWorldRendererMixin {
 
             float trainSpeed = WatheClient.getTrainSpeed(); // in kmh
             int chunkSize = 16;
-            int tileWidth = sceneryConfig.getTileWidth();
+            int tileWidth = 15 * chunkSize;
             int height = sceneryConfig.heightOffset();
-            int tileLength = sceneryConfig.getTileLength();
-            int tileSize = sceneryConfig.getTileSize();
+            int tileLength = 32 * chunkSize;
+            int tileSize = tileLength * 3;
 
             // 根据时间段获取可见距离
             int visibility = switch (WatheClient.trainComponent.getTimeOfDay()) {

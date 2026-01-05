@@ -57,10 +57,10 @@
     "client.ui.TooltipBackgroundRendererMixin",
     "compat.sodium.DefaultChunkRendererMixin",
     "compat.sodium.DefaultShaderInterfaceMixin",
-    "compat.sodium.OcclusionCullerMixin",
     "compat.sodium.RenderSectionManagerMixin",
     "compat.sodium.ShaderLoaderMixin",
     "compat.sodium.SodiumShaderMixin",
-    "compat.sodium.SodiumTransformerMixin"
+    "compat.sodium.SodiumTransformerMixin",
+    "compat.sodium.ViewportAccessor"
   ]
 }

@@ -1,26 +1,23 @@
 package dev.doctor4t.wathe.mixin.compat.sodium;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.doctor4t.wathe.client.WatheClient;
 import dev.doctor4t.wathe.compat.SodiumShaderInterface;
-import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.SceneryConfig;
+import dev.doctor4t.wathe.compat.sodium.SceneryRenderSection;
 import net.caffeinemc.mods.sodium.client.gl.buffer.GlBufferUsage;
 import net.caffeinemc.mods.sodium.client.gl.buffer.GlMutableBuffer;
 import net.caffeinemc.mods.sodium.client.gl.device.CommandList;
-import net.caffeinemc.mods.sodium.client.gl.device.MultiDrawBatch;
+import net.caffeinemc.mods.sodium.client.model.quad.properties.ModelQuadFacing;
 import net.caffeinemc.mods.sodium.client.render.chunk.ChunkRenderMatrices;
 import net.caffeinemc.mods.sodium.client.render.chunk.DefaultChunkRenderer;
-import net.caffeinemc.mods.sodium.client.render.chunk.LocalSectionIndex;
-import net.caffeinemc.mods.sodium.client.render.chunk.data.SectionRenderDataStorage;
-import net.caffeinemc.mods.sodium.client.render.chunk.lists.ChunkRenderList;
 import net.caffeinemc.mods.sodium.client.render.chunk.lists.ChunkRenderListIterable;
 import net.caffeinemc.mods.sodium.client.render.chunk.region.RenderRegion;
 import net.caffeinemc.mods.sodium.client.render.chunk.shader.ChunkShaderInterface;
 import net.caffeinemc.mods.sodium.client.render.chunk.terrain.TerrainRenderPass;
 import net.caffeinemc.mods.sodium.client.render.viewport.CameraTransform;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.math.BlockPos;
+import net.caffeinemc.mods.sodium.client.util.BitwiseMath;
 import net.minecraft.util.math.ChunkSectionPos;
 import org.lwjgl.system.MemoryUtil;
 import org.spongepowered.asm.mixin.Mixin;
@@ -38,19 +35,61 @@ public abstract class DefaultChunkRendererMixin {
     @Unique
     private static GlMutableBuffer glBuffer;
 
-    @ModifyExpressionValue(
-            method = "render",
+    private static final int MODEL_UNASSIGNED = ModelQuadFacing.UNASSIGNED.ordinal();
+
+    private static final int MODEL_POS_X      = ModelQuadFacing.POS_X.ordinal();
+    private static final int MODEL_POS_Y      = ModelQuadFacing.POS_Y.ordinal();
+    private static final int MODEL_POS_Z      = ModelQuadFacing.POS_Z.ordinal();
+
+    private static final int MODEL_NEG_X      = ModelQuadFacing.NEG_X.ordinal();
+    private static final int MODEL_NEG_Y      = ModelQuadFacing.NEG_Y.ordinal();
+    private static final int MODEL_NEG_Z      = ModelQuadFacing.NEG_Z.ordinal();
+
+    @WrapOperation(
+            method = "fillCommandBuffer",
             at = @At(
-                    value = "FIELD",
-                    target = "Lnet/caffeinemc/mods/sodium/client/gui/SodiumGameOptions$PerformanceSettings;useBlockFaceCulling:Z"
+                    value = "INVOKE",
+                    target = "Lnet/caffeinemc/mods/sodium/client/render/chunk/DefaultChunkRenderer;getVisibleFaces(IIIIII)I"  // 替换为实际方法签名
             ),
             remap = false
     )
-    private boolean wathe$disable_culling(boolean original) {
-        if (WatheClient.isTrainMoving()) {
-            return false;
+    private static int getVisibleFaces(int originX, int originY, int originZ, int chunkX, int chunkY, int chunkZ , Operation<Integer> original, @Local(name = "sectionIndex") int sectionIndex) {
+        if (wathe_buffer == null) {
+            wathe_buffer = MemoryUtil.memAlloc(RenderRegion.REGION_SIZE * 16);
         }
-        return original;
+        if (WatheClient.isTrainMoving()) {
+            var section = SceneryRenderSection.cache.get(ChunkSectionPos.asLong(chunkX,chunkY,chunkZ));
+            if(section != null){
+                wathe_buffer.putFloat(sectionIndex * 16, section.getOffsetX());
+                wathe_buffer.putFloat(sectionIndex * 16 + 4, section.getOffsetY());
+                wathe_buffer.putFloat(sectionIndex * 16 + 8, section.getOffsetZ());
+                float boundsMinX = section.getVirtualOriginX(), boundsMaxX = boundsMinX + 16;
+                int boundsMinY =  section.getVirtualOriginY(), boundsMaxY = boundsMinY + 16;
+                int boundsMinZ =  section.getVirtualOriginZ(), boundsMaxZ = boundsMinZ + 16;
+
+                int planes = (1 << MODEL_UNASSIGNED);
+
+                planes |= (originX > boundsMinX - 3.0f ? 1 : 0) << MODEL_POS_X;
+                planes |= BitwiseMath.greaterThan(originY, (boundsMinY - 3)) << MODEL_POS_Y;
+                planes |= BitwiseMath.greaterThan(originZ, (boundsMinZ - 3)) << MODEL_POS_Z;
+
+                planes |= (originX > boundsMaxX + 3.0f ? 1 : 0) << MODEL_NEG_X;
+                planes |=    BitwiseMath.lessThan(originY, (boundsMaxY + 3)) << MODEL_NEG_Y;
+                planes |=    BitwiseMath.lessThan(originZ, (boundsMaxZ + 3)) << MODEL_NEG_Z;
+
+                return  planes;
+            }else{
+                wathe_buffer.putFloat(sectionIndex * 16, 0);
+                wathe_buffer.putFloat(sectionIndex * 16 + 4, 0);
+                wathe_buffer.putFloat(sectionIndex * 16 + 8, 0);
+            }
+        }else
+        {
+            wathe_buffer.putFloat(sectionIndex * 16, 0);
+            wathe_buffer.putFloat(sectionIndex * 16 + 4, 0);
+            wathe_buffer.putFloat(sectionIndex * 16 + 8, 0);
+        }
+        return original.call(originX, originY, originZ, chunkX, chunkY, chunkZ);
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE",
@@ -85,82 +124,4 @@ public abstract class DefaultChunkRendererMixin {
         wathe_buffer = null;
     }
 
-    @Inject(method = "fillCommandBuffer",
-            at = @At(value = "INVOKE",
-                    target = "Lnet/caffeinemc/mods/sodium/client/render/chunk/data/SectionRenderDataUnsafe;getSliceMask(J)I"),
-            remap = false)
-    private static void wathe$offsetScenery(
-            MultiDrawBatch batch,
-            RenderRegion region,
-            SectionRenderDataStorage renderDataStorage,
-            ChunkRenderList renderList,
-            CameraTransform camera,
-            TerrainRenderPass pass,
-            boolean useBlockFaceCulling,
-            CallbackInfo ci,
-            @Local(name = "sectionIndex") int sectionIndex
-    ) {
-        if (wathe_buffer == null) {
-            wathe_buffer = MemoryUtil.memAlloc(RenderRegion.REGION_SIZE * 16);
-        }
-        wathe_buffer.putFloat(sectionIndex * 16, 0);
-        wathe_buffer.putFloat(sectionIndex * 16 + 4, 0);
-        wathe_buffer.putFloat(sectionIndex * 16 + 8, 0);
-
-        if (WatheClient.isTrainMoving()) {
-            // 空值检查
-            if (WatheClient.trainComponent == null) return;
-
-            // 从配置获取 scenery 参数，无配置时使用默认值
-            SceneryConfig sceneryConfig = WatheClient.mapEnhancementsWorldComponent != null
-                ? WatheClient.mapEnhancementsWorldComponent.getSceneryConfig()
-                : SceneryConfig.DEFAULT;
-
-            float trainSpeed = WatheClient.getTrainSpeed();
-            int chunkSize = 16;
-            int tileWidth = sceneryConfig.getTileWidth();
-            int height = sceneryConfig.heightOffset();
-            int tileLength = sceneryConfig.getTileLength();
-            int tileSize = sceneryConfig.getTileSize();
-            float time = WatheClient.trainComponent.getTime() + MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(true);
-
-            BlockPos blockPos = new BlockPos(
-                    region.getOriginX() + LocalSectionIndex.unpackX(sectionIndex) * 16,
-                    region.getOriginY() + LocalSectionIndex.unpackY(sectionIndex) * 16,
-                    region.getOriginZ() + LocalSectionIndex.unpackZ(sectionIndex) * 16
-            );
-
-            boolean trainSection = ChunkSectionPos.getSectionCoord(blockPos.getY()) >= 4;
-            float v1 = (float) ((double) blockPos.getX() - camera.fracX);
-            float v2 = (float) ((double) blockPos.getY() - camera.fracY);
-            float v3 = (float) ((double) blockPos.getZ() - camera.fracZ);
-            int zSection = blockPos.getZ() / chunkSize - ChunkSectionPos.getSectionCoord(camera.intZ);
-
-            float finalX = v1;
-            float finalY = v2;
-            float finalZ = v3;
-
-            if (zSection <= -8) {
-                finalX = ((v1 - tileLength + ((time) / 73.8f * trainSpeed)) % tileSize - tileSize / 2f);
-                finalY = (v2 + height);
-                finalZ = v3 + tileWidth;
-            } else if (zSection >= 8) {
-                finalX = ((v1 + tileLength + ((time) / 73.8f * trainSpeed)) % tileSize - tileSize / 2f);
-                finalY = (v2 + height);
-                finalZ = v3 - tileWidth;
-            } else if (!trainSection) {
-                finalX = ((v1 + ((time) / 73.8f * trainSpeed)) % tileSize - tileSize / 2f);
-                finalY = (v2 + height); // + zSection * 16;
-                finalZ = v3;
-            }
-
-            finalX = (blockPos.getX() - finalX) - camera.fracX;
-            finalY = (blockPos.getY() - finalY) - camera.fracY;
-            finalZ = (blockPos.getZ() - finalZ) - camera.fracZ;
-
-            wathe_buffer.putFloat(sectionIndex * 16, -finalX);
-            wathe_buffer.putFloat(sectionIndex * 16 + 4, -finalY);
-            wathe_buffer.putFloat(sectionIndex * 16 + 8, -finalZ);
-        }
-    }
 }

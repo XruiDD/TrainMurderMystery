@@ -118,11 +118,13 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
     @Override
     public void readFromNbt(@NotNull NbtCompound tag, RegistryWrapper.@NotNull WrapperLookup registryLookup) {
         // 客户端读取服务端同步的渲染配置
-        if (tag.contains("sceneryTileWidthChunks")) {
+        if (tag.contains("sceneryHeightOffset")) {
             this.syncedScenery = new SceneryConfig(
-                tag.getInt("sceneryTileWidthChunks"),
-                tag.getInt("sceneryTileLengthChunks"),
-                tag.getInt("sceneryHeightOffset")
+                tag.getInt("sceneryHeightOffset"),
+                tag.getInt("sceneryMinX"),
+                tag.getInt("sceneryMaxX"),
+                tag.getInt("sceneryMinZ"),
+                tag.getInt("sceneryMaxZ")
             );
         }
         if (tag.contains("visibilityDay")) {
@@ -155,9 +157,11 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
     public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.@NotNull WrapperLookup registryLookup) {
         // 服务端从数据包读取配置并写入NBT，同步到客户端
         SceneryConfig scenery = getSceneryConfig();
-        tag.putInt("sceneryTileWidthChunks", scenery.tileWidthChunks());
-        tag.putInt("sceneryTileLengthChunks", scenery.tileLengthChunks());
         tag.putInt("sceneryHeightOffset", scenery.heightOffset());
+        tag.putInt("sceneryMinX", scenery.minX());
+        tag.putInt("sceneryMaxX", scenery.maxX());
+        tag.putInt("sceneryMinZ", scenery.minZ());
+        tag.putInt("sceneryMaxZ", scenery.maxZ());
 
         VisibilityConfig visibility = getVisibilityConfig();
         tag.putInt("visibilityDay", visibility.day());

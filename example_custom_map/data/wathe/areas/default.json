@@ -69,11 +69,13 @@
   ],
 
   "_comment_scenery": "风景区块配置 - 控制列车外风景的渲染参数（可选，有默认值）",
-  "_comment_scenery_detail": "tile_width_chunks: 区块宽度(区块数), tile_length_chunks: 区块长度(区块数), height_offset: 风景高度偏移",
+  "_comment_scenery_detail": "height_offset: 风景高度偏移, min_x/max_x/min_z/max_z: 风景区块区域范围（世界坐标）",
   "scenery": {
-    "tile_width_chunks": 15,
-    "tile_length_chunks": 32,
-    "height_offset": 116
+    "height_offset": 116,
+    "min_x": -208,
+    "max_x": 303,
+    "min_z": -896,
+    "max_z": -177
   },
 
   "_comment_visibility": "可见距离配置 - 根据时间段控制风景渲染距离（可选，有默认值）",

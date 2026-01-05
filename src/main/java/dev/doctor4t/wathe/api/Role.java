@@ -38,6 +38,11 @@ public final class Role {
         this.canSeeTime = canSeeTime;
     }
 
+    public Role(Identifier identifier, int color, boolean isInnocent, boolean canUseKiller, MoodType moodType, int maxSprintTime, boolean canSeeTime, RoleAppearanceCondition condition) {
+        this(identifier,color,isInnocent,canUseKiller,moodType,maxSprintTime,canSeeTime);
+        this.appearanceCondition = condition;
+    }
+
     public Identifier identifier() {
         return identifier;
     }

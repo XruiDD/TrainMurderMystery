@@ -131,20 +131,16 @@ public class Wathe implements ModInitializer {
         // Register event handlers
         WatheEventHandlers.register();
 
-        // 玩家断开连接时处理：无辜阵营玩家退出视为死亡
+        // 玩家断开连接时,不管是什么阵营都视为死亡
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
             ServerWorld world = server.getOverworld();
             GameWorldComponent game = GameWorldComponent.KEY.get(world);
-
-            // 只在游戏运行中且玩家是存活的无辜者时处理
             if (game.isRunning()
                 && game.hasAnyRole(player.getUuid())
-                && game.isInnocent(player)
                 && !game.isPlayerDead(player.getUuid())
                 && GameFunctions.isPlayerAliveAndSurvival(player)) {
                 server.execute(()->GameFunctions.killPlayer(player, true, null, GameConstants.DeathReasons.ESCAPED));
-
             }
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {

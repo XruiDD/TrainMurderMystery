@@ -103,13 +103,24 @@ public class RoleNameRenderer {
             context.getMatrices().pop();
         }
         // 尸体角色显示逻辑：检测玩家是否在看尸体
+        boolean canSeeFullBodyInfo = false;
+        boolean canSeeEscapedDeathReason = false;
         if (ProjectileUtil.getCollision(player, entity -> entity instanceof PlayerBodyEntity, range) instanceof EntityHitResult ehr && ehr.getEntity() instanceof PlayerBodyEntity body) {
             UUID deadPlayerUuid = body.getPlayerUuid();
+            Identifier currentDeathReason = body.getDeathReason();
+            // 检查死因是否是"退出游戏"（escaped），所有人都能看到
+            boolean isEscaped = currentDeathReason.getPath().equals("escaped");
             // 检查是否有权限查看尸体角色（旁观者/创造模式 或 通过 Event 允许）
             if (deadPlayerUuid != null && (WatheClient.isPlayerSpectatingOrCreative() || CanSeeBodyRole.EVENT.invoker().canSee(MinecraftClient.getInstance().player))) {
                 bodyRole = component.getRole(deadPlayerUuid);
                 targetBody = body;
                 bodyRoleAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 4, bodyRoleAlpha, 1f);
+                canSeeFullBodyInfo = true;
+            } else if (isEscaped) {
+                // 退出游戏的死因，所有人都能看到（但只显示死因，不显示角色等信息）
+                targetBody = body;
+                bodyRoleAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 4, bodyRoleAlpha, 1f);
+                canSeeEscapedDeathReason = true;
             } else {
                 bodyRoleAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 4, bodyRoleAlpha, 0f);
             }
@@ -117,18 +128,25 @@ public class RoleNameRenderer {
             bodyRoleAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 4, bodyRoleAlpha, 0f);
         }
         // 渲染尸体角色和死亡信息
-        if (bodyRoleAlpha > 0.05f && bodyRole != null && targetBody != null) {
+        if (bodyRoleAlpha > 0.05f && targetBody != null) {
             context.getMatrices().push();
             context.getMatrices().translate(context.getScaledWindowWidth() / 2f, context.getScaledWindowHeight() / 2f + 6, 0);
             context.getMatrices().scale(0.6f, 0.6f, 1f);
-            // 渲染角色名称
-            Text roleName = Text.translatable("announcement.role." + bodyRole.identifier().getPath());
-            context.drawTextWithShadow(renderer, roleName, -renderer.getWidth(roleName) / 2, 0, bodyRole.color() | (int) (bodyRoleAlpha * 255.0F) << 24);
-            // 渲染死亡信息（死亡时间和死因）
-            Identifier deathReason = targetBody.getDeathReason();
-            Text deathInfo = Text.translatable("hud.body.death_info", targetBody.age / 20)
-                    .append(Text.translatable("death_reason." + deathReason.getNamespace() + "." + deathReason.getPath()));
-            context.drawTextWithShadow(renderer, deathInfo, -renderer.getWidth(deathInfo) / 2, 16, Colors.RED | (int) (bodyRoleAlpha * 255.0F) << 24);
+            if (canSeeFullBodyInfo && bodyRole != null) {
+                // 渲染角色名称（仅当有权限查看完整信息时）
+                Text roleName = Text.translatable("announcement.role." + bodyRole.identifier().getPath());
+                context.drawTextWithShadow(renderer, roleName, -renderer.getWidth(roleName) / 2, 0, bodyRole.color() | (int) (bodyRoleAlpha * 255.0F) << 24);
+                // 渲染死亡信息（死亡时间和死因）
+                Identifier deathReason = targetBody.getDeathReason();
+                Text deathInfo = Text.translatable("hud.body.death_info", targetBody.age / 20)
+                        .append(Text.translatable("death_reason." + deathReason.getNamespace() + "." + deathReason.getPath()));
+                context.drawTextWithShadow(renderer, deathInfo, -renderer.getWidth(deathInfo) / 2, 16, Colors.RED | (int) (bodyRoleAlpha * 255.0F) << 24);
+            } else if (canSeeEscapedDeathReason) {
+                // 仅渲染"退出游戏"死因（不显示角色和死亡时间）
+                Identifier deathReason = targetBody.getDeathReason();
+                Text deathReasonText = Text.translatable("death_reason." + deathReason.getNamespace() + "." + deathReason.getPath());
+                context.drawTextWithShadow(renderer, deathReasonText, -renderer.getWidth(deathReasonText) / 2, 0, Colors.RED | (int) (bodyRoleAlpha * 255.0F) << 24);
+            }
             context.getMatrices().pop();
         }
         if (ProjectileUtil.getCollision(player, entity -> entity instanceof NoteEntity, range) instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() instanceof NoteEntity note) {

@@ -3,6 +3,7 @@ package dev.doctor4t.wathe.cca;
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.api.Faction;
 import dev.doctor4t.wathe.api.Role;
+import dev.doctor4t.wathe.api.RoleSelectionContext;
 import dev.doctor4t.wathe.api.WatheRoles;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -99,6 +100,27 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         forcedRoles.clear();
     }
 
+    /**
+     * Creates a RoleSelectionContext with the current game configuration.
+     * This context only contains static information (player count, target counts)
+     * that doesn't change during role assignment.
+     */
+    public RoleSelectionContext createSelectionContext(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players) {
+        int totalPlayerCount = players.size();
+        int targetKillerCount = (int) Math.floor((double) totalPlayerCount / gameComponent.getKillerDividend());
+        int targetNeutralCount = (int) Math.floor((double) totalPlayerCount / gameComponent.getNeutralDividend());
+        int targetVigilanteCount = (int) Math.floor((double) totalPlayerCount / gameComponent.getVigilanteDividend());
+
+        return new RoleSelectionContext(
+                world,
+                Collections.unmodifiableList(players),
+                totalPlayerCount,
+                targetKillerCount,
+                targetNeutralCount,
+                targetVigilanteCount
+        );
+    }
+
     public int assignKillers(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int killerCount) {
         // Collect already assigned killer roles (from forced roles)
         Set<Role> assignedKillerRoles = new HashSet<>();
@@ -123,11 +145,14 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
 
         ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
 
+        // Create selection context for checking role appearance conditions
+        RoleSelectionContext context = createSelectionContext(world, gameComponent, players);
+
         // Collect available non-vanilla killer faction roles (each can only be assigned once)
-        // Filter out roles that are already assigned
+        // Filter out roles that are already assigned or don't meet appearance conditions
         ArrayList<Role> availableSpecialKillerRoles = new ArrayList<>();
         for (Role role : WatheRoles.ROLES) {
-            if (role.getFaction() == Faction.KILLER && !WatheRoles.VANILLA_ROLES.contains(role) && gameComponent.isRoleEnabled(role) && !assignedKillerRoles.contains(role)) {
+            if (role.getFaction() == Faction.KILLER && !WatheRoles.VANILLA_ROLES.contains(role) && gameComponent.isRoleEnabled(role) && !assignedKillerRoles.contains(role) && role.shouldAppear(context)) {
                 availableSpecialKillerRoles.add(role);
             }
         }
@@ -192,11 +217,14 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         // Adjust neutral count by subtracting existing neutrals
         neutralCount = Math.max(0, neutralCount - assignedNeutralRoles.size());
 
+        // Create selection context for checking role appearance conditions
+        RoleSelectionContext context = createSelectionContext(world, gameComponent, players);
+
         // Collect available non-vanilla neutral faction roles (each can only be assigned once)
-        // Filter out roles that are already assigned
+        // Filter out roles that are already assigned or don't meet appearance conditions
         ArrayList<Role> availableNeutralRoles = new ArrayList<>();
         for (Role role : WatheRoles.ROLES) {
-            if (role.getFaction() == Faction.NEUTRAL && !WatheRoles.VANILLA_ROLES.contains(role) && gameComponent.isRoleEnabled(role) && !assignedNeutralRoles.contains(role)) {
+            if (role.getFaction() == Faction.NEUTRAL && !WatheRoles.VANILLA_ROLES.contains(role) && gameComponent.isRoleEnabled(role) && !assignedNeutralRoles.contains(role) && role.shouldAppear(context)) {
                 availableNeutralRoles.add(role);
             }
         }
@@ -239,11 +267,14 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
             }
         }
 
+        // Create selection context for checking role appearance conditions
+        RoleSelectionContext context = createSelectionContext(world, gameComponent, players);
+
         // Collect available non-vanilla civilian faction roles (each can only be assigned once)
-        // Filter out roles that are already assigned
+        // Filter out roles that are already assigned or don't meet appearance conditions
         ArrayList<Role> availableSpecialCivilianRoles = new ArrayList<>();
         for (Role role : WatheRoles.ROLES) {
-            if (role.getFaction() == Faction.CIVILIAN && !WatheRoles.VANILLA_ROLES.contains(role) && gameComponent.isRoleEnabled(role) && !assignedCivilianRoles.contains(role)) {
+            if (role.getFaction() == Faction.CIVILIAN && !WatheRoles.VANILLA_ROLES.contains(role) && gameComponent.isRoleEnabled(role) && !assignedCivilianRoles.contains(role) && role.shouldAppear(context)) {
                 availableSpecialCivilianRoles.add(role);
             }
         }

@@ -10,6 +10,7 @@ public final class Role {
     private final MoodType moodType;
     private final int maxSprintTime;
     private final boolean canSeeTime;
+    private RoleAppearanceCondition appearanceCondition = RoleAppearanceCondition.ALWAYS;
 
     public enum MoodType {
         NONE, REAL, FAKE
@@ -77,5 +78,49 @@ public final class Role {
      */
     public Faction getFaction() {
         return Faction.fromRole(this);
+    }
+
+    /**
+     * Gets the appearance condition for this role.
+     *
+     * @return the appearance condition
+     */
+    public RoleAppearanceCondition getAppearanceCondition() {
+        return appearanceCondition;
+    }
+
+    /**
+     * Sets the appearance condition for this role.
+     * This determines whether the role should be available for selection in a game.
+     *
+     * <p>Example usage:</p>
+     * <pre>{@code
+     * // Role only appears when player count >= 8
+     * role.setAppearanceCondition(ctx -> ctx.getTotalPlayerCount() >= 8);
+     *
+     * // Role only appears when there are multiple killers
+     * role.setAppearanceCondition(ctx -> ctx.getTargetKillerCount() > 1);
+     *
+     * // Using static factory methods
+     * role.setAppearanceCondition(RoleAppearanceCondition.minPlayers(8));
+     * role.setAppearanceCondition(RoleAppearanceCondition.minKillers(2));
+     * }</pre>
+     *
+     * @param condition the appearance condition
+     * @return this role for method chaining
+     */
+    public Role setAppearanceCondition(RoleAppearanceCondition condition) {
+        this.appearanceCondition = condition != null ? condition : RoleAppearanceCondition.ALWAYS;
+        return this;
+    }
+
+    /**
+     * Checks whether this role should appear in the current game based on the selection context.
+     *
+     * @param context the role selection context
+     * @return true if the role should be available for selection
+     */
+    public boolean shouldAppear(RoleSelectionContext context) {
+        return appearanceCondition.shouldAppear(context);
     }
 }

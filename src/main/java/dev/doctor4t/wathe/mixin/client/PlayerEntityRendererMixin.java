@@ -6,6 +6,7 @@ import dev.doctor4t.wathe.index.WatheItems;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
 import org.spongepowered.asm.mixin.Mixin;
@@ -27,7 +28,7 @@ public class PlayerEntityRendererMixin {
 
     @ModifyExpressionValue(method = "getArmPose", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/AbstractClientPlayerEntity;getStackInHand(Lnet/minecraft/util/Hand;)Lnet/minecraft/item/ItemStack;"))
     private static ItemStack wathe$changeNoteAndPsychosisItemsArmPos(ItemStack original, AbstractClientPlayerEntity player, Hand hand) {
-        if (hand.equals(Hand.MAIN_HAND)) {
+        if (hand.equals(Hand.MAIN_HAND) && player.getStatusEffect(StatusEffects.INVISIBILITY) != null) {
             if (original.isOf(WatheItems.NOTE)) {
                 return ItemStack.EMPTY;
             }

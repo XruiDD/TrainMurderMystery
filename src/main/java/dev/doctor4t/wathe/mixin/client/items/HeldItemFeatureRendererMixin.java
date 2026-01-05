@@ -6,6 +6,7 @@ import dev.doctor4t.wathe.client.WatheClient;
 import dev.doctor4t.wathe.index.WatheItems;
 import net.minecraft.client.render.entity.feature.HeldItemFeatureRenderer;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,7 +24,7 @@ public class HeldItemFeatureRendererMixin {
             ret = ItemStack.EMPTY;
         }
 
-        if (WatheClient.moodComponent != null && WatheClient.moodComponent.isLowerThanMid()) { // make sure it's only the main hand item that's being replaced
+        if (WatheClient.moodComponent != null && WatheClient.moodComponent.isLowerThanMid() && instance.getStatusEffect(StatusEffects.INVISIBILITY) != null) { // make sure it's only the main hand item that's being replaced
             HashMap<UUID, ItemStack> psychosisItems = WatheClient.moodComponent.getPsychosisItems();
             UUID uuid = instance.getUuid();
             if (psychosisItems.containsKey(uuid)) {

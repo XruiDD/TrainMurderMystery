@@ -24,7 +24,7 @@ public class HeldItemFeatureRendererMixin {
             ret = ItemStack.EMPTY;
         }
 
-        if (WatheClient.moodComponent != null && WatheClient.moodComponent.isLowerThanMid() && instance.getStatusEffect(StatusEffects.INVISIBILITY) != null) { // make sure it's only the main hand item that's being replaced
+        if (WatheClient.moodComponent != null && WatheClient.moodComponent.isLowerThanMid() && !instance.isInvisible()) { // make sure it's only the main hand item that's being replaced
             HashMap<UUID, ItemStack> psychosisItems = WatheClient.moodComponent.getPsychosisItems();
             UUID uuid = instance.getUuid();
             if (psychosisItems.containsKey(uuid)) {

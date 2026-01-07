@@ -37,9 +37,9 @@ public class CrosshairRenderer {
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableBlend();
         ItemStack mainHandStack = player.getMainHandStack();
-        if (mainHandStack.isOf(WatheItems.REVOLVER) && !player.getItemCooldownManager().isCoolingDown(mainHandStack.getItem()) && RevolverItem.getGunTarget(player) instanceof EntityHitResult) {
+        if (mainHandStack.isOf(WatheItems.REVOLVER) && !player.getItemCooldownManager().isCoolingDown(mainHandStack.getItem()) && RevolverItem.getGunTarget(player) instanceof EntityHitResult entityHitResult && !entityHitResult.getEntity().isInvisible()) {
             target = true;
-        } else if (mainHandStack.isOf(WatheItems.DERRINGER) && !player.getItemCooldownManager().isCoolingDown(mainHandStack.getItem()) && DerringerItem.getGunTarget(player) instanceof EntityHitResult) {
+        } else if (mainHandStack.isOf(WatheItems.DERRINGER) && !player.getItemCooldownManager().isCoolingDown(mainHandStack.getItem()) && DerringerItem.getGunTarget(player) instanceof EntityHitResult entityHitResult && !entityHitResult.getEntity().isInvisible()) {
             target = true;
         } else if (mainHandStack.isOf(WatheItems.KNIFE)) {
             ItemCooldownManager manager = player.getItemCooldownManager();

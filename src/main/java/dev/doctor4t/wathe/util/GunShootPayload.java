@@ -82,16 +82,18 @@ public record GunShootPayload(int target) implements CustomPayload {
                         Scheduler.schedule(() -> {
                             if (!context.player().getInventory().contains((s) -> s.isIn(WatheItemTags.GUNS))) return;
                             player.getInventory().remove((s) -> s.isOf(revolver), 1, player.getInventory());
-                            ItemEntity item = player.dropItem(revolver.getDefaultStack(), false, false);
-                            if (item != null) {
-                                item.setPickupDelay(10);
-                                item.setThrower(player);
-                            }
-                            ServerPlayNetworking.send(player, new GunDropPayload());
-                            PlayerMoodComponent.KEY.get(player).setMood(0);
-                            game.addToPreventGunPickup(player);
-                            if(game.isInnocent(player) && punishment == GameWorldComponent.ShootInnocentPunishment.KILL_SHOOTER){
-                                GameFunctions.killPlayer(player, true, player, GameConstants.DeathReasons.SHOT_INNOCENT);
+                            if(!game.canUseKillerFeatures(player)){
+                                ItemEntity item = player.dropItem(revolver.getDefaultStack(), false, false);
+                                if (item != null) {
+                                    item.setPickupDelay(10);
+                                    item.setThrower(player);
+                                }
+                                ServerPlayNetworking.send(player, new GunDropPayload());
+                                PlayerMoodComponent.KEY.get(player).setMood(0);
+                                game.addToPreventGunPickup(player);
+                                if(game.isInnocent(player) && punishment == GameWorldComponent.ShootInnocentPunishment.KILL_SHOOTER){
+                                    GameFunctions.killPlayer(player, true, player, GameConstants.DeathReasons.SHOT_INNOCENT);
+                                }
                             }
                         }, 4);
                     }

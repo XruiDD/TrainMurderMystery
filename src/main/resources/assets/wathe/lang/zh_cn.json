@@ -327,7 +327,7 @@
   "item.wathe.psycho_mode": "疯魔模式",
   "item.wathe.psycho_mode.tooltip": "\"你喜欢伤害别人吗？\"\n隐藏你的身份，让你在 30 秒内举着球棒肆意妄为\n球棒全力挥击可直接击杀，持续期间无法切换其他物品\n购买后立即启用，冷却时间 5 分钟",
   "item.wathe.revolver": "左轮手枪",
-  "item.wathe.revolver.tooltip": "瞄准、右键点击并射击\n若误杀无辜者则会掉落",
+  "item.wathe.revolver.tooltip": "瞄准、右键点击并射击",
   "item.wathe.scorpion": "蝎子",
   "item.wathe.scorpion.tooltip": "悄悄放入床中，使下一个来休息的人中毒而亡",
   "item.wathe.thrown_grenade": "已投掷手雷",

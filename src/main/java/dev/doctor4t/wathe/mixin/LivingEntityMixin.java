@@ -1,6 +1,8 @@
 package dev.doctor4t.wathe.mixin;
 
 import dev.doctor4t.wathe.Wathe;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheItems;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
@@ -37,6 +39,21 @@ public abstract class LivingEntityMixin extends EntityMixin {
         if ((Object) this instanceof PlayerEntity player) {
             EntityAttributeModifier v = new EntityAttributeModifier(Wathe.id("knife_knockback_modifier"), .5f, EntityAttributeModifier.Operation.ADD_VALUE);
             updateAttribute(player.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_KNOCKBACK), v, player.getMainHandStack().isOf(WatheItems.KNIFE));
+        }
+    }
+
+    // 服务端限制跳跃 - 游戏进行中存活的生存模式玩家不能跳跃
+    @Inject(method = "jump", at = @At("HEAD"), cancellable = true)
+    public void wathe$restrictJump(CallbackInfo ci) {
+        if ((Object) this instanceof PlayerEntity player) {
+            // 仅在服务端检查
+            if (!player.getWorld().isClient) {
+                GameWorldComponent gameComponent = GameWorldComponent.KEY.get(player.getWorld());
+                // 游戏进行中且玩家是存活的生存模式玩家时阻止跳跃
+                if (gameComponent != null && gameComponent.isRunning() && GameFunctions.isPlayerAliveAndSurvival(player)) {
+                    ci.cancel();
+                }
+            }
         }
     }
 

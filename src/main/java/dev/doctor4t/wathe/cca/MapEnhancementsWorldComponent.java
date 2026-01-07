@@ -7,6 +7,7 @@ import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.Visibilit
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.FogConfig;
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.CameraShakeConfig;
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.SnowParticlesConfig;
+import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.InteractionBlacklistConfig;
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfigurationManager;
 import dev.doctor4t.wathe.config.datapack.RoomConfig;
 import net.minecraft.nbt.NbtCompound;
@@ -79,6 +80,14 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
         }
         MapEnhancementsConfiguration config = MapEnhancementsConfigurationManager.getInstance().getConfiguration();
         return config != null ? config.getCameraShakeOrDefault() : CameraShakeConfig.DEFAULT;
+    }
+
+    /**
+     * 获取交互黑名单配置（仅服务端使用）
+     */
+    public InteractionBlacklistConfig getInteractionBlacklistConfig() {
+        MapEnhancementsConfiguration config = MapEnhancementsConfigurationManager.getInstance().getConfiguration();
+        return config != null ? config.getInteractionBlacklistOrDefault() : InteractionBlacklistConfig.DEFAULT;
     }
 
     // ========== 房间配置相关方法（仅服务端）==========

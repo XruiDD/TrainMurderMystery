@@ -111,5 +111,16 @@
     "spawn_offset_x": -20,
     "spawn_range_y": 10,
     "spawn_range_z": 10
+  },
+
+  "_comment_interaction_blacklist": "交互黑名单配置 - 禁止玩家右键交互的方块（仅在游戏进行中生效）",
+  "_comment_interaction_blacklist_detail": "blocks: 单个方块ID列表, block_tags: 方块标签列表",
+  "interaction_blacklist": {
+    "blocks": [
+      "minecraft:furnace",
+      "minecraft:blast_furnace",
+      "minecraft:smoker"
+    ],
+    "block_tags": []
   }
 }

@@ -2,9 +2,16 @@ package dev.doctor4t.wathe.config.datapack;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.block.Block;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.tag.TagKey;
+import net.minecraft.util.Identifier;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * 地图增强配置（数据包）
@@ -20,7 +27,9 @@ public record MapEnhancementsConfiguration(
     Optional<SceneryConfig> scenery,
     Optional<VisibilityConfig> visibility,
     Optional<FogConfig> fog,
-    Optional<CameraShakeConfig> cameraShake
+    Optional<CameraShakeConfig> cameraShake,
+    // 交互黑名单
+    Optional<InteractionBlacklistConfig> interactionBlacklist
 ) {
 
     /**
@@ -94,13 +103,78 @@ public record MapEnhancementsConfiguration(
         ).apply(instance, SnowParticlesConfig::new));
     }
 
+    /**
+     * 右键交互方块黑名单配置
+     * 支持单个方块ID和方块标签
+     */
+    public record InteractionBlacklistConfig(List<String> blocks, List<String> blockTags) {
+        public static final InteractionBlacklistConfig DEFAULT = new InteractionBlacklistConfig(List.of(), List.of());
+
+        public static final Codec<InteractionBlacklistConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.STRING.listOf().optionalFieldOf("blocks", List.of()).forGetter(InteractionBlacklistConfig::blocks),
+            Codec.STRING.listOf().optionalFieldOf("block_tags", List.of()).forGetter(InteractionBlacklistConfig::blockTags)
+        ).apply(instance, InteractionBlacklistConfig::new));
+
+        /**
+         * 检查指定方块是否在黑名单中
+         */
+        public boolean isBlacklisted(Block block) {
+            Identifier blockId = Registries.BLOCK.getId(block);
+
+            // 检查单个方块ID
+            for (String id : blocks) {
+                if (blockId.toString().equals(id)) {
+                    return true;
+                }
+            }
+
+            // 检查方块标签
+            for (String tagName : blockTags) {
+                TagKey<Block> tagKey = TagKey.of(RegistryKeys.BLOCK, Identifier.tryParse(tagName));
+                if (block.getDefaultState().isIn(tagKey)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /**
+         * 获取所有黑名单方块的集合（用于快速查找）
+         */
+        public Set<Block> getBlacklistedBlocks() {
+            Set<Block> result = new HashSet<>();
+
+            // 添加单个方块
+            for (String id : blocks) {
+                Identifier identifier = Identifier.tryParse(id);
+                if (identifier != null) {
+                    Block block = Registries.BLOCK.get(identifier);
+                    if (block != null) {
+                        result.add(block);
+                    }
+                }
+            }
+
+            // 添加标签中的方块
+            for (String tagName : blockTags) {
+                TagKey<Block> tagKey = TagKey.of(RegistryKeys.BLOCK, Identifier.tryParse(tagName));
+                Registries.BLOCK.iterateEntries(tagKey).forEach(entry -> result.add(entry.value()));
+            }
+
+            return result;
+        }
+    }
+
     public static final Codec<MapEnhancementsConfiguration> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         RoomConfig.CODEC.listOf().optionalFieldOf("rooms", List.of()).forGetter(MapEnhancementsConfiguration::rooms),
         // 可选的渲染配置
         SceneryConfig.CODEC.optionalFieldOf("scenery").forGetter(MapEnhancementsConfiguration::scenery),
         VisibilityConfig.CODEC.optionalFieldOf("visibility").forGetter(MapEnhancementsConfiguration::visibility),
         FogConfig.CODEC.optionalFieldOf("fog").forGetter(MapEnhancementsConfiguration::fog),
-        CameraShakeConfig.CODEC.optionalFieldOf("camera_shake").forGetter(MapEnhancementsConfiguration::cameraShake)
+        CameraShakeConfig.CODEC.optionalFieldOf("camera_shake").forGetter(MapEnhancementsConfiguration::cameraShake),
+        // 交互黑名单
+        InteractionBlacklistConfig.CODEC.optionalFieldOf("interaction_blacklist").forGetter(MapEnhancementsConfiguration::interactionBlacklist)
     ).apply(instance, MapEnhancementsConfiguration::new));
 
     // ========== 便捷获取方法（带默认值）==========
@@ -119,6 +193,10 @@ public record MapEnhancementsConfiguration(
 
     public CameraShakeConfig getCameraShakeOrDefault() {
         return cameraShake.orElse(CameraShakeConfig.DEFAULT);
+    }
+
+    public InteractionBlacklistConfig getInteractionBlacklistOrDefault() {
+        return interactionBlacklist.orElse(InteractionBlacklistConfig.DEFAULT);
     }
 
     // ========== 房间配置相关方法 ==========

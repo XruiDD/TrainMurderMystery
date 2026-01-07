@@ -3,16 +3,50 @@ package dev.doctor4t.wathe.api.event;
 import dev.doctor4t.wathe.api.Faction;
 import dev.doctor4t.wathe.api.WatheRoles;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.cca.MapEnhancementsWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerShopComponent;
+import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.InteractionBlacklistConfig;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.index.WatheItems;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.ActionResult;
 
 public class WatheEventHandlers {
 
     public static void register() {
         registerRoleAssignedHandler();
+        registerBlockInteractionBlacklist();
+    }
+
+    /**
+     * 注册方块交互黑名单处理器
+     * 阻止玩家右键点击黑名单中的方块（仅在游戏进行中生效）
+     */
+    private static void registerBlockInteractionBlacklist() {
+        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+            if (world.isClient()) {
+                return ActionResult.PASS;
+            }
+
+            // 只在游戏进行中生效
+            GameWorldComponent game = GameWorldComponent.KEY.get(world);
+            if (!game.isRunning()) {
+                return ActionResult.PASS;
+            }
+
+            Block block = world.getBlockState(hitResult.getBlockPos()).getBlock();
+            MapEnhancementsWorldComponent enhancements = MapEnhancementsWorldComponent.KEY.get(world);
+            InteractionBlacklistConfig blacklist = enhancements.getInteractionBlacklistConfig();
+
+            if (blacklist.isBlacklisted(block)) {
+                return ActionResult.FAIL;
+            }
+
+            return ActionResult.PASS;
+        });
     }
 
     private static void registerRoleAssignedHandler() {

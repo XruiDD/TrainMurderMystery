@@ -79,7 +79,7 @@ public class FoodPlatterBlock extends BlockWithEntity {
                 return ActionResult.SUCCESS;
             }
         }
-        if (player.getStackInHand(Hand.MAIN_HAND).isOf(WatheItems.POISON_VIAL) && blockEntity.getPoisoner() == null) {
+        if (player.getStackInHand(Hand.MAIN_HAND).isOf(WatheItems.POISON_VIAL) && blockEntity.getPoisoner() == null && !blockEntity.getStoredItems().isEmpty()) {
             blockEntity.setPoisoner(player.getUuidAsString());
             player.getStackInHand(Hand.MAIN_HAND).decrement(1);
             player.playSoundToPlayer(SoundEvents.BLOCK_BREWING_STAND_BREW, SoundCategory.BLOCKS, 0.5f, 1f);

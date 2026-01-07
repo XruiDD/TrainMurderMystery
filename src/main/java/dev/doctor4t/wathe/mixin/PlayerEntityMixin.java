@@ -81,11 +81,11 @@ public abstract class PlayerEntityMixin extends LivingEntity {
                     exhausted = true; // 进入疲惫状态
                 }
 
-                // 疲惫状态下阻止疾跑，直到恢复到阈值
+                // 疲惫状态下阻止疾跑，直到休息5秒
                 if (exhausted) {
                     this.setSprinting(false);
-                    // 恢复到20%时解除疲惫
-                    if (sprintingTicks >= maxSprintTime * staminaComponent.getExhaustionRecoveryThreshold()) {
+                    // 休息5秒后解除疲惫（每tick恢复0.25，100 ticks * 0.25 = 25）
+                    if (sprintingTicks >= staminaComponent.getExhaustionRecoveryTicks() * 0.25f) {
                         exhausted = false;
                     }
                 }

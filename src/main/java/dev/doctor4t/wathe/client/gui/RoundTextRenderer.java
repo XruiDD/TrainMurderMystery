@@ -156,21 +156,24 @@ public class RoundTextRenderer {
                 }
 
                 // Layout constants - more compact
-                int playersPerRow = 5;
+                int maxRows = 4; // 最多渲染4行
+                int minPlayersPerRow = 6; // 每行最少6个
                 int cardWidth = 36; // Compact width per player card
                 int cardHeight = 28; // Height per row (head 16px + role name + small spacing)
                 int startY = 16; // Starting Y position below win message
                 int titleToCardsGap = 14; // Gap between title and player cards
 
-                // Render winner players (no title)
-                int winnerRows = winners.isEmpty() ? 0 : (winners.size() + playersPerRow - 1) / playersPerRow;
+                // 计算胜利者每行人数：根据总人数动态调整，确保最多4行，每行最少6人
+                int winnerPlayersPerRow = Math.max(minPlayersPerRow, (winners.size() + maxRows - 1) / maxRows);
+                int winnerRows = winners.isEmpty() ? 0 : Math.min(maxRows, (winners.size() + winnerPlayersPerRow - 1) / winnerPlayersPerRow);
 
+                // Render winner players (no title)
                 for (int i = 0; i < winners.size(); i++) {
                     GameRoundEndComponent.RoundEndData entry = winners.get(i);
-                    int row = i / playersPerRow;
-                    int col = i % playersPerRow;
+                    int row = i / winnerPlayersPerRow;
+                    int col = i % winnerPlayersPerRow;
                     // Center the row
-                    int itemsInThisRow = (row == winnerRows - 1) ? ((winners.size() - 1) % playersPerRow + 1) : playersPerRow;
+                    int itemsInThisRow = (row == winnerRows - 1) ? ((winners.size() - 1) % winnerPlayersPerRow + 1) : winnerPlayersPerRow;
                     int rowWidth = itemsInThisRow * cardWidth;
                     int rowStartX = -rowWidth / 2;
                     int x = rowStartX + col * cardWidth + cardWidth / 2 - 8; // Center the head (16px wide) within card
@@ -187,15 +190,17 @@ public class RoundTextRenderer {
                     int losersTitleX = -renderer.getWidth(losersTitle) / 2;
                     context.drawTextWithShadow(renderer, losersTitle, losersTitleX, losersStartY, 0xFF5555);
 
-                    // Render loser players
-                    int loserRows = (losers.size() + playersPerRow - 1) / playersPerRow;
+                    // 计算失败者每行人数：根据总人数动态调整，确保最多4行，每行最少6人
+                    int loserPlayersPerRow = Math.max(minPlayersPerRow, (losers.size() + maxRows - 1) / maxRows);
+                    int loserRows = Math.min(maxRows, (losers.size() + loserPlayersPerRow - 1) / loserPlayersPerRow);
 
+                    // Render loser players
                     for (int i = 0; i < losers.size(); i++) {
                         GameRoundEndComponent.RoundEndData entry = losers.get(i);
-                        int row = i / playersPerRow;
-                        int col = i % playersPerRow;
+                        int row = i / loserPlayersPerRow;
+                        int col = i % loserPlayersPerRow;
                         // Center the row
-                        int itemsInThisRow = (row == loserRows - 1) ? ((losers.size() - 1) % playersPerRow + 1) : playersPerRow;
+                        int itemsInThisRow = (row == loserRows - 1) ? ((losers.size() - 1) % loserPlayersPerRow + 1) : loserPlayersPerRow;
                         int rowWidth = itemsInThisRow * cardWidth;
                         int rowStartX = -rowWidth / 2;
                         int x = rowStartX + col * cardWidth + cardWidth / 2 - 8; // Center the head within card

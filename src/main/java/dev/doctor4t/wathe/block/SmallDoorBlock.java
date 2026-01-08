@@ -1,6 +1,6 @@
 package dev.doctor4t.wathe.block;
 
-import dev.doctor4t.wathe.api.event.AllowPlayerOpenLockedDoor;
+import dev.doctor4t.wathe.api.event.DoorInteraction;
 import dev.doctor4t.wathe.block_entity.DoorBlockEntity;
 import dev.doctor4t.wathe.block_entity.SmallDoorBlockEntity;
 import dev.doctor4t.wathe.index.WatheItems;
@@ -140,11 +140,47 @@ public class SmallDoorBlock extends DoorPartBlock {
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         BlockPos lowerPos = state.get(HALF) == DoubleBlockHalf.LOWER ? pos : pos.down();
         if (world.getBlockEntity(lowerPos) instanceof SmallDoorBlockEntity entity) {
+            // 确定交互类型
+            DoorInteraction.DoorInteractionType interactionType = determineInteractionType(player, entity);
+
+            // 构建上下文并触发事件
+            DoorInteraction.DoorInteractionContext context = DoorInteraction.DoorInteractionContext.builder()
+                    .world(world)
+                    .pos(pos)
+                    .lowerPos(lowerPos)
+                    .state(state)
+                    .entity(entity)
+                    .player(player)
+                    .handItem(player.getMainHandStack())
+                    .interactionType(interactionType)
+                    .doorType(DoorInteraction.DoorType.SMALL_DOOR)
+                    .build();
+
+            DoorInteraction.DoorInteractionResult eventResult = DoorInteraction.EVENT.invoker().onInteract(context);
+
+            // 根据事件结果处理
+            if (eventResult == DoorInteraction.DoorInteractionResult.ALLOW) {
+                // 事件允许，播放对应音效并执行操作
+                if (interactionType == DoorInteraction.DoorInteractionType.USE_KEY) {
+                    world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, WatheSounds.ITEM_KEY_DOOR, SoundCategory.BLOCKS, 1f, 1f);
+                } else if (interactionType == DoorInteraction.DoorInteractionType.USE_LOCKPICK) {
+                    world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, WatheSounds.ITEM_LOCKPICK_DOOR, SoundCategory.BLOCKS, 1f, 1f);
+                }
+                return open(state, world, entity, lowerPos);
+            } else if (eventResult == DoorInteraction.DoorInteractionResult.DENY) {
+                return ActionResult.FAIL;
+            } else if (eventResult == DoorInteraction.DoorInteractionResult.HANDLED) {
+                // 事件已处理，返回成功但不执行门逻辑
+                return ActionResult.SUCCESS;
+            }
+
+            // PASS: 执行原有逻辑
+            // 被炸开的门直接通过
             if (entity.isBlasted()) {
                 return ActionResult.PASS;
             }
 
-            if (player.isCreative() || AllowPlayerOpenLockedDoor.EVENT.invoker().allowOpen(player)) {
+            if (player.isCreative()) {
                 return open(state, world, entity, lowerPos);
             } else {
                 boolean requiresKey = !entity.getKeyName().isEmpty();
@@ -193,6 +229,48 @@ public class SmallDoorBlock extends DoorPartBlock {
         }
 
         return ActionResult.PASS;
+    }
+
+    /**
+     * 确定门交互类型
+     */
+    protected DoorInteraction.DoorInteractionType determineInteractionType(PlayerEntity player, DoorBlockEntity entity) {
+        if (entity.isBlasted()) {
+            return DoorInteraction.DoorInteractionType.BLASTED;
+        }
+
+        if (entity.isOpen()) {
+            return DoorInteraction.DoorInteractionType.CLOSE;
+        }
+
+        var handStack = player.getMainHandStack();
+
+        if (handStack.isOf(WatheItems.CROWBAR)) {
+            return DoorInteraction.DoorInteractionType.USE_CROWBAR;
+        }
+
+        if (handStack.isOf(WatheItems.LOCKPICK)) {
+            if (player.isSneaking()) {
+                return DoorInteraction.DoorInteractionType.JAM_DOOR;
+            }
+            return DoorInteraction.DoorInteractionType.USE_LOCKPICK;
+        }
+
+        if (handStack.isOf(WatheItems.KEY)) {
+            LoreComponent lore = handStack.get(DataComponentTypes.LORE);
+            if (lore != null && !lore.lines().isEmpty()) {
+                String keyLore = lore.lines().getFirst().getString();
+                if (keyLore.equals(entity.getKeyName())) {
+                    return DoorInteraction.DoorInteractionType.USE_KEY;
+                }
+            }
+        }
+
+        if (!entity.getKeyName().isEmpty()) {
+            return DoorInteraction.DoorInteractionType.INTERACT; // 需要钥匙但没有正确钥匙
+        }
+
+        return DoorInteraction.DoorInteractionType.OPEN;
     }
 
     static @NotNull ActionResult open(BlockState state, World world, SmallDoorBlockEntity entity, BlockPos lowerPos) {

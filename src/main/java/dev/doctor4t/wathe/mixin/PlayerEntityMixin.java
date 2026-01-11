@@ -7,6 +7,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.datafixers.util.Either;
 import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.api.event.AllowPlayerPunching;
+import dev.doctor4t.wathe.block.entity.SeatEntity;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
@@ -178,5 +179,13 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     @ModifyExpressionValue(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;isDay()Z"))
     private boolean wathe$cancelWakingUpPlayers(boolean original) {
         return false;
+    }
+
+    @ModifyReturnValue(method = "shouldDismount", at = @At("RETURN"))
+    private boolean wathe$delaySeatDismount(boolean original) {
+        if (original && this.getVehicle() instanceof SeatEntity seatEntity) {
+            return seatEntity.getRidingTicks() >= 5;
+        }
+        return original;
     }
 }

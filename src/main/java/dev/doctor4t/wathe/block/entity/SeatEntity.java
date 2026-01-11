@@ -14,6 +14,8 @@ public class SeatEntity extends Entity {
     @Nullable
     BlockPos seatPos;
 
+    private int ridingTicks = 0;
+
     public SeatEntity(EntityType<?> type, World world) {
         super(type, world);
     }
@@ -39,10 +41,16 @@ public class SeatEntity extends Entity {
             if (this.getSeatPos() == null || !this.hasPassengers() || !(this.getWorld().getBlockState(this.getSeatPos()).getBlock() instanceof MountableBlock)) {
                 this.removeAllPassengers();
                 this.discard();
+            } else if(ridingTicks <= 5){
+                this.ridingTicks++;
             }
         }
 
         super.tick();
+    }
+
+    public int getRidingTicks() {
+        return this.ridingTicks;
     }
 
 

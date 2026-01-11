@@ -459,14 +459,7 @@ public class WatheClient implements ClientModInitializer {
                 if(gameWorldComponent.canUseKillerFeatures(player)){
                     return MathHelper.hsvToRgb(0F, 1.0F, 0.6F);
                 } else {
-                    float mood = PlayerMoodComponent.KEY.get(target).getMood();
-                    if (mood < GameConstants.DEPRESSIVE_MOOD_THRESHOLD) {
-                        return 0x171DC6;
-                    } else if (mood < GameConstants.MID_MOOD_THRESHOLD) {
-                        return 0x1FAFAF;
-                    } else {
-                        return 0x4EDD35;
-                    }
+                    return 0x4EDD35;
                 }
             };
             if (isPlayerSpectatingOrCreative()) return 0xFFFFFF;

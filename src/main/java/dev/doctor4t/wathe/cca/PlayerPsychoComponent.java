@@ -8,7 +8,9 @@ import dev.doctor4t.wathe.util.ShopEntry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
@@ -28,6 +30,18 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
 
     public void sync() {
         KEY.sync(this.player);
+    }
+
+    @Override
+    public void writeSyncPacket(RegistryByteBuf buf, ServerPlayerEntity recipient) {
+        buf.writeVarInt(this.psychoTicks);
+        buf.writeVarInt(this.armour);
+    }
+
+    @Override
+    public void applySyncPacket(RegistryByteBuf buf) {
+        this.psychoTicks = buf.readVarInt();
+        this.armour = buf.readVarInt();
     }
 
     public void reset() {
@@ -52,13 +66,15 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
     @Override
     public void serverTick() {
         if (this.psychoTicks <= 0) return;
-//        if (this.psychoTicks % 20 == 0) this.player.sendMessage(Text.translatable("game.psycho_mode.time", this.psychoTicks / 20).withColor(Colors.RED), true);
-        if (--this.psychoTicks == 0) {
-//            this.player.sendMessage(Text.translatable("game.psycho_mode.over").withColor(Colors.RED), true);
-            this.stopPsycho();
-        }
 
-        this.sync();
+        if (--this.psychoTicks == 0) {
+            this.stopPsycho();
+            this.sync(); // 结束时广播给所有人（其他玩家需要知道狂暴结束）
+        } else if (this.psychoTicks % 20 == 0 && this.player instanceof ServerPlayerEntity serverPlayer) {
+            // 每秒只同步给自己，校正客户端进度条时间
+            // 其他玩家只需要知道是否狂暴（>0），不需要精确时间
+            KEY.sync(serverPlayer);
+        }
     }
 
     public boolean startPsycho() {

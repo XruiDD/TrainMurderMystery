@@ -14,7 +14,7 @@ public class WatheComponents implements WorldComponentInitializer, EntityCompone
     @Override
     public void registerWorldComponentFactories(@NotNull WorldComponentFactoryRegistry registry) {
         registry.register(TrainWorldComponent.KEY, TrainWorldComponent::new);
-        registry.register(GameWorldComponent.KEY, GameWorldComponent::new);
+        registry.register(GameWorldComponent.KEY, GameWorldComponent::new); // TODO
         registry.register(MapVariablesWorldComponent.KEY, MapVariablesWorldComponent::new);
         registry.register(MapEnhancementsWorldComponent.KEY, MapEnhancementsWorldComponent::new);
         registry.register(WorldBlackoutComponent.KEY, WorldBlackoutComponent::new);

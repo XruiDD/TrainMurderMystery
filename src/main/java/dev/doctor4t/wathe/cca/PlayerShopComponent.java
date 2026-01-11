@@ -27,13 +27,18 @@ import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
 import java.util.List;
 
-public class PlayerShopComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
+public class PlayerShopComponent implements AutoSyncedComponent {
     public static final ComponentKey<PlayerShopComponent> KEY = ComponentRegistry.getOrCreate(Wathe.id("shop"), PlayerShopComponent.class);
     private final PlayerEntity player;
     public int balance = 0;
 
     public PlayerShopComponent(PlayerEntity player) {
         this.player = player;
+    }
+
+    @Override
+    public boolean shouldSyncWith(ServerPlayerEntity player) {
+        return player == this.player;
     }
 
     public void sync() {
@@ -156,16 +161,6 @@ public class PlayerShopComponent implements AutoSyncedComponent, ServerTickingCo
         this.balance -= pricePaid;
         playSound(player, WatheSounds.UI_SHOP_BUY);
         ShopPurchase.AFTER.invoker().afterPurchase(player, entry, index, pricePaid);
-    }
-
-    @Override
-    public void clientTick() {
-
-    }
-
-    @Override
-    public void serverTick() {
-
     }
 
     public static boolean useBlackout(@NotNull PlayerEntity player) {

@@ -69,7 +69,7 @@
   ],
 
   "_comment_scenery": "风景区块配置 - 控制列车外风景的渲染参数（可选，有默认值）",
-  "_comment_scenery_detail": "height_offset: 风景高度偏移, min_x/max_x/min_z/max_z: 风景区块区域范围（世界坐标）",
+  "_comment_scenery_detail": "height_offset: 动态风景区块上升高度, min_x/max_x/min_z/max_z: 风景区块区域范围（世界坐标）",
   "scenery": {
     "height_offset": 116,
     "min_x": -208,

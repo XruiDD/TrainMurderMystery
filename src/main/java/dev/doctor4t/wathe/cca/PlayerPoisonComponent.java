@@ -6,6 +6,7 @@ import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -16,6 +17,7 @@ import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.UUID;
 
@@ -36,6 +38,23 @@ public class PlayerPoisonComponent implements AutoSyncedComponent, ServerTicking
 
     public void sync() {
         KEY.sync(this.player);
+    }
+
+    @Override
+    public boolean shouldSyncWith(ServerPlayerEntity player) {
+        return player == this.player;
+    }
+
+    @Override
+    public void writeSyncPacket(RegistryByteBuf buf, ServerPlayerEntity recipient) {
+        buf.writeVarInt(this.poisonTicks);
+        buf.writeVarInt(this.initialPoisonTicks);
+    }
+
+    @Override
+    public void applySyncPacket(RegistryByteBuf buf) {
+        this.poisonTicks = buf.readVarInt();
+        this.initialPoisonTicks = buf.readVarInt();
     }
 
     public void reset() {

@@ -4,7 +4,9 @@ import dev.doctor4t.wathe.Wathe;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
@@ -31,6 +33,25 @@ public class PlayerStaminaComponent implements AutoSyncedComponent, ServerTickin
 
     public void sync() {
         KEY.sync(this.player);
+    }
+
+    @Override
+    public boolean shouldSyncWith(ServerPlayerEntity player) {
+        return player == this.player;
+    }
+
+    @Override
+    public void writeSyncPacket(RegistryByteBuf buf, ServerPlayerEntity recipient) {
+        buf.writeFloat(this.sprintingTicks);
+        buf.writeVarInt(this.maxSprintTime);
+        buf.writeBoolean(this.exhausted);
+    }
+
+    @Override
+    public void applySyncPacket(RegistryByteBuf buf) {
+        this.sprintingTicks = buf.readFloat();
+        this.maxSprintTime = buf.readVarInt();
+        this.exhausted = buf.readBoolean();
     }
 
     public float getSprintingTicks() {
@@ -76,7 +97,7 @@ public class PlayerStaminaComponent implements AutoSyncedComponent, ServerTickin
         // 只负责同步数据到客户端，疾跑限制逻辑在 PlayerEntityMixin 中处理
         boolean needsSync = false;
 
-        if (Math.abs(this.sprintingTicks - this.lastSyncedValue) >= 1f) {
+        if (Math.abs(this.sprintingTicks - this.lastSyncedValue) >= 10f) {
             needsSync = true;
         }
 

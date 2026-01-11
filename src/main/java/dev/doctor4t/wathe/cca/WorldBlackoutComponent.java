@@ -24,13 +24,12 @@ import net.minecraft.entity.effect.StatusEffects;
 import dev.doctor4t.wathe.game.GameFunctions;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
-import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class WorldBlackoutComponent implements AutoSyncedComponent, ServerTickingComponent {
+public class WorldBlackoutComponent implements ServerTickingComponent {
     public static final ComponentKey<WorldBlackoutComponent> KEY = ComponentRegistry.getOrCreate(Wathe.id("blackout"), WorldBlackoutComponent.class);
     private final World world;
     private final List<BlackoutDetails> blackouts = new ArrayList<>();

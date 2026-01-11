@@ -17,6 +17,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -43,6 +44,7 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
     public final Map<Task, Integer> timesGotten = new HashMap<>();
     private int nextTaskTimer = 0;
     private float mood = 1f;
+    private boolean dirty = false;
     private final HashMap<UUID, ItemStack> psychosisItems = new HashMap<>();
     private static List<Item> cachedPsychosisItems = null;
 
@@ -54,6 +56,44 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
         KEY.sync(this.player);
     }
 
+    @Override
+    public boolean shouldSyncWith(ServerPlayerEntity player) {
+        return player == this.player;
+    }
+
+    @Override
+    public void writeSyncPacket(RegistryByteBuf buf, ServerPlayerEntity recipient) {
+        buf.writeFloat(this.mood);
+        buf.writeVarInt(this.tasks.size());
+        for (Task taskType : this.tasks.keySet()) {
+            buf.writeVarInt(taskType.ordinal());
+        }
+    }
+
+    @Override
+    public void applySyncPacket(RegistryByteBuf buf) {
+        this.mood = buf.readFloat();
+        this.tasks.clear();
+        int size = buf.readVarInt();
+        for (int i = 0; i < size; i++) {
+            int ordinal = buf.readVarInt();
+            if (ordinal >= 0 && ordinal < Task.values().length) {
+                Task taskType = Task.values()[ordinal];
+                this.tasks.put(taskType, createDummyTask(taskType));
+            }
+        }
+    }
+
+    private TrainTask createDummyTask(Task type) {
+        // 客户端只需要任务类型用于显示文本，不需要实际的计时器值
+        return switch (type) {
+            case SLEEP -> new SleepTask(0);
+            case OUTSIDE -> new OutsideTask(0);
+            case EAT -> new EatTask();
+            case DRINK -> new DrinkTask();
+        };
+    }
+
     public void reset() {
         this.tasks.clear();
         this.timesGotten.clear();
@@ -61,6 +101,7 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
         this.psychosisItems.clear();
         this.setMood(1f);
         this.sync();
+        this.dirty = false;
     }
 
     private List<Item> getPsychosisItemPool() {
@@ -116,7 +157,6 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.player.getWorld());
         if (!gameWorldComponent.isRunning() || !GameFunctions.isPlayerAliveAndSurvival(this.player)) return;
         if (!this.tasks.isEmpty()) this.setMood(this.mood - this.tasks.size() * GameConstants.MOOD_DRAIN);
-        boolean shouldSync = false;
         this.nextTaskTimer--;
         if (this.nextTaskTimer <= 0) {
             TrainTask task = this.generateTask();
@@ -124,10 +164,10 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
                 this.tasks.put(task.getType(), task);
                 this.timesGotten.putIfAbsent(task.getType(), 1);
                 this.timesGotten.put(task.getType(), this.timesGotten.get(task.getType()) + 1);
+                this.dirty = true;
             }
             this.nextTaskTimer = (int) (this.player.getRandom().nextFloat() * (GameConstants.MAX_TASK_COOLDOWN - GameConstants.MIN_TASK_COOLDOWN) + GameConstants.MIN_TASK_COOLDOWN);
             this.nextTaskTimer = Math.max(this.nextTaskTimer, 2);
-            shouldSync = true;
         }
         ArrayList<Task> removals = new ArrayList<>();
         for (TrainTask task : this.tasks.values()) {
@@ -139,11 +179,15 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
                     ServerPlayNetworking.send(tempPlayer, new TaskCompletePayload());
                     TaskComplete.EVENT.invoker().onTaskComplete(tempPlayer, task.getType());
                 }
-                shouldSync = true;
+                this.dirty = true;
             }
         }
         for (Task task : removals) this.tasks.remove(task);
-        if (shouldSync) this.sync();
+
+        if (this.dirty) {
+            this.sync();
+            this.dirty = false;
+        }
     }
 
     private @Nullable TrainTask generateTask() {
@@ -183,12 +227,15 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
     public void setMood(float mood) {
         Role role = GameWorldComponent.KEY.get(this.player.getWorld()).getRole(player);
 
+        float oldMood = this.mood;
         if (role != null && role.getMoodType() == Role.MoodType.REAL) {
             this.mood = Math.clamp(mood, 0, 1);
         } else {
             this.mood = 1;
         }
-        this.sync();
+        if (!this.player.getWorld().isClient() && oldMood != this.mood) {
+            this.dirty = true;
+        }
     }
 
     public void eatFood() {

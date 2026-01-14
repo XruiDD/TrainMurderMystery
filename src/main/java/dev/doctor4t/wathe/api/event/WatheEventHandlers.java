@@ -27,10 +27,6 @@ public class WatheEventHandlers {
      */
     private static void registerBlockInteractionBlacklist() {
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            if (world.isClient()) {
-                return ActionResult.PASS;
-            }
-
             // 只在游戏进行中生效
             GameWorldComponent game = GameWorldComponent.KEY.get(world);
             if (!game.isRunning()) {

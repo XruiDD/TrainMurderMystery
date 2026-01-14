@@ -47,6 +47,7 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
     private VisibilityConfig syncedVisibility;
     private FogConfig syncedFog;
     private CameraShakeConfig syncedCameraShake;
+    private InteractionBlacklistConfig syncedInteractionBlacklist;
     // ========== 渲染配置 Getter 方法 ==========
 
     public SceneryConfig getSceneryConfig() {
@@ -83,9 +84,12 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
     }
 
     /**
-     * 获取交互黑名单配置（仅服务端使用）
+     * 获取交互黑名单配置（同步到客户端）
      */
     public InteractionBlacklistConfig getInteractionBlacklistConfig() {
+        if (world.isClient() && syncedInteractionBlacklist != null) {
+            return syncedInteractionBlacklist;
+        }
         MapEnhancementsConfiguration config = MapEnhancementsConfigurationManager.getInstance().getConfiguration();
         return config != null ? config.getInteractionBlacklistOrDefault() : InteractionBlacklistConfig.DEFAULT;
     }
@@ -160,6 +164,22 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
                 tag.getFloat("cameraShakeStrengthOutdoor")
             );
         }
+        // 反序列化交互黑名单配置
+        if (tag.contains("blacklistBlocksCount")) {
+            int blocksCount = tag.getInt("blacklistBlocksCount");
+            java.util.List<String> blocks = new java.util.ArrayList<>();
+            for (int i = 0; i < blocksCount; i++) {
+                blocks.add(tag.getString("blacklistBlock_" + i));
+            }
+
+            int tagsCount = tag.getInt("blacklistTagsCount");
+            java.util.List<String> blockTags = new java.util.ArrayList<>();
+            for (int i = 0; i < tagsCount; i++) {
+                blockTags.add(tag.getString("blacklistTag_" + i));
+            }
+
+            this.syncedInteractionBlacklist = new InteractionBlacklistConfig(blocks, blockTags);
+        }
     }
 
     @Override
@@ -189,5 +209,16 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
         tag.putFloat("cameraShakeAmplitudeOutdoor", cameraShake.amplitudeOutdoor());
         tag.putFloat("cameraShakeStrengthIndoor", cameraShake.strengthIndoor());
         tag.putFloat("cameraShakeStrengthOutdoor", cameraShake.strengthOutdoor());
+
+        // 序列化交互黑名单配置
+        InteractionBlacklistConfig blacklist = getInteractionBlacklistConfig();
+        tag.putInt("blacklistBlocksCount", blacklist.blocks().size());
+        for (int i = 0; i < blacklist.blocks().size(); i++) {
+            tag.putString("blacklistBlock_" + i, blacklist.blocks().get(i));
+        }
+        tag.putInt("blacklistTagsCount", blacklist.blockTags().size());
+        for (int i = 0; i < blacklist.blockTags().size(); i++) {
+            tag.putString("blacklistTag_" + i, blacklist.blockTags().get(i));
+        }
     }
 }

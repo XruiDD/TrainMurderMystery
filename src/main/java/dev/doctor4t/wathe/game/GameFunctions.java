@@ -443,14 +443,18 @@ public class GameFunctions {
         killPlayer(victim, spawnBody, killer, GameConstants.DeathReasons.GENERIC);
     }
 
-    public static void killPlayer(PlayerEntity victim, boolean spawnBody, @Nullable PlayerEntity killer, Identifier deathReason) {
+    public static void killPlayer(PlayerEntity victim, boolean spawnBody, @Nullable PlayerEntity killer, Identifier deathReason){
+        killPlayer(victim, spawnBody, killer, GameConstants.DeathReasons.GENERIC, false);
+    }
+
+    public static void killPlayer(PlayerEntity victim, boolean spawnBody, @Nullable PlayerEntity killer, Identifier deathReason, boolean force) {
         PlayerPsychoComponent component = PlayerPsychoComponent.KEY.get(victim);
 
         // Fire BEFORE event
         KillPlayer.KillResult beforeResult = KillPlayer.BEFORE.invoker().beforeKillPlayer(victim, killer, deathReason);
-        if (beforeResult != null && beforeResult.cancelled()) return;
+        if (beforeResult != null && !force && beforeResult.cancelled()) return;
 
-        if (component.getPsychoTicks() > 0) {
+        if (!force && component.getPsychoTicks() > 0) {
             if (component.getArmour() > 0) {
                 component.setArmour(component.getArmour() - 1);
                 component.sync();
@@ -459,6 +463,9 @@ public class GameFunctions {
             } else {
                 component.stopPsycho();
             }
+        }
+        if(force && component.getPsychoTicks() > 0){
+            component.stopPsycho();
         }
 
         if (victim instanceof ServerPlayerEntity serverPlayerEntity && isPlayerAliveAndSurvival(serverPlayerEntity)) {

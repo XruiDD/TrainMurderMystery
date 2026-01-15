@@ -31,6 +31,7 @@ public record AnnounceWelcomePayload(String role, int killers, int targets) impl
 
             client.debugChunkInfo = false;
             client.debugChunkOcclusion = false;
+            client.options.advancedItemTooltips = false;
             client.wireFrame = false;
             client.getDebugHud().clear();
             client.getEntityRenderDispatcher().setRenderHitboxes(false);

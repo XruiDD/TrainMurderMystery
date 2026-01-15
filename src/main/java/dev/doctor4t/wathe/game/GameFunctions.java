@@ -444,7 +444,7 @@ public class GameFunctions {
     }
 
     public static void killPlayer(PlayerEntity victim, boolean spawnBody, @Nullable PlayerEntity killer, Identifier deathReason){
-        killPlayer(victim, spawnBody, killer, GameConstants.DeathReasons.GENERIC, false);
+        killPlayer(victim, spawnBody, killer, deathReason, false);
     }
 
     public static void killPlayer(PlayerEntity victim, boolean spawnBody, @Nullable PlayerEntity killer, Identifier deathReason, boolean force) {

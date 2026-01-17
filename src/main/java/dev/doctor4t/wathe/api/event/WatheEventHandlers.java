@@ -5,6 +5,7 @@ import dev.doctor4t.wathe.api.WatheRoles;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.MapEnhancementsWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerShopComponent;
+import dev.doctor4t.wathe.client.WatheClient;
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.InteractionBlacklistConfig;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.index.WatheItems;
@@ -27,17 +28,20 @@ public class WatheEventHandlers {
      */
     private static void registerBlockInteractionBlacklist() {
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            // 只在游戏进行中生效
-            GameWorldComponent game = GameWorldComponent.KEY.get(world);
-            if (!game.isRunning()) {
-                return ActionResult.PASS;
-            }
-
             Block block = world.getBlockState(hitResult.getBlockPos()).getBlock();
             MapEnhancementsWorldComponent enhancements = MapEnhancementsWorldComponent.KEY.get(world);
             InteractionBlacklistConfig blacklist = enhancements.getInteractionBlacklistConfig();
 
-            if (blacklist.isBlacklisted(block)) {
+            boolean isBlacklisted = blacklist.isBlacklisted(block);
+
+            if (world.isClient && WatheClient.blockBlacklistDebugEnabled) {
+                String blockId = net.minecraft.registry.Registries.BLOCK.getId(block).toString();
+                player.sendMessage(net.minecraft.text.Text.literal(
+                        "§e[Debug] §f点击方块: §b" + blockId + " §f| 黑名单拦截: " + (isBlacklisted ? "§c是" : "§a否")
+                ), true);
+            }
+
+            if (isBlacklisted) {
                 return ActionResult.FAIL;
             }
 

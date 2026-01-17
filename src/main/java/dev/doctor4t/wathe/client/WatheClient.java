@@ -86,6 +86,9 @@ public class WatheClient implements ClientModInitializer {
     public static float prevInstinctLightLevel = -.04f;
     public static float instinctLightLevel = -.04f;
 
+    // 方块黑名单 debug 开关
+    public static boolean blockBlacklistDebugEnabled = false;
+
     public static boolean shouldDisableHudAndDebug() {
         MinecraftClient client = MinecraftClient.getInstance();
         return (client == null || (client.player != null && !client.player.isCreative() && !client.player.isSpectator()));

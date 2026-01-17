@@ -38,7 +38,7 @@ public class WatheEventHandlers {
                 String blockId = net.minecraft.registry.Registries.BLOCK.getId(block).toString();
                 player.sendMessage(net.minecraft.text.Text.literal(
                         "§e[Debug] §f点击方块: §b" + blockId + " §f| 黑名单拦截: " + (isBlacklisted ? "§c是" : "§a否")
-                ), true);
+                ));
             }
 
             if (isBlacklisted) {

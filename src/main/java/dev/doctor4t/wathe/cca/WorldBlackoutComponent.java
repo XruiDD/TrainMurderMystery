@@ -158,7 +158,7 @@ public class WorldBlackoutComponent implements ServerTickingComponent {
                 player.addStatusEffect(nightVision);
             } else {
                 StatusEffectInstance darkness = new StatusEffectInstance(
-                    StatusEffects.DARKNESS,
+                    StatusEffects.BLINDNESS,
                     40,
                     0,
                     false,
@@ -180,7 +180,7 @@ public class WorldBlackoutComponent implements ServerTickingComponent {
             }
 
             player.removeStatusEffect(StatusEffects.NIGHT_VISION);
-            player.removeStatusEffect(StatusEffects.DARKNESS);
+            player.removeStatusEffect(StatusEffects.BLINDNESS);
         }
     }
 

@@ -58,7 +58,7 @@ public class InGameHudMixin {
 
     @WrapMethod(method = "renderCrosshair")
     private void wathe$renderHud(DrawContext context, RenderTickCounter tickCounter, Operation<Void> original) {
-        if (!WatheClient.isPlayerAliveAndInSurvival()) {
+        if (!WatheClient.isPlayerAliveAndInSurvival() || !WatheClient.trainComponent.hasHud()) {
             original.call(context, tickCounter);
             return;
         }
@@ -69,26 +69,26 @@ public class InGameHudMixin {
 
     @WrapMethod(method = "renderStatusBars")
     private void wathe$removeStatusBars(DrawContext context, Operation<Void> original) {
-        if (!WatheClient.isPlayerAliveAndInSurvival()) {
+        if (!WatheClient.isPlayerAliveAndInSurvival() || !WatheClient.trainComponent.hasHud()) {
             original.call(context);
         }
     }
 
     @WrapMethod(method = "renderExperienceBar")
     private void wathe$removeExperienceBar(DrawContext context, int x, Operation<Void> original) {
-        if (!WatheClient.isPlayerAliveAndInSurvival()) {
+        if (!WatheClient.isPlayerAliveAndInSurvival() || !WatheClient.trainComponent.hasHud()) {
             original.call(context, x);
         }
     }
 
     @WrapMethod(method = "renderPlayerList")
     private void wathe$removePlayerList(DrawContext context, RenderTickCounter tickCounter, Operation<Void> original) {
-        if (!WatheClient.isPlayerAliveAndInSurvival()) original.call(context, tickCounter);
+        if (!WatheClient.isPlayerAliveAndInSurvival() || !WatheClient.trainComponent.hasHud()) original.call(context, tickCounter);
     }
 
     @WrapMethod(method = "renderExperienceLevel")
     private void wathe$removeExperienceLevel(DrawContext context, RenderTickCounter tickCounter, Operation<Void> original) {
-        if (!WatheClient.isPlayerAliveAndInSurvival()) {
+        if (!WatheClient.isPlayerAliveAndInSurvival() || !WatheClient.trainComponent.hasHud()) {
             original.call(context, tickCounter);
         }
     }

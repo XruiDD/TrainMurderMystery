@@ -36,7 +36,7 @@ public abstract class TooltipBackgroundRendererMixin {
 
     @WrapMethod(method = "render")
     private static void render(DrawContext context, int x, int y, int width, int height, int z, Operation<Void> original) {
-        if (WatheClient.isPlayerAliveAndInSurvival()) {
+        if (WatheClient.isPlayerAliveAndInSurvival() && WatheClient.trainComponent.hasHud()) {
             int i = x - 3;
             int j = y - 3;
             int k = width + 3 + 3;

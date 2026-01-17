@@ -95,12 +95,12 @@ public class InGameHudMixin {
 
     @WrapOperation(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 0))
     private void wathe$overrideHotbarTexture(DrawContext instance, Identifier texture, int x, int y, int width, int height, @NotNull Operation<Void> original) {
-        original.call(instance, WatheClient.isPlayerAliveAndInSurvival() ? WATHE_HOTBAR_TEXTURE : texture, x, y, width, height);
+        original.call(instance, WatheClient.isPlayerAliveAndInSurvival() && WatheClient.trainComponent.hasHud() ? WATHE_HOTBAR_TEXTURE : texture, x, y, width, height);
     }
 
     @WrapOperation(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1))
     private void wathe$overrideHotbarSelectionTexture(DrawContext instance, Identifier texture, int x, int y, int width, int height, @NotNull Operation<Void> original) {
-        original.call(instance, WatheClient.isPlayerAliveAndInSurvival() ? WATHE_HOTBAR_SELECTION_TEXTURE : texture, x, y, width, height);
+        original.call(instance, WatheClient.isPlayerAliveAndInSurvival() && WatheClient.trainComponent.hasHud() ? WATHE_HOTBAR_SELECTION_TEXTURE : texture, x, y, width, height);
     }
 
     @WrapMethod(method = "renderMiscOverlays")

@@ -24,7 +24,7 @@ public class KeyboardMixin {
             return true;
         }
 
-        if (WatheClient.isPlayerAliveAndInSurvival()) {
+        if (WatheClient.isPlayerAliveAndInSurvival() && WatheClient.trainComponent.hasHud()) {
             return key == 293 ? original.call(key) : false;
         } else {
             return original.call(key);

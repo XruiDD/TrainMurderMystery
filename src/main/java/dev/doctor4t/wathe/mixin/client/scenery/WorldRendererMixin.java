@@ -7,7 +7,9 @@ import dev.doctor4t.wathe.cca.TrainWorldComponent;
 import dev.doctor4t.wathe.client.WatheClient;
 import dev.doctor4t.wathe.client.util.AlwaysVisibleFrustum;
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.FogConfig;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
+import net.minecraft.entity.effect.StatusEffects;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
@@ -36,7 +38,8 @@ public abstract class WorldRendererMixin {
 
     @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/BackgroundRenderer;applyFog(Lnet/minecraft/client/render/Camera;Lnet/minecraft/client/render/BackgroundRenderer$FogType;FZF)V"))
     public void wathe$applyBlizzardFog(Camera camera, BackgroundRenderer.FogType fogType, float viewDistance, boolean thickFog, float tickDelta, Operation<Void> original) {
-        if (WatheClient.trainComponent != null && WatheClient.trainComponent.isFoggy()) {
+        var player = MinecraftClient.getInstance().player;
+        if (WatheClient.trainComponent != null && WatheClient.trainComponent.isFoggy() && player != null && !player.hasStatusEffect(StatusEffects.BLINDNESS)) {
             // 空值检查，使用默认配置
             FogConfig fogConfig = WatheClient.mapEnhancementsWorldComponent != null
                 ? WatheClient.mapEnhancementsWorldComponent.getFogConfig()

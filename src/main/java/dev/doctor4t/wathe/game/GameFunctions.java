@@ -477,12 +477,7 @@ public class GameFunctions {
 
         if (killer != null) {
             if (GameWorldComponent.KEY.get(killer.getWorld()).canUseKillerFeatures(killer)) {
-                if(deathReason == GameConstants.DeathReasons.GRENADE){
-                    PlayerShopComponent.KEY.get(killer).addToBalance(GameConstants.MONEY_PER_KILL - 25);
-                } else {
-                    PlayerShopComponent.KEY.get(killer).addToBalance(GameConstants.MONEY_PER_KILL);
-                }
-
+                PlayerShopComponent.KEY.get(killer).addToBalance(GameConstants.MONEY_PER_KILL);
             }
 
             // replenish derringer

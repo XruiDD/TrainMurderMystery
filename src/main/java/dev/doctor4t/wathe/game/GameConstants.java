@@ -27,7 +27,7 @@ public interface GameConstants {
         ITEM_COOLDOWNS.put(WatheItems.KNIFE, getInTicks(1, 0));
         ITEM_COOLDOWNS.put(WatheItems.REVOLVER, getInTicks(0, 10));
         ITEM_COOLDOWNS.put(WatheItems.DERRINGER, getInTicks(0, 1));
-        ITEM_COOLDOWNS.put(WatheItems.GRENADE, getInTicks(5, 0));
+        ITEM_COOLDOWNS.put(WatheItems.GRENADE, getInTicks(3, 0));
         ITEM_COOLDOWNS.put(WatheItems.LOCKPICK, getInTicks(3, 0));
         ITEM_COOLDOWNS.put(WatheItems.CROWBAR, getInTicks(0, 10));
         ITEM_COOLDOWNS.put(WatheItems.BODY_BAG, getInTicks(5, 0));

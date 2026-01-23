@@ -309,7 +309,7 @@
   "item.wathe.firecracker": "Firecracker",
   "item.wathe.firecracker.tooltip": "Detonates 15 seconds after being placed on ground\nGood to simulate gunshots and lure people",
   "item.wathe.grenade": "Grenade",
-  "item.wathe.grenade.tooltip": "Right-click to throw, explodes on impact\nGood to clear groups of people, but be wary of the blast radius!\nSingle use, 5 minute cooldown",
+  "item.wathe.grenade.tooltip": "Right-click to throw, explodes on impact\nGood to clear groups of people, but be wary of the blast radius!\nSingle use, 3 minute cooldown",
   "item.wathe.key": "Key",
   "item.wathe.knife": "Knife",
   "item.wathe.knife.tooltip": "Right-click, hold for a second and get close to your victim\nAfter a kill, cannot be used for 1 minute\nAttack to knock back / push a player (no cooldown)",

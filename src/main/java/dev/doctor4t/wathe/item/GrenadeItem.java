@@ -1,6 +1,7 @@
 package dev.doctor4t.wathe.item;
 
 import dev.doctor4t.wathe.entity.GrenadeEntity;
+import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.index.WatheEntities;
 import dev.doctor4t.wathe.index.WatheSounds;
 import net.minecraft.entity.player.PlayerEntity;
@@ -31,7 +32,7 @@ public class GrenadeItem extends Item {
         }
 
         if (!user.isCreative()) {
-//            user.getItemCooldownManager().set(this, GameConstants.ITEM_COOLDOWNS.get(this));
+            user.getItemCooldownManager().set(this, GameConstants.ITEM_COOLDOWNS.get(this));
         }
 
         user.incrementStat(Stats.USED.getOrCreateStat(this));

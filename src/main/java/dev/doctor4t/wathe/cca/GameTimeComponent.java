@@ -53,6 +53,8 @@ public class GameTimeComponent implements AutoSyncedComponent, CommonTickingComp
     }
 
     public void setTime(int time) {
+        if(time < 0)
+            time = 0;
         this.time = time;
         this.sync();
     }

@@ -54,7 +54,7 @@ public class MurderGameMode extends GameMode {
             player.getItemCooldownManager().set(WatheItems.REVOLVER,
                     GameConstants.getInTicks(1, 0));
             player.getItemCooldownManager().set(WatheItems.KNIFE,
-                    GameConstants.getInTicks(0, 40));
+                    GameConstants.getInTicks(0, 45));
         }
     }
 

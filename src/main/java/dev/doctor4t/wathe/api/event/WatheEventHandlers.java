@@ -65,7 +65,7 @@ public class WatheEventHandlers {
                 int killerCount = gameComponent.getAllKillerTeamPlayers().size();
                 int killerRatio = gameComponent.getKillerDividend();
                 int excessPlayers = Math.max(0, totalPlayers - (killerCount * killerRatio));
-                int additionalMoneyPerExcess = 20;
+                int additionalMoneyPerExcess = 15;
                 int dynamicStartingMoney = GameConstants.MONEY_START + (excessPlayers * additionalMoneyPerExcess);
                 PlayerShopComponent.KEY.get(player).setBalance(dynamicStartingMoney);
             }

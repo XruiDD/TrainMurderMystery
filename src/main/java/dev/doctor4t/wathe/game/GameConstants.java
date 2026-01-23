@@ -47,6 +47,7 @@ public interface GameConstants {
     int TIME_TO_FIRST_TASK = getInTicks(0, 30);
     int MIN_TASK_COOLDOWN = getInTicks(0, 30);
     int MAX_TASK_COOLDOWN = getInTicks(1, 0);
+    int TASK_INTERVAL_PER_ACTIVE_TASK = getInTicks(0, 10); // 每个活跃任务额外增加20秒间隔
     int SLEEP_TASK_DURATION = getInTicks(0, 8);
     int OUTSIDE_TASK_DURATION = getInTicks(0, 8);
     float MID_MOOD_THRESHOLD = 0.55f;
@@ -89,5 +90,6 @@ public interface GameConstants {
         Identifier FELL_OUT_OF_TRAIN = Wathe.id("fell_out_of_train");
         Identifier ESCAPED = Wathe.id("escaped");
         Identifier SHOT_INNOCENT = Wathe.id("shot_innocent");
+        Identifier MENTAL_BREAKDOWN = Wathe.id("mental_breakdown");
     }
 }

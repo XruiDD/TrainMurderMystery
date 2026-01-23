@@ -51,7 +51,8 @@ public class MoodRenderer {
         PlayerMoodComponent component = PlayerMoodComponent.KEY.get(player);
         float oldMood = moodRender;
         moodRender = MathHelper.lerp(tickCounter.getTickDelta(true) / 8, moodRender, component.getMood());
-        moodAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 16, moodAlpha, renderers.isEmpty() ? 0f : 1f);
+        // 有任务或心情为负数时显示进度条
+        moodAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 16, moodAlpha, (renderers.isEmpty() && moodRender >= 0) ? 0f : 1f);
         PlayerPsychoComponent psycho = PlayerPsychoComponent.KEY.get(player);
         if (psycho.getPsychoTicks() > 0) {
             renderPsycho(player, textRenderer, context, psycho, tickCounter);
@@ -89,6 +90,10 @@ public class MoodRenderer {
         if (maxRenderer != null) {
             moodOffset = MathHelper.lerp(tickCounter.getTickDelta(true) / 8, moodOffset, maxRenderer.offset);
             moodTextWidth = MathHelper.lerp(tickCounter.getTickDelta(true) / 32, moodTextWidth, textRenderer.getWidth(maxRenderer.text));
+        } else {
+            // 没有任务时使用默认宽度（用于显示负数心情条）
+            moodOffset = MathHelper.lerp(tickCounter.getTickDelta(true) / 8, moodOffset, 0f);
+            moodTextWidth = MathHelper.lerp(tickCounter.getTickDelta(true) / 32, moodTextWidth, 100f);
         }
         Role role = gameWorldComponent.getRole(player);
         if (role != null) {
@@ -102,7 +107,18 @@ public class MoodRenderer {
     }
 
     private static void renderCivilian(@NotNull TextRenderer textRenderer, @NotNull DrawContext context, float prevMood) {
+        // 负数心情时所有元素统一抖动
+        float shakeX = 0, shakeY = 0;
+        if (moodRender < 0) {
+            random.setSeed(System.currentTimeMillis());
+            float shake = Math.abs(moodRender) * 3f;
+            shakeX = (float) (random.nextGaussian() * shake);
+            shakeY = (float) (random.nextGaussian() * shake);
+        }
+
+        // 渲染心情图标
         context.getMatrices().push();
+        context.getMatrices().translate(shakeX, shakeY, 0); // 统一抖动
         context.getMatrices().translate(0, 3 * moodOffset, 0);
         Identifier mood = MOOD_HAPPY;
         if (moodRender < GameConstants.DEPRESSIVE_MOOD_THRESHOLD) {
@@ -128,11 +144,44 @@ public class MoodRenderer {
             context.getMatrices().pop();
         }
         context.getMatrices().pop();
+
+        // 渲染心情进度条，支持负数心情
         context.getMatrices().push();
+        context.getMatrices().translate(shakeX, shakeY, 0); // 统一抖动
         context.getMatrices().translate(0, 10 * moodOffset, 0);
-        context.getMatrices().translate(26, 8 + textRenderer.fontHeight, 0);
-        context.getMatrices().scale((moodTextWidth - 8) * moodRender, 1, 1);
-        context.fill(0, 0, 1, 1, MathHelper.hsvToRgb(moodRender / 3.0F, 1.0F, 1.0F) | ((int) (moodAlpha * 255) << 24));
+
+        int barY = 8 + textRenderer.fontHeight;
+        float barWidth = moodTextWidth - 8;
+
+        context.getMatrices().push();
+        context.getMatrices().translate(22, barY, 0);
+        if (moodRender >= 0) {
+            // 正数心情：正常渲染，颜色从红到绿
+            context.getMatrices().scale(barWidth * moodRender, 1, 1);
+            context.fill(0, 0, 1, 1, MathHelper.hsvToRgb(moodRender / 3.0F, 1.0F, 1.0F) | ((int) (moodAlpha * 255) << 24));
+        } else {
+            // 负数心情：崩溃进度条
+            float negativeMood = Math.abs(moodRender);
+            // 颜色从深红色(0.95)渐变到黑紫色(0.8)，饱和度和亮度随崩溃程度变化
+            float hue = 0.95f - (0.15f * negativeMood);
+            float saturation = 0.8f + (0.2f * negativeMood);
+            float brightness = 0.7f - (0.4f * negativeMood);
+            int color = MathHelper.hsvToRgb(hue, saturation, brightness) | ((int) (moodAlpha * 255) << 24);
+            context.getMatrices().scale(barWidth * negativeMood, 1, 1);
+            context.fill(0, 0, 1, 1, color);
+        }
+        context.getMatrices().pop();
+
+        // 负数心情时显示死亡警告（在进度条下方对齐）
+        if (moodRender < 0) {
+            // 警告颜色：从红色闪烁到深紫色
+            float colorPulse = (float) (Math.sin(System.currentTimeMillis() / 100.0) * 0.5 + 0.5);
+            int warningColor = MathHelper.hsvToRgb(0.95f - (0.1f * colorPulse), 1.0f, 0.6f + (0.4f * colorPulse));
+            Text warningText = Text.translatable("hud.mood.breakdown_warning");
+            // 警告文字与进度条左对齐，在进度条下方
+            context.drawTextWithShadow(textRenderer, warningText, 22, barY + 3, warningColor | ((int) (moodAlpha * 255) << 24));
+        }
+
         context.getMatrices().pop();
     }
 

@@ -156,7 +156,24 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
     public void serverTick() {
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.player.getWorld());
         if (!gameWorldComponent.isRunning() || !GameFunctions.isPlayerAliveAndSurvival(this.player)) return;
-        if (!this.tasks.isEmpty()) this.setMood(this.mood - this.tasks.size() * GameConstants.MOOD_DRAIN);
+
+        Role role = gameWorldComponent.getRole(this.player);
+        // 只有真实心情的角色才会受到心情系统影响
+        boolean hasRealMood = role != null && role.getMoodType() == Role.MoodType.REAL;
+
+        if (hasRealMood && !this.tasks.isEmpty()) {
+            this.setMood(this.mood - this.tasks.size() * GameConstants.MOOD_DRAIN);
+        }
+
+        // 心情达到 -100% 时触发精神崩溃，直接死亡
+        if (hasRealMood && this.mood <= -1f && this.player instanceof ServerPlayerEntity) {
+            GameFunctions.killPlayer(this.player, true, null, GameConstants.DeathReasons.MENTAL_BREAKDOWN, true);
+            return;
+        }
+
+        // 只有真实心情的角色才会生成任务
+        if (!hasRealMood) return;
+
         this.nextTaskTimer--;
         if (this.nextTaskTimer <= 0) {
             TrainTask task = this.generateTask();
@@ -166,8 +183,10 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
                 this.timesGotten.put(task.getType(), this.timesGotten.get(task.getType()) + 1);
                 this.dirty = true;
             }
-            this.nextTaskTimer = (int) (this.player.getRandom().nextFloat() * (GameConstants.MAX_TASK_COOLDOWN - GameConstants.MIN_TASK_COOLDOWN) + GameConstants.MIN_TASK_COOLDOWN);
-            this.nextTaskTimer = Math.max(this.nextTaskTimer, 2);
+            // 任务间隔随当前任务数增加：基础间隔 + 每个任务额外增加间隔
+            int baseInterval = (int) (this.player.getRandom().nextFloat() * (GameConstants.MAX_TASK_COOLDOWN - GameConstants.MIN_TASK_COOLDOWN) + GameConstants.MIN_TASK_COOLDOWN);
+            int extraInterval = this.tasks.size() * GameConstants.TASK_INTERVAL_PER_ACTIVE_TASK;
+            this.nextTaskTimer = Math.max(baseInterval + extraInterval, 2);
         }
         ArrayList<Task> removals = new ArrayList<>();
         for (TrainTask task : this.tasks.values()) {
@@ -191,7 +210,7 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
     }
 
     private @Nullable TrainTask generateTask() {
-        if (!this.tasks.isEmpty()) return null;
+        // 允许所有任务同时存在，多任务会叠加消耗心情值
         HashMap<Task, Float> map = new HashMap<>();
         float total = 0f;
         for (Task task : Task.values()) {
@@ -229,7 +248,8 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
 
         float oldMood = this.mood;
         if (role != null && role.getMoodType() == Role.MoodType.REAL) {
-            this.mood = Math.clamp(mood, 0, 1);
+            // 允许心情值为负数，最低 -1 (即 -100%)
+            this.mood = Math.clamp(mood, -1, 1);
         } else {
             this.mood = 1;
         }

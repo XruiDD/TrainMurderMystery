@@ -223,6 +223,9 @@ public class WatheLangGen extends FabricLanguageProvider {
         builder.add("tip.letter.vigilante.tooltip1", "Intel suggests there is a killer aboard this train.");
         builder.add("tip.letter.vigilante.tooltip2", "Your mission: eliminate any threats and protect the civilians.");
 
+        // Mood HUD
+        builder.add("hud.mood.breakdown_warning", "MENTAL BREAKDOWN IMMINENT!");
+
         // Death reasons
         builder.add("hud.body.death_info", "Died %ss ago from ");
         builder.add("death_reason.wathe.generic", "Unknown");
@@ -235,6 +238,7 @@ public class WatheLangGen extends FabricLanguageProvider {
         builder.add("death_reason.wathe.fell_out_of_train", "Fell Out of Train");
         builder.add("death_reason.wathe.escaped", "Escaped");
         builder.add("death_reason.wathe.shot_innocent", "Shot Innocent");
+        builder.add("death_reason.wathe.mental_breakdown", "Mental Breakdown");
 
         // Disconnect messages
         builder.add("disconnect.wathe.version_mismatch", "Mod version mismatch! Server: %s, Client: %s");

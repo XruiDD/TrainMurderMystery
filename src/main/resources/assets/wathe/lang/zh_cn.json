@@ -384,6 +384,7 @@
   "death_reason.wathe.fell_out_of_train": "坠落列车",
   "death_reason.wathe.escaped": "退出游戏",
   "death_reason.wathe.shot_innocent": "小脑",
+  "death_reason.wathe.mental_breakdown": "精神崩溃",
   "disconnect.wathe.version_mismatch": "模组版本不匹配！服务器: %s, 客户端: %s",
   "disconnect.wathe.not_in_ready_area": "游戏已开始，但由于你没有进入准备区域内，所以无法加入游戏！",
   "announcement.result.losers": "失败者",
@@ -425,5 +426,6 @@
   "tip.letter.killer.tooltip3": "附言：别忘了使用你的本能透视 [左Alt] 并利用列车外部进行移动。",
   "tip.letter.vigilante.tooltip1": "情报显示这列列车上有杀手潜伏。",
   "tip.letter.vigilante.tooltip2": "你的任务：消灭任何威胁并保护平民。",
-  "hud.body.death_info": "死于 %s 秒前，死因："
+  "hud.body.death_info": "死于 %s 秒前，死因：",
+  "hud.mood.breakdown_warning": "精神即将崩溃！"
 }

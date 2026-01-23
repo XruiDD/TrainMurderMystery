@@ -71,6 +71,12 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         if (GameFunctions.isPlayerAliveAndSurvival((PlayerEntity) (Object) this) && gameComponent != null && gameComponent.isRunning()) {
             Role role = gameComponent.getRole((PlayerEntity) (Object) this);
             PlayerStaminaComponent staminaComponent = PlayerStaminaComponent.KEY.get(this);
+            PlayerMoodComponent moodComponent = PlayerMoodComponent.KEY.get(this);
+
+            // 极低心情时（低于抑郁阈值）无法疾跑
+            if (moodComponent.isLowerThanDepressed()) {
+                this.setSprinting(false);
+            }
 
             if (role != null && role.getMaxSprintTime() >= 0) {
                 int maxSprintTime = role.getMaxSprintTime();

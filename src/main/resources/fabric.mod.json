@@ -54,6 +54,7 @@
 			"wathe:rolecounter",
 			"wathe:note",
 			"wathe:stamina",
+			"wathe:veteran",
 			"wathe:map_enhancements"
 		],
 		"loom:injected_interfaces": {

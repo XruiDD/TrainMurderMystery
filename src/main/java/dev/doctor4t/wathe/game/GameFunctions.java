@@ -182,6 +182,7 @@ public class GameFunctions {
             PlayerNoteComponent.KEY.get(serverPlayerEntity).reset();
             PlayerShopComponent.KEY.get(serverPlayerEntity).reset();
             PlayerStaminaComponent.KEY.get(serverPlayerEntity).reset();
+            PlayerVeteranComponent.KEY.get(serverPlayerEntity).reset();
             TrainVoicePlugin.resetPlayer(serverPlayerEntity.getUuid());
             // remove item cooldowns
             HashSet<Item> copy = new HashSet<>(serverPlayerEntity.getItemCooldownManager().entries.keySet());
@@ -424,6 +425,7 @@ public class GameFunctions {
         PlayerPsychoComponent.KEY.get(player).reset();
         PlayerNoteComponent.KEY.get(player).reset();
         PlayerStaminaComponent.KEY.get(player).reset();
+        PlayerVeteranComponent.KEY.get(player).reset();
         TrainVoicePlugin.resetPlayer(player.getUuid());
 
         player.changeGameMode(net.minecraft.world.GameMode.ADVENTURE);

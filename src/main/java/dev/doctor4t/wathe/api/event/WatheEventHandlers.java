@@ -5,6 +5,7 @@ import dev.doctor4t.wathe.api.WatheRoles;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.MapEnhancementsWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerShopComponent;
+import dev.doctor4t.wathe.cca.PlayerVeteranComponent;
 import dev.doctor4t.wathe.client.WatheClient;
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.InteractionBlacklistConfig;
 import dev.doctor4t.wathe.game.GameConstants;
@@ -56,6 +57,12 @@ public class WatheEventHandlers {
             // Give vigilante a revolver
             if (role == WatheRoles.VIGILANTE) {
                 player.giveItemStack(new ItemStack(WatheItems.REVOLVER));
+            }
+
+            // Give veteran a knife with limited uses (2 stabs)
+            if (role == WatheRoles.VETERAN) {
+                PlayerVeteranComponent.KEY.get(player).initialize();
+                player.giveItemStack(new ItemStack(WatheItems.KNIFE));
             }
 
             // Give killer faction starting money

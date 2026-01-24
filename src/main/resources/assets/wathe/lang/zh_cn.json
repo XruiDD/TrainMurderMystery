@@ -2,9 +2,11 @@
   "announcement.goal.civilian": "保持安全，坚持到旅程结束。",
   "announcement.goal.killer": "在时间耗尽前击杀一名乘客以取得胜利。",
   "announcement.goal.vigilante": "消灭任何凶手并保护平民。",
+  "announcement.goal.veteran": "使用你的战斗经验消灭任何威胁。你的刀只能使用有限次数。",
   "announcement.goals.civilian": "保持安全，坚持到旅程结束。",
   "announcement.goals.killer": "在时间耗尽前消灭所有平民。",
   "announcement.goals.vigilante": "消灭任何凶手并保护平民。",
+  "announcement.goals.veteran": "使用你的战斗经验消灭任何威胁。你的刀只能使用有限次数。",
   "announcement.loose_ends.goal": "在危险找上你之前解决所有隐患。祝你好运。",
   "announcement.loose_ends.premise": "列车上的每个人都携带一把袖珍手枪和一把匕首。",
   "announcement.loose_ends.welcome": "欢迎登车……孤行者。",
@@ -15,10 +17,12 @@
   "announcement.role.killer": "杀手",
   "announcement.role.loose_end": "孤行者",
   "announcement.role.vigilante": "义警",
+  "announcement.role.veteran": "退伍军人",
   "announcement.title.civilian": "平民",
   "announcement.title.killer": "杀手",
   "announcement.title.loose_end": "孤行者",
   "announcement.title.vigilante": "义警",
+  "announcement.title.veteran": "退伍军人",
   "announcement.title.discovery_civilian": "探索平民",
   "announcement.title.no_role": "无角色",
   "announcement.welcome": "欢迎登车 %s",
@@ -26,6 +30,7 @@
   "announcement.win.killer": "杀手胜利",
   "announcement.win.loose_end": "%s 获胜",
   "announcement.win.vigilante": "乘客胜利",
+  "announcement.win.veteran": "乘客胜利",
 
 
 
@@ -426,6 +431,8 @@
   "tip.letter.killer.tooltip3": "附言：别忘了使用你的本能透视 [左Alt] 并利用列车外部进行移动。",
   "tip.letter.vigilante.tooltip1": "情报显示这列列车上有杀手潜伏。",
   "tip.letter.vigilante.tooltip2": "你的任务：消灭任何威胁并保护平民。",
+  "tip.letter.veteran.tooltip1": "你的军旅经验在这次旅程中至关重要。",
+  "tip.letter.veteran.tooltip2": "你有一把使用次数有限的刀。请珍惜每一次出刀机会。",
   "hud.body.death_info": "死于 %s 秒前，死因：",
   "hud.mood.breakdown_warning": "精神即将崩溃！"
 }

@@ -51,8 +51,6 @@ public class RoleAnnouncementTexts {
             new RoleAnnouncementText(Wathe.id("blank"), 0xFFFFFF));
     public static final RoleAnnouncementText CIVILIAN = registerRoleAnnouncementText(
             new RoleAnnouncementText(Wathe.id("civilian"), 0x36E51B));
-    public static final RoleAnnouncementText VIGILANTE = registerRoleAnnouncementText(
-            new RoleAnnouncementText(Wathe.id("vigilante"), 0x1B8AE5));
     public static final RoleAnnouncementText KILLER = registerRoleAnnouncementText(
             new RoleAnnouncementText(Wathe.id("killer"), 0xC13838));
     public static final RoleAnnouncementText LOOSE_END = registerRoleAnnouncementText(

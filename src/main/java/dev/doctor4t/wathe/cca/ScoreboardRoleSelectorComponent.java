@@ -181,26 +181,47 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
     }
 
     public void assignVigilantes(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int vigilanteCount) {
-        // Count already assigned vigilantes (from forced roles)
+        // Count already assigned vigilantes and veterans (from forced roles)
         int existingVigilanteCount = 0;
+        int existingVeteranCount = 0;
         for (ServerPlayerEntity player : players) {
             Role role = gameComponent.getRole(player);
             if (role != null && role == WatheRoles.VIGILANTE) {
                 existingVigilanteCount++;
+            } else if (role != null && role == WatheRoles.VETERAN) {
+                existingVeteranCount++;
             }
         }
 
-        // Adjust vigilante count by subtracting existing vigilantes
-        vigilanteCount = Math.max(0, vigilanteCount - existingVigilanteCount);
+        // Calculate total vigilante-type roles needed (vigilante + veteran)
+        int totalVigilanteTypeCount = vigilanteCount;
+        int existingTotal = existingVigilanteCount + existingVeteranCount;
+        int remainingToAssign = Math.max(0, totalVigilanteTypeCount - existingTotal);
 
         // Get available players
         ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
 
-        // Assign vigilantes randomly
+        // Assign alternating: vigilante, veteran, vigilante, veteran...
+        // Track how many of each we've assigned so far (including existing forced roles)
+        int vigilanteAssigned = existingVigilanteCount;
+        int veteranAssigned = existingVeteranCount;
+
         for (ServerPlayerEntity player : availablePlayers) {
-            if (vigilanteCount <= 0) break;
-            gameComponent.addRole(player, WatheRoles.VIGILANTE);
-            vigilanteCount--;
+            if (remainingToAssign <= 0) break;
+
+            // Alternate based on total assigned: odd index = vigilante, even index = veteran
+            // Pattern: 1st vigilante, 2nd veteran, 3rd vigilante, 4th veteran...
+            int totalAssigned = vigilanteAssigned + veteranAssigned;
+            if (totalAssigned % 2 == 0) {
+                // Even index (0, 2, 4...) -> assign vigilante
+                gameComponent.addRole(player, WatheRoles.VIGILANTE);
+                vigilanteAssigned++;
+            } else {
+                // Odd index (1, 3, 5...) -> assign veteran
+                gameComponent.addRole(player, WatheRoles.VETERAN);
+                veteranAssigned++;
+            }
+            remainingToAssign--;
         }
     }
 

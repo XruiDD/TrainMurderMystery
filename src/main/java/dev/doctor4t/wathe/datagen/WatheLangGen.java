@@ -43,10 +43,12 @@ public class WatheLangGen extends FabricLanguageProvider {
 
         builder.add("announcement.role.civilian", "Civilian!");
         builder.add("announcement.role.vigilante", "Vigilante!");
+        builder.add("announcement.role.veteran", "Veteran!");
         builder.add("announcement.role.killer", "Killer!");
         builder.add("announcement.role.loose_end", "Loose End!");
         builder.add("announcement.title.civilian", "Civilians");
         builder.add("announcement.title.vigilante", "Vigilantes");
+        builder.add("announcement.title.veteran", "Veterans");
         builder.add("announcement.title.killer", "Killers");
         builder.add("announcement.title.loose_end", "Loose Ends");
         builder.add("announcement.title.discovery_civilian", "Discovery Civilians");
@@ -57,12 +59,15 @@ public class WatheLangGen extends FabricLanguageProvider {
         builder.add("announcement.premises", "There are %s killers aboard the train.");
         builder.add("announcement.goal.civilian", "Stay safe and survive till the end of the ride.");
         builder.add("announcement.goal.vigilante", "Eliminate any murderers and protect the civilians.");
+        builder.add("announcement.goal.veteran", "Use your combat experience to eliminate any threats. You have limited strikes.");
         builder.add("announcement.goal.killer", "Eliminate a passenger to succeed, before time runs out.");
         builder.add("announcement.goals.civilian", "Stay safe and survive till the end of the ride.");
         builder.add("announcement.goals.vigilante", "Eliminate any murderers and protect the civilians.");
+        builder.add("announcement.goals.veteran", "Use your combat experience to eliminate any threats. You have limited strikes.");
         builder.add("announcement.goals.killer", "Eliminate all civilians before time runs out.");
         builder.add("announcement.win.civilian", "Passengers Win!");
         builder.add("announcement.win.vigilante", "Passengers Win!");
+        builder.add("announcement.win.veteran", "Passengers Win!");
         builder.add("announcement.win.killer", "Killers Win!");
         builder.add("announcement.win.loose_end", "%s Wins!");
         builder.add("announcement.loose_ends.welcome", "Welcome aboard... Loose End.");
@@ -222,6 +227,8 @@ public class WatheLangGen extends FabricLanguageProvider {
         builder.add("tip.letter.killer.tooltip3", "P.S.: Don't forget to use your instinct [Left Alt] and use the train's exterior to relocate.");
         builder.add("tip.letter.vigilante.tooltip1", "Intel suggests there is a killer aboard this train.");
         builder.add("tip.letter.vigilante.tooltip2", "Your mission: eliminate any threats and protect the civilians.");
+        builder.add("tip.letter.veteran.tooltip1", "Your military experience will be crucial on this journey.");
+        builder.add("tip.letter.veteran.tooltip2", "You have a knife with limited uses. Make each strike count.");
 
         // Mood HUD
         builder.add("hud.mood.breakdown_warning", "MENTAL BREAKDOWN IMMINENT!");

@@ -8,6 +8,8 @@ import dev.doctor4t.wathe.util.ShopEntry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 
+import static dev.doctor4t.wathe.game.GameConstants.getInTicks;
+
 /**
  * Builds the shop entries for killer faction players.
  * This class encapsulates all the logic for what items are available
@@ -37,39 +39,55 @@ public class KillerShopBuilder {
     }
 
     private static void addWeapons(BuildShopEntries.ShopContext context) {
-        context.addEntry(new ShopEntry(WatheItems.KNIFE.getDefaultStack(), 100, ShopEntry.Type.WEAPON));
-        context.addEntry(new ShopEntry(WatheItems.REVOLVER.getDefaultStack(), 300, ShopEntry.Type.WEAPON));
-        context.addEntry(new ShopEntry(WatheItems.GRENADE.getDefaultStack(), 350, ShopEntry.Type.WEAPON));
+        // 刀: 100, 库存1
+        context.addEntry(new ShopEntry.Builder("knife", WatheItems.KNIFE.getDefaultStack(), 100, ShopEntry.Type.WEAPON)
+            .stock(1)
+            .build());
 
-        // Psycho mode - special handling via custom onBuy
-        context.addEntry(new ShopEntry(WatheItems.PSYCHO_MODE.getDefaultStack(), 300, ShopEntry.Type.WEAPON) {
-            @Override
-            public boolean onBuy(PlayerEntity buyPlayer) {
-                return PlayerShopComponent.usePsychoMode(buyPlayer);
-            }
-        });
+        // 枪: 300, 无限制
+        context.addEntry(new ShopEntry.Builder("revolver", WatheItems.REVOLVER.getDefaultStack(), 300, ShopEntry.Type.WEAPON)
+            .build());
+
+        // 手雷: 350, 无限制
+        context.addEntry(new ShopEntry.Builder("grenade", WatheItems.GRENADE.getDefaultStack(), 350, ShopEntry.Type.WEAPON)
+            .build());
+
+        // 疯魔模式: 350, 5分钟冷却
+        context.addEntry(new ShopEntry.Builder("psycho_mode", WatheItems.PSYCHO_MODE.getDefaultStack(), 300, ShopEntry.Type.WEAPON)
+            .cooldown(getInTicks(5, 0))
+            .onBuy(PlayerShopComponent::usePsychoMode)
+            .build());
     }
 
     private static void addPoisons(BuildShopEntries.ShopContext context) {
-        context.addEntry(new ShopEntry(WatheItems.POISON_VIAL.getDefaultStack(), 100, ShopEntry.Type.POISON));
-        context.addEntry(new ShopEntry(WatheItems.SCORPION.getDefaultStack(), 50, ShopEntry.Type.POISON));
+        // 毒药: 100, 无限制
+        context.addEntry(new ShopEntry.Builder("poison_vial", WatheItems.POISON_VIAL.getDefaultStack(), 100, ShopEntry.Type.POISON)
+            .build());
     }
 
     private static void addTools(BuildShopEntries.ShopContext context) {
-        context.addEntry(new ShopEntry(WatheItems.FIRECRACKER.getDefaultStack(), 10, ShopEntry.Type.TOOL));
-        context.addEntry(new ShopEntry(WatheItems.LOCKPICK.getDefaultStack(), 50, ShopEntry.Type.TOOL));
-        context.addEntry(new ShopEntry(WatheItems.CROWBAR.getDefaultStack(), 25, ShopEntry.Type.TOOL));
-        context.addEntry(new ShopEntry(WatheItems.BODY_BAG.getDefaultStack(), 100, ShopEntry.Type.TOOL));
+        // 便签: 10, 无限制 (4个一组)
+        context.addEntry(new ShopEntry.Builder("note", new ItemStack(WatheItems.NOTE, 4), 10, ShopEntry.Type.TOOL)
+            .build());
 
-        // Blackout - special handling via custom onBuy
-        context.addEntry(new ShopEntry(WatheItems.BLACKOUT.getDefaultStack(), 200, ShopEntry.Type.TOOL) {
-            @Override
-            public boolean onBuy(PlayerEntity buyPlayer) {
-                return PlayerShopComponent.useBlackout(buyPlayer);
-            }
-        });
+        // 开锁器: 50, 库存1
+        context.addEntry(new ShopEntry.Builder("lockpick", WatheItems.LOCKPICK.getDefaultStack(), 50, ShopEntry.Type.TOOL)
+            .stock(1)
+            .build());
 
-        // Notes - sold in packs of 4
-        context.addEntry(new ShopEntry(new ItemStack(WatheItems.NOTE, 4), 10, ShopEntry.Type.TOOL));
+        // 撬棍: 25, 库存1
+        context.addEntry(new ShopEntry.Builder("crowbar", WatheItems.CROWBAR.getDefaultStack(), 25, ShopEntry.Type.TOOL)
+            .stock(1)
+            .build());
+
+        // 裹尸袋: 100, 无限制
+        context.addEntry(new ShopEntry.Builder("body_bag", WatheItems.BODY_BAG.getDefaultStack(), 100, ShopEntry.Type.TOOL)
+            .build());
+
+        // 关灯: 300, 共享冷却在onBuy中处理
+        context.addEntry(new ShopEntry.Builder("blackout", WatheItems.BLACKOUT.getDefaultStack(), 300, ShopEntry.Type.TOOL)
+            .cooldown(getInTicks(5,0))
+            .onBuy(PlayerShopComponent::useBlackout)
+            .build());
     }
 }

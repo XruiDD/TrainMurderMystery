@@ -1,6 +1,7 @@
 package dev.doctor4t.wathe.client.gui.screen.ingame;
 
 import dev.doctor4t.wathe.Wathe;
+import dev.doctor4t.wathe.cca.PlayerShopComponent;
 import dev.doctor4t.wathe.client.gui.StoreRenderer;
 import dev.doctor4t.wathe.util.ShopEntry;
 import dev.doctor4t.wathe.util.ShopUtils;
@@ -85,20 +86,70 @@ public class LimitedInventoryScreen extends LimitedHandledScreen<PlayerScreenHan
         @Override
         protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
             super.renderWidget(context, mouseX, mouseY, delta);
+
+            // Get shop component for cooldown/stock info
+            PlayerShopComponent shopComponent = PlayerShopComponent.KEY.get(screen.player);
+            boolean onCooldown = shopComponent.isOnCooldown(entry.id());
+            boolean inStock = shopComponent.isInStock(entry.id());
+            int remainingStock = shopComponent.getRemainingStock(entry.id());
+            int maxStock = shopComponent.getMaxStock(entry.id());
+            int remainingCooldown = shopComponent.getRemainingCooldown(entry.id());
+
+            boolean unavailable = onCooldown || !inStock;
+
+            // Draw slot background
             context.drawGuiTexture(entry.type().getTexture(), this.getX() - 7, this.getY() - 7, 30, 30);
-//            context.drawGuiTexture(Wathe.id("gui/shop_slot"), this.getX() - 7, this.getY() - 7, 30, 30);
+
+            // Draw item
             context.drawItem(this.entry.stack(), this.getX(), this.getY());
+
+            // Draw gray overlay if unavailable
+            if (unavailable) {
+                int darkColor = 0xAA000000;
+                context.fillGradient(RenderLayer.getGuiOverlay(), this.getX(), this.getY(), this.getX() + 16, this.getY() + 16, darkColor, darkColor, 200);
+            }
+
+            // Push z for text rendering on top of item
+            context.getMatrices().push();
+            context.getMatrices().translate(0, 0, 200);
+
+            // Draw cooldown time (centered)
+            if (onCooldown) {
+                int seconds = remainingCooldown / 20;
+                if (seconds > 0) {
+                    String cooldownText = seconds + "s";
+                    int textX = this.getX() + 8 - screen.textRenderer.getWidth(cooldownText) / 2;
+                    int textY = this.getY() + 4;
+                    context.drawText(screen.textRenderer, cooldownText, textX, textY, 0xFFFFFF, true);
+                }
+            }
+
+            // Draw stock count (bottom-right corner) if limited
+            if (maxStock > 0) {
+                String stockText = String.valueOf(remainingStock);
+                int stockColor = remainingStock > 0 ? 0xFFFFFF : 0xFF4444;
+                int textX = this.getX() + 16 - screen.textRenderer.getWidth(stockText);
+                int textY = this.getY() + 16 - 8;
+                context.drawText(screen.textRenderer, stockText, textX, textY, stockColor, true);
+            }
+
+            context.getMatrices().pop();
+
+            // Draw hover highlight
             if (this.isHovered()) {
                 this.screen.renderLimitedInventoryTooltip(context, this.entry.stack());
-                drawShopSlotHighlight(context, this.getX(), this.getY(), 0);
+                if (!unavailable) {
+                    drawShopSlotHighlight(context, this.getX(), this.getY(), 0);
+                }
             }
+
+            // Draw price
             MutableText price = Text.literal(this.entry.price() + "\uE781");
             context.drawTooltip(this.screen.textRenderer, price, this.getX() - 4 - this.screen.textRenderer.getWidth(price) / 2, this.getY() - 9);
         }
 
         private void drawShopSlotHighlight(DrawContext context, int x, int y, int z) {
             int color = 0x90FFBF49;
-//            context.fillGradient(RenderLayer.getGuiOverlay(), x, y, x + 16, y + 16, color, color, z);
             context.fillGradient(RenderLayer.getGuiOverlay(), x, y, x + 16, y + 14, color, color, z);
             context.fillGradient(RenderLayer.getGuiOverlay(), x, y + 14, x + 15, y + 15, color, color, z);
             context.fillGradient(RenderLayer.getGuiOverlay(), x, y + 15, x + 14, y + 16, color, color, z);

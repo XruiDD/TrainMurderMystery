@@ -3,7 +3,6 @@ package dev.doctor4t.wathe.cca;
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.api.event.ShopPurchase;
 import dev.doctor4t.wathe.game.GameConstants;
-import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.index.WatheSounds;
 import dev.doctor4t.wathe.util.ShopEntry;
 import dev.doctor4t.wathe.util.ShopUtils;
@@ -22,15 +21,25 @@ import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
-import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class PlayerShopComponent implements AutoSyncedComponent {
+public class PlayerShopComponent implements AutoSyncedComponent, ServerTickingComponent {
     public static final ComponentKey<PlayerShopComponent> KEY = ComponentRegistry.getOrCreate(Wathe.id("shop"), PlayerShopComponent.class);
     private final PlayerEntity player;
     public int balance = 0;
+
+    // Custom cooldown system - entry ID -> remaining cooldown ticks
+    private final Map<String, Integer> cooldowns = new HashMap<>();
+
+    // Stock system - entry ID -> remaining stock
+    private final Map<String, Integer> stock = new HashMap<>();
+
+    // Max stock cache - entry ID -> max stock (for display)
+    private final Map<String, Integer> maxStockCache = new HashMap<>();
 
     public PlayerShopComponent(PlayerEntity player) {
         this.player = player;
@@ -45,10 +54,156 @@ public class PlayerShopComponent implements AutoSyncedComponent {
         KEY.sync(this.player);
     }
 
-    public void reset() {
-        this.balance = 0;
+    // === Shop Initialization ===
+
+    /**
+     * Initializes the shop state for a new game.
+     * Should be called after roles are assigned.
+     *
+     * @param entries the shop entries available to this player
+     */
+    public void initializeShop(List<ShopEntry> entries) {
+        cooldowns.clear();
+        stock.clear();
+        maxStockCache.clear();
+
+        for (ShopEntry entry : entries) {
+            // Set initial cooldowns
+            if (entry.hasInitialCooldown()) {
+                cooldowns.put(entry.id(), entry.initialCooldownTicks());
+            }
+
+            // Set initial stock
+            if (entry.hasStockLimit()) {
+                stock.put(entry.id(), entry.maxStock());
+                maxStockCache.put(entry.id(), entry.maxStock());
+            }
+        }
+
         this.sync();
     }
+
+    // === Cooldown Management ===
+
+    /**
+     * Checks if an entry is on cooldown.
+     */
+    public boolean isOnCooldown(String entryId) {
+        return cooldowns.getOrDefault(entryId, 0) > 0;
+    }
+
+    /**
+     * Gets the remaining cooldown ticks for an entry.
+     */
+    public int getRemainingCooldown(String entryId) {
+        return cooldowns.getOrDefault(entryId, 0);
+    }
+
+    /**
+     * Applies cooldown after a successful purchase.
+     */
+    private void applyCooldown(ShopEntry entry) {
+        if (entry.hasCooldown()) {
+            cooldowns.put(entry.id(), entry.cooldownTicks());
+        }
+    }
+
+    // === Stock Management ===
+
+    /**
+     * Checks if an entry is in stock.
+     */
+    public boolean isInStock(String entryId) {
+        if (!maxStockCache.containsKey(entryId)) {
+            // No stock limit
+            return true;
+        }
+        return stock.getOrDefault(entryId, 0) > 0;
+    }
+
+    /**
+     * Gets the remaining stock for an entry.
+     * Returns -1 if there's no stock limit.
+     */
+    public int getRemainingStock(String entryId) {
+        if (!maxStockCache.containsKey(entryId)) {
+            return -1;
+        }
+        return stock.getOrDefault(entryId, 0);
+    }
+
+    /**
+     * Gets the maximum stock for an entry.
+     * Returns -1 if there's no stock limit.
+     */
+    public int getMaxStock(String entryId) {
+        return maxStockCache.getOrDefault(entryId, -1);
+    }
+
+    /**
+     * Consumes one stock for an entry.
+     */
+    private void consumeStock(String entryId) {
+        if (maxStockCache.containsKey(entryId)) {
+            int remaining = stock.getOrDefault(entryId, 0);
+            if (remaining > 0) {
+                stock.put(entryId, remaining - 1);
+            }
+        }
+    }
+
+    // === Tick ===
+
+    private static final int SYNC_INTERVAL = 20; // Sync every second (20 ticks)
+    private int syncTickCounter = 0;
+
+    @Override
+    public void serverTick() {
+        if (cooldowns.isEmpty()) {
+            syncTickCounter = 0;
+            return;
+        }
+
+        boolean cooldownEnded = false;
+        var iterator = cooldowns.entrySet().iterator();
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            int remaining = entry.getValue();
+            if (remaining > 0) {
+                entry.setValue(remaining - 1);
+                if (remaining - 1 <= 0) {
+                    iterator.remove();
+                    cooldownEnded = true; // A cooldown just ended
+                }
+            }
+        }
+
+        // Sync immediately when a cooldown ends (important for UI)
+        if (cooldownEnded) {
+            syncTickCounter = 0;
+            this.sync();
+            return;
+        }
+
+        // Otherwise, sync periodically (every second)
+        syncTickCounter++;
+        if (syncTickCounter >= SYNC_INTERVAL) {
+            syncTickCounter = 0;
+            this.sync();
+        }
+    }
+
+    // === Reset ===
+
+    public void reset() {
+        this.balance = 0;
+        this.cooldowns.clear();
+        this.stock.clear();
+        this.maxStockCache.clear();
+        this.sync();
+    }
+
+    // === Balance Management ===
 
     public void addToBalance(int amount) {
         this.setBalance(this.balance + amount);
@@ -61,6 +216,7 @@ public class PlayerShopComponent implements AutoSyncedComponent {
         }
     }
 
+    // === Purchase Logic ===
 
     private void sendPurchaseError(String translationKey) {
         Text message = Text.translatable(translationKey).formatted(Formatting.DARK_RED);
@@ -112,6 +268,18 @@ public class PlayerShopComponent implements AutoSyncedComponent {
 
         ShopEntry entry = entries.get(index);
 
+        // Check cooldown
+        if (isOnCooldown(entry.id())) {
+            sendPurchaseError("shop.error.on_cooldown");
+            return;
+        }
+
+        // Check stock
+        if (!isInStock(entry.id())) {
+            sendPurchaseError("shop.error.out_of_stock");
+            return;
+        }
+
         // Check if purchase is allowed via event
         ShopPurchase.PurchaseResult purchaseResult = ShopPurchase.BEFORE.invoker()
             .beforePurchase(serverPlayer, entry, index);
@@ -152,34 +320,107 @@ public class PlayerShopComponent implements AutoSyncedComponent {
     }
 
     private boolean canAffordAndBuy(ShopEntry entry, int price) {
-        return this.balance >= price
-            && !this.player.getItemCooldownManager().isCoolingDown(entry.stack().getItem())
-            && entry.onBuy(this.player);
+        // Only check balance and execute onBuy - cooldown/stock already checked
+        return this.balance >= price && entry.onBuy(this.player);
     }
 
     private void completePurchase(ServerPlayerEntity player, ShopEntry entry, int index, int pricePaid) {
         this.balance -= pricePaid;
+
+        // Apply cooldown
+        applyCooldown(entry);
+
+        // Consume stock
+        consumeStock(entry.id());
+
         playSound(player, WatheSounds.UI_SHOP_BUY);
         ShopPurchase.AFTER.invoker().afterPurchase(player, entry, index, pricePaid);
     }
 
     public static boolean useBlackout(@NotNull PlayerEntity player) {
-        player.getItemCooldownManager().set(WatheItems.BLACKOUT, GameConstants.ITEM_COOLDOWNS.getOrDefault(WatheItems.BLACKOUT, 0));
-        return WorldBlackoutComponent.KEY.get(player.getWorld()).triggerBlackout();
+        boolean success = WorldBlackoutComponent.KEY.get(player.getWorld()).triggerBlackout();
+        if (success && player instanceof ServerPlayerEntity serverPlayer) {
+            // 关灯成功后，给所有杀手设置冷却
+            applyBlackoutCooldownToAllKillers(serverPlayer);
+        }
+        return success;
+    }
+
+    private static void applyBlackoutCooldownToAllKillers(ServerPlayerEntity purchaser) {
+        GameWorldComponent gameComponent = GameWorldComponent.KEY.get(purchaser.getWorld());
+        int cooldownTicks = GameConstants.getInTicks(5, 0); // 5分钟冷却
+
+        for (ServerPlayerEntity killer : purchaser.getServerWorld().getPlayers()) {
+            if (gameComponent.canUseKillerFeatures(killer)) {
+                PlayerShopComponent shop = KEY.get(killer);
+                shop.cooldowns.put("blackout", cooldownTicks);
+                shop.sync();
+            }
+        }
     }
 
     public static boolean usePsychoMode(@NotNull PlayerEntity player) {
-        player.getItemCooldownManager().set(WatheItems.PSYCHO_MODE, GameConstants.ITEM_COOLDOWNS.getOrDefault(WatheItems.PSYCHO_MODE, 0));
+        // No longer using MC cooldown manager - cooldown is handled by PlayerShopComponent
         return PlayerPsychoComponent.KEY.get(player).startPsycho();
     }
+
+    // === NBT Serialization ===
 
     @Override
     public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         tag.putInt("Balance", this.balance);
+
+        // Save cooldowns
+        NbtCompound cooldownsNbt = new NbtCompound();
+        for (var entry : cooldowns.entrySet()) {
+            cooldownsNbt.putInt(entry.getKey(), entry.getValue());
+        }
+        tag.put("Cooldowns", cooldownsNbt);
+
+        // Save stock
+        NbtCompound stockNbt = new NbtCompound();
+        for (var entry : stock.entrySet()) {
+            stockNbt.putInt(entry.getKey(), entry.getValue());
+        }
+        tag.put("Stock", stockNbt);
+
+        // Save max stock cache
+        NbtCompound maxStockNbt = new NbtCompound();
+        for (var entry : maxStockCache.entrySet()) {
+            maxStockNbt.putInt(entry.getKey(), entry.getValue());
+        }
+        tag.put("MaxStock", maxStockNbt);
     }
 
     @Override
     public void readFromNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         this.balance = tag.getInt("Balance");
+
+        // Load cooldowns
+        cooldowns.clear();
+        if (tag.contains("Cooldowns")) {
+            NbtCompound cooldownsNbt = tag.getCompound("Cooldowns");
+            for (String key : cooldownsNbt.getKeys()) {
+                cooldowns.put(key, cooldownsNbt.getInt(key));
+            }
+        }
+
+        // Load stock
+        stock.clear();
+        if (tag.contains("Stock")) {
+            NbtCompound stockNbt = tag.getCompound("Stock");
+            for (String key : stockNbt.getKeys()) {
+                stock.put(key, stockNbt.getInt(key));
+            }
+        }
+
+        // Load max stock cache
+        maxStockCache.clear();
+        if (tag.contains("MaxStock")) {
+            NbtCompound maxStockNbt = tag.getCompound("MaxStock");
+            for (String key : maxStockNbt.getKeys()) {
+                maxStockCache.put(key, maxStockNbt.getInt(key));
+            }
+        }
     }
 }

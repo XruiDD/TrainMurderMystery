@@ -345,6 +345,8 @@
   "lobby.players.count": "Players boarded: %s / %s",
   "shop.error.invalid_item": "Invalid Item",
   "shop.error.not_available": "Shop Not Available",
+  "shop.error.on_cooldown": "Item On Cooldown",
+  "shop.error.out_of_stock": "Out Of Stock",
   "shop.error.purchase_denied": "Purchase Denied",
   "shop.error.purchase_failed": "Purchase Failed",
   "subtitles.block.cargo_box.close": "Cargo Box closes",

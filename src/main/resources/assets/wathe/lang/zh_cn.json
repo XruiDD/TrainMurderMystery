@@ -420,6 +420,8 @@
 
   "shop.error.not_available": "商店暂不可用",
   "shop.error.invalid_item": "无效的商品",
+  "shop.error.on_cooldown": "商品冷却中",
+  "shop.error.out_of_stock": "库存不足",
   "shop.error.purchase_denied": "购买被拒绝",
   "shop.error.purchase_failed": "购买失败",
   "tip.letter.name": "亲爱的%s，你的身份是%s，欢迎登上哈比号快车！",

@@ -10,6 +10,8 @@ import dev.doctor4t.wathe.api.WatheRoles;
 import dev.doctor4t.wathe.api.event.ResetPlayer;
 import dev.doctor4t.wathe.cca.*;
 import dev.doctor4t.wathe.compat.TrainVoicePlugin;
+import dev.doctor4t.wathe.util.ShopEntry;
+import dev.doctor4t.wathe.util.ShopUtils;
 import dev.doctor4t.wathe.config.datapack.RoomConfig;
 import dev.doctor4t.wathe.entity.FirecrackerEntity;
 import dev.doctor4t.wathe.entity.NoteEntity;
@@ -124,6 +126,9 @@ public class GameFunctions {
         // baseInitialize现在返回房间号映射
         Map<UUID, Integer> playerRoomMap = baseInitialize(serverWorld, gameComponent, readyPlayerList);
         gameComponent.getGameMode().initializeGame(serverWorld, gameComponent, readyPlayerList);
+
+        // 角色分配后初始化商店
+        initializeShopsForPlayers(readyPlayerList);
 
         // 角色分配后再生成信件
         giveLettersToPlayers(serverWorld, gameComponent, readyPlayerList, playerRoomMap);
@@ -263,6 +268,17 @@ public class GameFunctions {
         gameComponent.sync();
 
         return playerRoomMap;
+    }
+
+    /**
+     * Initializes shop state for all players after role assignment.
+     * This sets up initial cooldowns and stock limits based on each player's shop entries.
+     */
+    private static void initializeShopsForPlayers(List<ServerPlayerEntity> players) {
+        for (ServerPlayerEntity player : players) {
+            List<ShopEntry> entries = ShopUtils.getShopEntriesForPlayer(player);
+            PlayerShopComponent.KEY.get(player).initializeShop(entries);
+        }
     }
 
     private static void giveLettersToPlayers(ServerWorld serverWorld, GameWorldComponent gameComponent,

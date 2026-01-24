@@ -44,7 +44,8 @@ public interface GameConstants {
     // Task Variables
     float MOOD_GAIN = 0.5f;
     float MOOD_DRAIN = 1f / getInTicks(4, 0);
-    int TIME_TO_FIRST_TASK = getInTicks(0, 30);
+    int MIN_TIME_TO_FIRST_TASK = getInTicks(0, 40);
+    int MAX_TIME_TO_FIRST_TASK = getInTicks(1, 20);
     int MIN_TASK_COOLDOWN = getInTicks(0, 30);
     int MAX_TASK_COOLDOWN = getInTicks(1, 0);
     int TASK_INTERVAL_PER_ACTIVE_TASK = getInTicks(0, 10); // 每个活跃任务额外增加20秒间隔

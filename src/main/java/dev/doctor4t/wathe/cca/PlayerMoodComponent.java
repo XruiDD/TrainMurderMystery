@@ -97,7 +97,7 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
     public void reset() {
         this.tasks.clear();
         this.timesGotten.clear();
-        this.nextTaskTimer = GameConstants.TIME_TO_FIRST_TASK;
+        this.nextTaskTimer = (int) (this.player.getRandom().nextFloat() * (GameConstants.MAX_TIME_TO_FIRST_TASK - GameConstants.MIN_TIME_TO_FIRST_TASK) + GameConstants.MIN_TIME_TO_FIRST_TASK);
         this.psychosisItems.clear();
         this.setMood(1f);
         this.sync();

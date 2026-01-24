@@ -21,7 +21,7 @@ import java.util.UUID;
 
 public class MurderGameMode extends GameMode {
     public MurderGameMode(Identifier identifier) {
-        super(identifier, 10, 6);
+        super(identifier, 15, 6);
     }
 
     private static int assignRolesAndGetKillerCount(@NotNull ServerWorld world, @NotNull List<ServerPlayerEntity> players, GameWorldComponent gameComponent) {

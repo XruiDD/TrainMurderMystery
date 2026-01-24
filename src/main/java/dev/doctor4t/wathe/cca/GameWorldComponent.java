@@ -52,6 +52,44 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     private final HashMap<UUID, Role> roles = new HashMap<>();
     private final HashMap<UUID, GameProfile> gameProfiles = new HashMap<>();
     private final HashSet<UUID> deadPlayers = new HashSet<>();
+    private final HashMap<Integer, RoomData> rooms = new HashMap<>();
+
+    /**
+     * 房间数据类，存储房间索引、名称和玩家列表
+     */
+    public static class RoomData {
+        private final int index;
+        private final String name;
+        private final List<UUID> players;
+
+        public RoomData(int index, String name) {
+            this.index = index;
+            this.name = name;
+            this.players = new ArrayList<>();
+        }
+
+        public int getIndex() {
+            return index;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public List<UUID> getPlayers() {
+            return players;
+        }
+
+        public void addPlayer(UUID player) {
+            if (!players.contains(player)) {
+                players.add(player);
+            }
+        }
+
+        public boolean hasPlayer(UUID player) {
+            return players.contains(player);
+        }
+    }
 
     private int ticksUntilNextResetAttempt = -1;
 
@@ -215,6 +253,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         this.roles.clear();
         this.gameProfiles.clear();
         this.deadPlayers.clear();
+        this.rooms.clear();
         setPsychosActive(0);
     }
 
@@ -224,6 +263,99 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
 
     public boolean isPlayerDead(UUID uuid) {
         return this.deadPlayers.contains(uuid);
+    }
+
+    // Room management methods
+
+    /**
+     * 添加或获取房间，如果房间不存在则创建
+     * @param roomIndex 房间索引 (1-indexed)
+     * @param roomName 房间名称
+     * @return 房间数据
+     */
+    public RoomData getOrCreateRoom(int roomIndex, String roomName) {
+        return this.rooms.computeIfAbsent(roomIndex, idx -> new RoomData(idx, roomName));
+    }
+
+    /**
+     * 将玩家添加到指定房间
+     * @param roomIndex 房间索引 (1-indexed)
+     * @param roomName 房间名称
+     * @param player 玩家
+     */
+    public void addPlayerToRoom(int roomIndex, String roomName, PlayerEntity player) {
+        addPlayerToRoom(roomIndex, roomName, player.getUuid());
+    }
+
+    /**
+     * 将玩家添加到指定房间
+     * @param roomIndex 房间索引 (1-indexed)
+     * @param roomName 房间名称
+     * @param playerUuid 玩家UUID
+     */
+    public void addPlayerToRoom(int roomIndex, String roomName, UUID playerUuid) {
+        RoomData room = getOrCreateRoom(roomIndex, roomName);
+        room.addPlayer(playerUuid);
+    }
+
+    /**
+     * 获取指定房间
+     * @param roomIndex 房间索引 (1-indexed)
+     * @return 房间数据，如果不存在返回null
+     */
+    @Nullable
+    public RoomData getRoom(int roomIndex) {
+        return this.rooms.get(roomIndex);
+    }
+
+    /**
+     * 获取所有房间
+     * @return 房间索引到房间数据的映射
+     */
+    public HashMap<Integer, RoomData> getRooms() {
+        return this.rooms;
+    }
+
+    /**
+     * 获取玩家所在的房间
+     * @param player 玩家
+     * @return 房间数据，如果玩家不在任何房间则返回null
+     */
+    @Nullable
+    public RoomData getPlayerRoom(PlayerEntity player) {
+        return getPlayerRoom(player.getUuid());
+    }
+
+    /**
+     * 获取玩家所在的房间
+     * @param playerUuid 玩家UUID
+     * @return 房间数据，如果玩家不在任何房间则返回null
+     */
+    @Nullable
+    public RoomData getPlayerRoom(UUID playerUuid) {
+        for (RoomData room : this.rooms.values()) {
+            if (room.hasPlayer(playerUuid)) {
+                return room;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 获取玩家所在的房间索引
+     * @param playerUuid 玩家UUID
+     * @return 房间索引 (1-indexed)，如果玩家不在任何房间则返回-1
+     */
+    public int getPlayerRoomIndex(UUID playerUuid) {
+        RoomData room = getPlayerRoom(playerUuid);
+        return room != null ? room.getIndex() : -1;
+    }
+
+    /**
+     * 清空所有房间数据
+     */
+    public void clearRooms() {
+        this.rooms.clear();
     }
 
     public HashMap<UUID, GameProfile> getGameProfiles() {
@@ -421,6 +553,25 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
                 this.disabledRoles.add(Identifier.of(e.asString()));
             }
         }
+
+        // Read room assignments
+        this.rooms.clear();
+        if (nbtCompound.contains("Rooms")) {
+            NbtList roomsList = nbtCompound.getList("Rooms", NbtElement.COMPOUND_TYPE);
+            for (NbtElement e : roomsList) {
+                NbtCompound roomNbt = (NbtCompound) e;
+                int index = roomNbt.getInt("index");
+                String name = roomNbt.getString("name");
+                RoomData room = new RoomData(index, name);
+
+                NbtList playersList = roomNbt.getList("players", NbtElement.INT_ARRAY_TYPE);
+                for (NbtElement pe : playersList) {
+                    room.addPlayer(NbtHelper.toUuid(pe));
+                }
+
+                this.rooms.put(index, room);
+            }
+        }
     }
 
     private ArrayList<UUID> uuidListFromNbt(NbtCompound nbtCompound, String listName) {
@@ -488,6 +639,23 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
             disabledRolesList.add(NbtString.of(roleId.toString()));
         }
         nbtCompound.put("DisabledRoles", disabledRolesList);
+
+        // Write room assignments
+        NbtList roomsList = new NbtList();
+        for (RoomData room : this.rooms.values()) {
+            NbtCompound roomNbt = new NbtCompound();
+            roomNbt.putInt("index", room.getIndex());
+            roomNbt.putString("name", room.getName());
+
+            NbtList playersList = new NbtList();
+            for (UUID playerUuid : room.getPlayers()) {
+                playersList.add(NbtHelper.fromUuid(playerUuid));
+            }
+            roomNbt.put("players", playersList);
+
+            roomsList.add(roomNbt);
+        }
+        nbtCompound.put("Rooms", roomsList);
     }
 
     private NbtList nbtFromUuidList(List<UUID> list) {

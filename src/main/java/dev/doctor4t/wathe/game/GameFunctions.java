@@ -213,15 +213,14 @@ public class GameFunctions {
                 int roomNumber = findRandomAvailableRoom(roomPlayerCounts, enhancements, totalRooms, random);
                 int playerIndexInRoom = roomPlayerCounts.getOrDefault(roomNumber, 0);
 
-                playerRoomMap.put(serverPlayerEntity.getUuid(), roomNumber);
-                roomPlayerCounts.put(roomNumber, playerIndexInRoom + 1);
-
-                int finalRoomNumber = roomNumber;
-
                 // 获取房间名（如果配置了自定义名称则使用，否则默认 "Room X"）
-                String roomName = enhancements.getRoomConfig(finalRoomNumber)
-                    .map(config -> config.getName(finalRoomNumber))
-                    .orElse("Room " + finalRoomNumber);
+                String roomName = enhancements.getRoomConfig(roomNumber)
+                    .map(config -> config.getName(roomNumber))
+                    .orElse("Room " + roomNumber);
+
+                playerRoomMap.put(serverPlayerEntity.getUuid(), roomNumber);
+                gameComponent.addPlayerToRoom(roomNumber, roomName, serverPlayerEntity); // 持久化到组件
+                roomPlayerCounts.put(roomNumber, playerIndexInRoom + 1);
 
                 // 给钥匙
                 ItemStack itemStack = new ItemStack(WatheItems.KEY);
@@ -240,11 +239,14 @@ public class GameFunctions {
             int roomNumber = 0;
             for (ServerPlayerEntity serverPlayerEntity : players) {
                 roomNumber = roomNumber % 7 + 1;
-                int finalRoomNumber = roomNumber;
-                playerRoomMap.put(serverPlayerEntity.getUuid(), finalRoomNumber);
+                String roomName = "Room " + roomNumber;
+
+                playerRoomMap.put(serverPlayerEntity.getUuid(), roomNumber);
+                gameComponent.addPlayerToRoom(roomNumber, roomName, serverPlayerEntity); // 持久化到组件
 
                 // 给钥匙
                 ItemStack itemStack = new ItemStack(WatheItems.KEY);
+                int finalRoomNumber = roomNumber;
                 itemStack.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, component -> new LoreComponent(Text.literal("Room " + finalRoomNumber).getWithStyle(Style.EMPTY.withItalic(false).withColor(0xFF8C00))));
                 serverPlayerEntity.giveItemStack(itemStack);
 

@@ -3,6 +3,7 @@ package dev.doctor4t.wathe.mixin;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.index.tag.WatheItemTags;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
@@ -39,7 +40,7 @@ public abstract class ItemEntityMixin {
         }
 
         // 原有逻辑：无辜玩家只能拾取自己掉落的枪或在没有枪的情况下拾取他人的枪
-        if (!this.getStack().isIn(WatheItemTags.GUNS) || (game.isInnocent(player) && !player.equals(this.getOwner()) && !player.getInventory().contains(itemStack -> itemStack.isIn(WatheItemTags.GUNS)))) {
+        if (!this.getStack().isIn(WatheItemTags.GUNS) || (game.isInnocent(player) && !player.equals(this.getOwner()) && !player.getInventory().contains(itemStack -> itemStack.isIn(WatheItemTags.GUNS)) && !player.getInventory().contains(itemStack -> itemStack.isOf(WatheItems.KNIFE)))) {
             original.call(player);
         }
     }

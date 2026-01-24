@@ -133,24 +133,20 @@ public class WorldBlackoutComponent implements ServerTickingComponent {
 
     private void applyBlackoutEffects(ServerWorld serverWorld) {
         GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
-        MapVariablesWorldComponent areasComponent = MapVariablesWorldComponent.KEY.get(serverWorld);
-        Box playArea = areasComponent.getPlayArea();
-
         for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-            if (playArea == null || !playArea.contains(player.getPos())) {
-                continue;
-            }
-
             if (!GameFunctions.isPlayerAliveAndSurvival(player)) {
                 continue;
             }
 
             boolean isKiller = gameComponent.canUseKillerFeatures(player);
 
+            // 药水效果持续时间与黑灯剩余时间一致，加40 ticks缓冲避免闪烁
+            int effectDuration = this.ticks;
+
             if (isKiller || gameComponent.isRole(player.getUuid(), WatheRoles.VETERAN)) {
                 StatusEffectInstance nightVision = new StatusEffectInstance(
                     StatusEffects.NIGHT_VISION,
-                    40,
+                    effectDuration,
                     0,
                     false,
                     false,
@@ -160,7 +156,7 @@ public class WorldBlackoutComponent implements ServerTickingComponent {
             } else {
                 StatusEffectInstance darkness = new StatusEffectInstance(
                     StatusEffects.BLINDNESS,
-                    40,
+                    effectDuration,
                     0,
                     false,
                     false,
@@ -172,14 +168,7 @@ public class WorldBlackoutComponent implements ServerTickingComponent {
     }
 
     private void removeBlackoutEffects(ServerWorld serverWorld) {
-        MapVariablesWorldComponent areasComponent = MapVariablesWorldComponent.KEY.get(serverWorld);
-        Box playArea = areasComponent.getPlayArea();
-
         for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-            if (playArea == null || !playArea.contains(player.getPos())) {
-                continue;
-            }
-
             player.removeStatusEffect(StatusEffects.NIGHT_VISION);
             player.removeStatusEffect(StatusEffects.BLINDNESS);
         }

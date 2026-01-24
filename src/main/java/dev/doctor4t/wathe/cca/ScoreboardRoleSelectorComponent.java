@@ -209,15 +209,15 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         for (ServerPlayerEntity player : availablePlayers) {
             if (remainingToAssign <= 0) break;
 
-            // Alternate based on total assigned: odd index = vigilante, even index = veteran
-            // Pattern: 1st vigilante, 2nd veteran, 3rd vigilante, 4th veteran...
+            // Assign based on ratio: 2 vigilantes per 1 veteran
+            // Pattern: 1st vigilante, 2nd vigilante, 3rd veteran, 4th vigilante, 5th vigilante, 6th veteran...
             int totalAssigned = vigilanteAssigned + veteranAssigned;
-            if (totalAssigned % 2 == 0) {
-                // Even index (0, 2, 4...) -> assign vigilante
+            if (totalAssigned % 3 != 2) {
+                // Index 0, 1, 3, 4, 6, 7... -> assign vigilante
                 gameComponent.addRole(player, WatheRoles.VIGILANTE);
                 vigilanteAssigned++;
             } else {
-                // Odd index (1, 3, 5...) -> assign veteran
+                // Index 2, 5, 8... -> assign veteran
                 gameComponent.addRole(player, WatheRoles.VETERAN);
                 veteranAssigned++;
             }

@@ -1,6 +1,7 @@
 package dev.doctor4t.wathe.cca;
 
 import dev.doctor4t.wathe.Wathe;
+import dev.doctor4t.wathe.api.WatheRoles;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.index.WatheProperties;
 import dev.doctor4t.wathe.index.WatheSounds;
@@ -146,7 +147,7 @@ public class WorldBlackoutComponent implements ServerTickingComponent {
 
             boolean isKiller = gameComponent.canUseKillerFeatures(player);
 
-            if (isKiller) {
+            if (isKiller || gameComponent.isRole(player.getUuid(), WatheRoles.VETERAN)) {
                 StatusEffectInstance nightVision = new StatusEffectInstance(
                     StatusEffects.NIGHT_VISION,
                     40,

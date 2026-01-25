@@ -3,6 +3,7 @@ package dev.doctor4t.wathe.cca;
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.api.event.ShopPurchase;
 import dev.doctor4t.wathe.game.GameConstants;
+import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheSounds;
 import dev.doctor4t.wathe.util.ShopEntry;
 import dev.doctor4t.wathe.util.ShopUtils;
@@ -245,6 +246,11 @@ public class PlayerShopComponent implements AutoSyncedComponent, ServerTickingCo
     public void tryBuy(int index) {
         // SECURITY: Only allow purchases on server side
         if (!(this.player instanceof ServerPlayerEntity serverPlayer)) {
+            return;
+        }
+
+        if(!GameFunctions.isPlayerAliveAndSurvival(this.player)){
+            sendPurchaseError("shop.error.purchase_denied");
             return;
         }
 

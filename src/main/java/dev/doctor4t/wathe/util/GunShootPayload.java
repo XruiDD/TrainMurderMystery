@@ -1,6 +1,7 @@
 package dev.doctor4t.wathe.util;
 
 import dev.doctor4t.wathe.Wathe;
+import dev.doctor4t.wathe.api.WatheRoles;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.api.event.ShouldPunishGunShooter;
@@ -101,6 +102,12 @@ public record GunShootPayload(int target) implements CustomPayload {
 
                 if (!backfire) {
                     GameFunctions.killPlayer(target, true, player, GameConstants.DeathReasons.GUN);
+
+                    // 乘客（非义警、非老兵）枪人扣除0.35理智值
+                    if (game.isInnocent(player) && !game.isRole(player, WatheRoles.VIGILANTE) && !game.isRole(player, WatheRoles.VETERAN)) {
+                        PlayerMoodComponent moodComponent = PlayerMoodComponent.KEY.get(player);
+                        moodComponent.setMood(moodComponent.getMood() - 0.35f);
+                    }
                 }
             }
 

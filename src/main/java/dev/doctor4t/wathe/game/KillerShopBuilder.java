@@ -53,7 +53,7 @@ public class KillerShopBuilder {
             .build());
 
         // 疯魔模式: 350, 5分钟冷却
-        context.addEntry(new ShopEntry.Builder("psycho_mode", WatheItems.PSYCHO_MODE.getDefaultStack(), 300, ShopEntry.Type.WEAPON)
+        context.addEntry(new ShopEntry.Builder("psycho_mode", WatheItems.PSYCHO_MODE.getDefaultStack(), 350, ShopEntry.Type.WEAPON)
             .cooldown(getInTicks(5, 0))
             .onBuy(PlayerShopComponent::usePsychoMode)
             .build());
@@ -85,7 +85,7 @@ public class KillerShopBuilder {
             .build());
 
         // 关灯: 300, 共享冷却在onBuy中处理
-        context.addEntry(new ShopEntry.Builder("blackout", WatheItems.BLACKOUT.getDefaultStack(), 300, ShopEntry.Type.TOOL)
+        context.addEntry(new ShopEntry.Builder("blackout", WatheItems.BLACKOUT.getDefaultStack(), 400, ShopEntry.Type.TOOL)
             .cooldown(getInTicks(5,0))
             .onBuy(PlayerShopComponent::useBlackout)
             .build());

@@ -5,6 +5,7 @@ import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.api.WatheRoles;
 import dev.doctor4t.wathe.cca.*;
 import dev.doctor4t.wathe.api.event.CheckWinCondition;
+import dev.doctor4t.wathe.api.event.GameEvents;
 import dev.doctor4t.wathe.api.event.RoleAssigned;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
@@ -76,7 +77,7 @@ public class MurderGameMode extends GameMode {
             }
 
             // check if some civilians are still alive
-            if (gameWorldComponent.isInnocent(player) && !GameFunctions.isPlayerEliminated(player)) {
+            if (gameWorldComponent.isInnocent(player) && GameFunctions.isPlayerAliveAndSurvival(player)) {
                 civilianAlive = true;
             }
         }
@@ -90,7 +91,7 @@ public class MurderGameMode extends GameMode {
         if (winStatus == GameFunctions.WinStatus.NONE) {
             winStatus = GameFunctions.WinStatus.PASSENGERS;
             for (UUID player : gameWorldComponent.getAllKillerTeamPlayers()) {
-                if (!GameFunctions.isPlayerEliminated(serverWorld.getPlayerByUuid(player))) {
+                if (!GameFunctions.isPlayerAliveAndSurvival(serverWorld.getPlayerByUuid(player))) {
                     winStatus = GameFunctions.WinStatus.NONE;
                     break;
                 }
@@ -107,6 +108,9 @@ public class MurderGameMode extends GameMode {
 
         // game end on win and display
         if (winStatus != GameFunctions.WinStatus.NONE && gameWorldComponent.getGameStatus() == GameWorldComponent.GameStatus.ACTIVE) {
+            // Fire event before setting round end data
+            GameEvents.ON_WIN_DETERMINED.invoker().onWinDetermined(serverWorld, gameWorldComponent, winStatus, neutralWinner);
+
             if (winStatus == GameFunctions.WinStatus.NEUTRAL && neutralWinner != null) {
                 // use single winner method for neutral wins
                 GameRoundEndComponent.KEY.get(serverWorld).setRoundEndData(serverWorld, neutralWinner.getUuid());

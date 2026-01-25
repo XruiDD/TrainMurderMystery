@@ -97,7 +97,7 @@ public class KnifeItem extends Item implements ItemWithSkin {
     }
 
     public static HitResult getKnifeTarget(PlayerEntity user) {
-        return ProjectileUtil.getCollision(user, entity -> entity instanceof PlayerEntity player && GameFunctions.isPlayerAliveAndSurvival(player), 3f);
+        return ProjectileUtil.getCollision(user, entity -> entity instanceof PlayerEntity player && GameFunctions.isPlayerAliveAndSurvival(player) && !GameFunctions.isPlayerSpectatingOrCreative(player), 3f);
     }
 
     @Override

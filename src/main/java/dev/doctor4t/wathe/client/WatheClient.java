@@ -89,10 +89,6 @@ public class WatheClient implements ClientModInitializer {
     // 方块黑名单 debug 开关
     public static boolean blockBlacklistDebugEnabled = false;
 
-    public static boolean shouldDisableHudAndDebug() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        return (client == null || (client.player != null && !client.player.isCreative() && !client.player.isSpectator()));
-    }
 
     @Override
     public void onInitializeClient() {
@@ -393,8 +389,7 @@ public class WatheClient implements ClientModInitializer {
             return false; // 事件允许聊天，因此不禁用
         }
 
-        // 旁观者和创造模式玩家始终可以使用聊天
-        if (!isPlayerAliveAndInSurvival()) {
+        if (!isPlayerAliveAndInSurvival() || player.isCreative()) {
             return false;
         }
 
@@ -407,12 +402,15 @@ public class WatheClient implements ClientModInitializer {
         return gameComponent.getGameStatus() != GameWorldComponent.GameStatus.INACTIVE;
     }
 
-    public static boolean isPlayerSpectatingOrCreative() {
-        return GameFunctions.isPlayerSpectatingOrCreative(MinecraftClient.getInstance().player);
+    public static boolean canSeeSpectatorInformation() {
+        return GameFunctions.isPlayerSpectatingOrCreative(MinecraftClient.getInstance().player) && !isPlayerAliveAndInSurvival();
     }
 
     public static boolean isKiller() {
-        return gameComponent != null && gameComponent.canUseKillerFeatures(MinecraftClient.getInstance().player);
+        if (MinecraftClient.getInstance().player != null) {
+            return gameComponent != null && gameComponent.canUseKillerFeatures(MinecraftClient.getInstance().player);
+        }
+        return false;
     }
 
     public static int getInstinctHighlight(Entity target) {
@@ -433,16 +431,18 @@ public class WatheClient implements ClientModInitializer {
         // 默认逻辑需要按键
         if (!isInstinctEnabledAndIsKiller()) return -1;
 
-        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(MinecraftClient.getInstance().player.getWorld());
-        if (GameFunctions.isPlayerSpectatingOrCreative(MinecraftClient.getInstance().player)) {
-            if (target instanceof PlayerEntity) {
-                if (!(target).isSpectator()) {
-                    Role role = gameWorldComponent.getRole((PlayerEntity) target);
-                    if (role == null) {
-                        return WatheRoles.CIVILIAN.color();
-                    } else {
-                        return role.color();
-                    }
+        var localPlayer = MinecraftClient.getInstance().player;
+
+        if (localPlayer == null){
+            return -1;
+        }
+
+        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(localPlayer.getWorld());
+        if (canSeeSpectatorInformation()) {
+            if (target instanceof PlayerEntity playerTarget) {
+                if (GameFunctions.isPlayerAliveAndSurvival(playerTarget)) {
+                    Role role = gameWorldComponent.getRole(playerTarget);
+                    return Objects.requireNonNullElse(role, WatheRoles.CIVILIAN).color();
                 }
             }
             if (target instanceof ItemEntity || target instanceof NoteEntity || target instanceof FirecrackerEntity)
@@ -452,26 +452,23 @@ public class WatheClient implements ClientModInitializer {
                 return Objects.requireNonNullElse(gameWorldComponent.getRole(body.getPlayerUuid()), WatheRoles.CIVILIAN).color();
             }
         }
-
-//        if (target instanceof PlayerBodyEntity) return 0x606060;
-        if (target instanceof ItemEntity || target instanceof NoteEntity || target instanceof FirecrackerEntity)
-            return 0xDB9D00;
-        if (target instanceof PlayerEntity player) {
-            if (GameFunctions.isPlayerSpectatingOrCreative(player)) return -1;
-            if (isKiller()){
-                if(gameWorldComponent.canUseKillerFeatures(player)){
+        if (isKiller()){
+            if (target instanceof ItemEntity || target instanceof NoteEntity || target instanceof FirecrackerEntity)
+                return 0xDB9D00;
+            if (target instanceof PlayerEntity player) {
+                if (GameFunctions.isPlayerSpectatingOrCreative(player)) return -1;
+                if (gameWorldComponent.canUseKillerFeatures(player)){
                     return MathHelper.hsvToRgb(0F, 1.0F, 0.6F);
                 } else {
                     return 0x4EDD35;
                 }
-            };
-            if (isPlayerSpectatingOrCreative()) return 0xFFFFFF;
+            }
         }
         return -1;
     }
 
     public static boolean isInstinctEnabledAndIsKiller() {
-        return instinctKeybind.isPressed() && ((isPlayerAliveAndInSurvival() && isKiller())|| isPlayerSpectatingOrCreative());
+        return instinctKeybind.isPressed() && ((isPlayerAliveAndInSurvival() && isKiller())|| canSeeSpectatorInformation());
     }
     public static boolean isInstinctEnabled() {
         return instinctKeybind.isPressed();

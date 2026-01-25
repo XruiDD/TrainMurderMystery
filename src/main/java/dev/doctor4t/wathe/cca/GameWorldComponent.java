@@ -2,6 +2,7 @@ package dev.doctor4t.wathe.cca;
 
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.api.*;
+import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import com.mojang.authlib.GameProfile;
@@ -653,6 +654,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
             }
             roomNbt.put("players", playersList);
 
+
             roomsList.add(roomNbt);
         }
         nbtCompound.put("Rooms", roomsList);
@@ -699,7 +701,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         // if not running and spectators or not in lobby reset them
         if (serverWorld.getTime() % 20 == 0) {
             for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-                if (!isRunning() && (player.isSpectator() && serverWorld.getServer().getPermissionLevel(player.getGameProfile()) < 2 || (GameFunctions.isPlayerAliveAndSurvival(player) && playArea != null && playArea.contains(player.getPos())))) {
+                if (!isRunning() && (player.isSpectator() && serverWorld.getServer().getPermissionLevel(player.getGameProfile()) < 2 || (!player.isCreative() && playArea != null && playArea.contains(player.getPos())))) {
                     GameFunctions.resetPlayer(player);
                 }
             }
@@ -711,7 +713,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
             // spectator limits
             if (trainComponent.getGameStatus() != GameStatus.INACTIVE) {
                 for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-                    if (!GameFunctions.isPlayerAliveAndSurvival(player) && isBound() && playArea != null) {
+                    if (!GameFunctions.isPlayerAliveAndSurvival(player) && player.isSpectator() && isBound() && playArea != null) {
                         GameFunctions.limitPlayerToBox(player, playArea);
                     }
                 }
@@ -728,6 +730,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
                         // put players with no role in spectator mode
                         if (GameWorldComponent.KEY.get(world).getRole(player) == null) {
                             player.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
+                            TrainVoicePlugin.addPlayer(player.getUuid());
                         }
                     }
 

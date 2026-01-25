@@ -7,6 +7,7 @@ import dev.doctor4t.wathe.command.*;
 import dev.doctor4t.wathe.command.argument.GameModeArgumentType;
 import dev.doctor4t.wathe.command.argument.MapEffectArgumentType;
 import dev.doctor4t.wathe.command.argument.TimeOfDayArgumentType;
+import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfigurationReloader;
 import dev.doctor4t.wathe.api.event.WatheEventHandlers;
 import dev.doctor4t.wathe.game.GameConstants;
@@ -38,6 +39,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,8 +139,7 @@ public class Wathe implements ModInitializer {
         // 玩家断开连接时,不管是什么阵营都视为死亡
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
-            ServerWorld world = server.getOverworld();
-            GameWorldComponent game = GameWorldComponent.KEY.get(world);
+            GameWorldComponent game = GameWorldComponent.KEY.get(player.getWorld());
             if (game.isRunning()
                 && game.hasAnyRole(player.getUuid())
                 && !game.isPlayerDead(player.getUuid())
@@ -148,10 +149,11 @@ public class Wathe implements ModInitializer {
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
-            ServerWorld world = server.getOverworld();
+            World world = player.getWorld();
             GameWorldComponent game = GameWorldComponent.KEY.get(world);
             if (game.isPlayerDead(player.getUuid())) {
                 player.changeGameMode(GameMode.SPECTATOR);
+                TrainVoicePlugin.addPlayer(player.getUuid());
             }
         });
 
@@ -159,6 +161,9 @@ public class Wathe implements ModInitializer {
             GameRules gameRules = server.getGameRules();
             GameRules.IntRule crammingRule = gameRules.get(GameRules.MAX_ENTITY_CRAMMING);
             crammingRule.set(0, server);
+            for (var world: server.getWorlds()){
+                GameFunctions.stopGame(world);
+            }
         });
 
         Scheduler.init();

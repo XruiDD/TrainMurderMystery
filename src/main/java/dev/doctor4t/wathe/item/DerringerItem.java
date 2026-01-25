@@ -68,6 +68,6 @@ public class DerringerItem extends RevolverItem {
     }
 
     public static HitResult getGunTarget(PlayerEntity user) {
-        return ProjectileUtil.getCollision(user, entity -> entity instanceof PlayerEntity player && GameFunctions.isPlayerAliveAndSurvival(player), 7f);
+        return ProjectileUtil.getCollision(user, entity -> entity instanceof PlayerEntity player && GameFunctions.isPlayerAliveAndSurvival(player) && !GameFunctions.isPlayerSpectatingOrCreative(player), 7f);
     }
 }

@@ -3,6 +3,7 @@ package dev.doctor4t.wathe.client.gui;
 import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.cca.GameTimeComponent;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.client.WatheClient;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.client.font.TextRenderer;
@@ -19,7 +20,7 @@ public class TimeRenderer {
     public static void renderHud(TextRenderer renderer, @NotNull ClientPlayerEntity player, @NotNull DrawContext context, float delta) {
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
         Role role = gameWorldComponent.getRole(player);
-        if (gameWorldComponent.isRunning() && (role != null && role.canSeeTime() || GameFunctions.isPlayerSpectatingOrCreative(player))) {
+        if (gameWorldComponent.isRunning() && (role != null && role.canSeeTime() || WatheClient.canSeeSpectatorInformation())) {
             int time = GameTimeComponent.KEY.get(player.getWorld()).getTime();
             if (Math.abs(view.getTarget() - time) > 10) offsetDelta = time > view.getTarget() ? .6f : -.6f;
             if (time < GameConstants.getInTicks(1, 0)) {

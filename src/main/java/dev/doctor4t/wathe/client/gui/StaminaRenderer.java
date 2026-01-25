@@ -19,7 +19,7 @@ public class StaminaRenderer {
 
     public static void renderHud(@NotNull PlayerEntity player, DrawContext context, RenderTickCounter tickCounter) {
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
-        if (!gameWorldComponent.isRunning() || !WatheClient.isPlayerAliveAndInSurvival()) {
+        if (!gameWorldComponent.isRunning() || !WatheClient.isPlayerAliveAndInSurvival() || player.isSpectator()) {
             return;
         }
 

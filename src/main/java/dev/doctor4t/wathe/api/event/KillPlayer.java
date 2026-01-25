@@ -76,21 +76,38 @@ public final class KillPlayer {
 
     /**
      * Result of a kill validation.
+     * @param cancelled Whether the kill should be cancelled
+     * @param spawnBody Whether to spawn a body (null means use the default value passed to killPlayer)
      */
-    public record KillResult(boolean cancelled) {
+    public record KillResult(boolean cancelled, Boolean spawnBody) {
 
         /**
-         * Allow the kill to proceed.
+         * Allow the kill to proceed with default body spawning behavior.
          */
         public static KillResult allow() {
-            return new KillResult(false);
+            return new KillResult(false, null);
+        }
+
+        /**
+         * Allow the kill to proceed with specified body spawning behavior.
+         * @param spawnBody true to spawn body, false to not spawn body
+         */
+        public static KillResult allow(boolean spawnBody) {
+            return new KillResult(false, spawnBody);
+        }
+
+        /**
+         * Allow the kill to proceed without spawning a body.
+         */
+        public static KillResult allowWithoutBody() {
+            return new KillResult(false, false);
         }
 
         /**
          * Cancel the kill.
          */
         public static KillResult cancel() {
-            return new KillResult(true);
+            return new KillResult(true, null);
         }
     }
 }

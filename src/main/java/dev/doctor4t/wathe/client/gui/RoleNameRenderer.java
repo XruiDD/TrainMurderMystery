@@ -45,7 +45,7 @@ public class RoleNameRenderer {
         GameWorldComponent component = GameWorldComponent.KEY.get(player.getWorld());
         if (player.getWorld().getLightLevel(LightType.BLOCK, BlockPos.ofFloored(player.getEyePos())) < 3 && player.getWorld().getLightLevel(LightType.SKY, BlockPos.ofFloored(player.getEyePos())) < 10)
             return;
-        float range = GameFunctions.isPlayerSpectatingOrCreative(player) ? 8f : 2f;
+        float range = WatheClient.canSeeSpectatorInformation() ? 8f : 2f;
         Role targetPlayerRole = null;
         PlayerEntity targetPlayer = null; // 保存目标玩家引用，用于事件调用
         if (ProjectileUtil.getCollision(player, entity -> entity instanceof PlayerEntity, range) instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() instanceof PlayerEntity target) {
@@ -70,7 +70,7 @@ public class RoleNameRenderer {
             context.getMatrices().scale(0.6f, 0.6f, 1f);
             Role hudRole = targetPlayerRole != null ? targetPlayerRole : WatheRoles.CIVILIAN;
             // Draw role name for spectators/creative players
-            if (hudRole != null && WatheClient.isPlayerSpectatingOrCreative()) {
+            if (hudRole != null && WatheClient.canSeeSpectatorInformation()) {
                 Text roleName = Text.translatable("announcement.role." + hudRole.identifier().getPath());
                 context.drawTextWithShadow(renderer, roleName, -renderer.getWidth(roleName) / 2, 0, hudRole.color() | (int) (nametagAlpha * 255.0F) << 24);
             }
@@ -111,7 +111,7 @@ public class RoleNameRenderer {
             // 检查死因是否是"退出游戏"（escaped），所有人都能看到
             boolean isEscaped = currentDeathReason.getPath().equals("escaped");
             // 检查是否有权限查看尸体角色（旁观者/创造模式 或 通过 Event 允许）
-            if (deadPlayerUuid != null && (WatheClient.isPlayerSpectatingOrCreative() || CanSeeBodyRole.EVENT.invoker().canSee(MinecraftClient.getInstance().player))) {
+            if (deadPlayerUuid != null && (WatheClient.canSeeSpectatorInformation() || CanSeeBodyRole.EVENT.invoker().canSee(MinecraftClient.getInstance().player))) {
                 bodyRole = component.getRole(deadPlayerUuid);
                 targetBody = body;
                 bodyRoleAlpha = MathHelper.lerp(tickCounter.getTickDelta(true) / 4, bodyRoleAlpha, 1f);

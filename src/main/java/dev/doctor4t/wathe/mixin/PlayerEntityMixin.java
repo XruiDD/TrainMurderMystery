@@ -129,7 +129,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
             return;
         }
 
-        if (!GameFunctions.isPlayerAliveAndSurvival(self) || this.getMainHandStack().isOf(WatheItems.KNIFE)
+        if (self.isCreative() || this.getMainHandStack().isOf(WatheItems.KNIFE)
                 || (target instanceof PlayerEntity playerTarget && AllowPlayerPunching.EVENT.invoker().allowPunching(self, playerTarget))) {
             original.call(target);
         }

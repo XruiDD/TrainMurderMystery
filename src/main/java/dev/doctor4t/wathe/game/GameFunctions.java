@@ -168,6 +168,7 @@ public class GameFunctions {
         for (ServerPlayerEntity player : serverWorld.getPlayers(serverPlayerEntity -> !players.contains(serverPlayerEntity))) {
             if(player.hasPermissionLevel(1)){
                 player.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
+                TrainVoicePlugin.addPlayer(player.getUuid());
                 MapVariablesWorldComponent.PosWithOrientation spectatorSpawnPos = areas.getSpectatorSpawnPos();
                 if (spectatorSpawnPos != null) {
                     player.teleport(serverWorld, spectatorSpawnPos.pos.getX(), spectatorSpawnPos.pos.getY(), spectatorSpawnPos.pos.getZ(), spectatorSpawnPos.yaw, spectatorSpawnPos.pitch);
@@ -445,17 +446,12 @@ public class GameFunctions {
         PlayerStaminaComponent.KEY.get(player).reset();
         PlayerVeteranComponent.KEY.get(player).reset();
         TrainVoicePlugin.resetPlayer(player.getUuid());
-
         player.changeGameMode(net.minecraft.world.GameMode.ADVENTURE);
         player.wakeUp();
         MapVariablesWorldComponent.PosWithOrientation spawnPos = MapVariablesWorldComponent.KEY.get(player.getWorld()).getSpawnPos();
         TeleportTarget teleportTarget = new TeleportTarget(player.getServerWorld(), spawnPos.pos, Vec3d.ZERO, spawnPos.yaw, spawnPos.pitch, TeleportTarget.NO_OP);
         player.teleportTo(teleportTarget);
         ResetPlayer.EVENT.invoker().onReset(player);
-    }
-
-    public static boolean isPlayerEliminated(PlayerEntity player) {
-        return player == null || !player.isAlive() || player.isCreative() || player.isSpectator();
     }
 
     @SuppressWarnings("unused")
@@ -473,6 +469,11 @@ public class GameFunctions {
         // Fire BEFORE event
         KillPlayer.KillResult beforeResult = KillPlayer.BEFORE.invoker().beforeKillPlayer(victim, killer, deathReason);
         if (beforeResult != null && !force && beforeResult.cancelled()) return;
+
+        // Override spawnBody if the event result specifies it
+        if (beforeResult != null && beforeResult.spawnBody() != null) {
+            spawnBody = beforeResult.spawnBody();
+        }
 
         if (!force && component.getPsychoTicks() > 0) {
             if (component.getArmour() > 0) {
@@ -553,7 +554,7 @@ public class GameFunctions {
     }
 
     public static boolean isPlayerAliveAndSurvival(PlayerEntity player) {
-        return player != null && !player.isSpectator() && !player.isCreative();
+        return player != null && (GameWorldComponent.KEY.get(player.getWorld()).hasAnyRole(player.getUuid()) || !GameWorldComponent.KEY.get(player.getWorld()).isRunning()) && !GameWorldComponent.KEY.get(player.getWorld()).isPlayerDead(player.getUuid());
     }
 
     public static boolean isPlayerSpectatingOrCreative(PlayerEntity player) {

@@ -726,9 +726,8 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
                         if (playArea != null && player.getY() < playArea.minY) {
                             GameFunctions.killPlayer(player, false, player.getLastAttacker() instanceof PlayerEntity killerPlayer ? killerPlayer : null, GameConstants.DeathReasons.FELL_OUT_OF_TRAIN);
                         }
-                    } else if(!GameFunctions.isPlayerSpectatingOrCreative(player)) {
-                        // put players with no role in spectator mode
-                        if (!GameWorldComponent.KEY.get(world).hasAnyRole(player)) {
+                    } else {
+                        if(!GameFunctions.isPlayerSpectatingOrCreative(player)) {
                             player.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
                             TrainVoicePlugin.addPlayer(player.getUuid());
                         }

@@ -67,6 +67,7 @@ public interface GameConstants {
         return 0;
     };
     int MONEY_PER_KILL = 100;
+    int KILLER_PASSIVE_MONEY_CAP = 100; // 杀手被动收入的余额上限
     int PSYCHO_MODE_ARMOUR = 1;
 
     // Timers

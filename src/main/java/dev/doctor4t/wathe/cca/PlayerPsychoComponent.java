@@ -54,7 +54,7 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
         if (this.psychoTicks <= 0) return;
         this.psychoTicks--;
         if (this.player.getMainHandStack().isOf(WatheItems.BAT)) return;
-        if (GameFunctions.isPlayerAliveAndSurvival(player)) {
+        if (GameFunctions.isPlayerPlayingAndAlive(player)) {
             for (int i = 0; i < 9; i++) {
                 if (!this.player.getInventory().getStack(i).isOf(WatheItems.BAT)) continue;
                 this.player.getInventory().selectedSlot = i;
@@ -114,13 +114,13 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
     }
 
     @Override
-    public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
+    public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.@NotNull WrapperLookup registryLookup) {
         tag.putInt("psychoTicks", this.psychoTicks);
         tag.putInt("armour", this.armour);
     }
 
     @Override
-    public void readFromNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
+    public void readFromNbt(@NotNull NbtCompound tag, RegistryWrapper.@NotNull WrapperLookup registryLookup) {
         this.psychoTicks = tag.contains("psychoTicks") ? tag.getInt("psychoTicks") : 0;
         this.armour = tag.contains("armour") ? tag.getInt("armour") : 1;
     }

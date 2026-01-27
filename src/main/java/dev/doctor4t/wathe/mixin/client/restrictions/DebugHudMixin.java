@@ -10,6 +10,6 @@ import org.spongepowered.asm.mixin.injection.At;
 public class DebugHudMixin {
     @ModifyReturnValue(method = "shouldShowDebugHud", at = @At("RETURN"))
     public boolean shouldShowDebugHud(boolean original) {
-        return (!WatheClient.isPlayerAliveAndInSurvival() || WatheClient.trainComponent == null || !WatheClient.trainComponent.hasHud()) && original;
+        return (!WatheClient.isPlayerPlayingAndAlive() || WatheClient.isPlayerCreative() || WatheClient.trainComponent == null || !WatheClient.trainComponent.hasHud()) && original;
     }
 }

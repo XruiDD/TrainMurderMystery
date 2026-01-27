@@ -713,7 +713,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
             // spectator limits
             if (trainComponent.getGameStatus() != GameStatus.INACTIVE) {
                 for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-                    if (!GameFunctions.isPlayerAliveAndSurvival(player) && player.isSpectator() && isBound() && playArea != null) {
+                    if (!GameFunctions.isPlayerPlayingAndAlive(player) && player.isSpectator() && isBound() && playArea != null) {
                         GameFunctions.limitPlayerToBox(player, playArea);
                     }
                 }
@@ -721,21 +721,20 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
 
             if (this.isRunning()) {
                 for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-                    if (GameFunctions.isPlayerAliveAndSurvival(player)) {
+                    if (GameFunctions.isPlayerPlayingAndAlive(player)) {
                         // kill players who fell off the train
                         if (playArea != null && player.getY() < playArea.minY) {
                             GameFunctions.killPlayer(player, false, player.getLastAttacker() instanceof PlayerEntity killerPlayer ? killerPlayer : null, GameConstants.DeathReasons.FELL_OUT_OF_TRAIN);
                         }
-
+                    } else if(!GameFunctions.isPlayerSpectatingOrCreative(player)) {
                         // put players with no role in spectator mode
-                        if (GameWorldComponent.KEY.get(world).getRole(player) == null) {
+                        if (!GameWorldComponent.KEY.get(world).hasAnyRole(player)) {
                             player.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
                             TrainVoicePlugin.addPlayer(player.getUuid());
                         }
                     }
 
                 }
-
 
                 // run game loop logic
                 gameMode.tickServerGameLoop(serverWorld, this);

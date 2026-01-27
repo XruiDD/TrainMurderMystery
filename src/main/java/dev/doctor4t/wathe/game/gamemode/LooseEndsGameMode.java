@@ -59,7 +59,7 @@ public class LooseEndsGameMode extends GameMode {
         int playersLeft = 0;
         PlayerEntity lastPlayer = null;
         for (PlayerEntity player : serverWorld.getPlayers()) {
-            if (GameFunctions.isPlayerAliveAndSurvival(player)) {
+            if (GameFunctions.isPlayerPlayingAndAlive(player)) {
                 playersLeft++;
                 lastPlayer = player;
             }

@@ -1,6 +1,7 @@
 package dev.doctor4t.wathe.mixin.client.restrictions;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import dev.doctor4t.wathe.client.WatheClient;
 import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.GameOptions;
@@ -12,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 public class GameOptionsMixin {
     @ModifyReturnValue(method = "getPerspective", at = @At("RETURN"))
     public Perspective getPerspective(Perspective original) {
-        if (GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player)) {
+        if (WatheClient.isPlayerPlayingAndAlive() || !WatheClient.isPlayerCreative()) {
             return Perspective.FIRST_PERSON;
         } else {
             return original;

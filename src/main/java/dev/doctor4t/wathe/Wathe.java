@@ -143,7 +143,7 @@ public class Wathe implements ModInitializer {
             if (game.isRunning()
                 && game.hasAnyRole(player.getUuid())
                 && !game.isPlayerDead(player.getUuid())
-                && GameFunctions.isPlayerAliveAndSurvival(player)) {
+                && GameFunctions.isPlayerPlayingAndAlive(player)) {
                 server.execute(()->GameFunctions.killPlayer(player, true, null, GameConstants.DeathReasons.ESCAPED, true));
             }
         });

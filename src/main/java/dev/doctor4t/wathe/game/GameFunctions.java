@@ -133,8 +133,8 @@ public class GameFunctions {
         // 角色分配后再生成信件
         giveLettersToPlayers(serverWorld, gameComponent, readyPlayerList, playerRoomMap);
 
+        gameComponent.setGameStatus(GameWorldComponent.GameStatus.ACTIVE);
         gameComponent.sync();
-
         GameEvents.ON_FINISH_INITIALIZE.invoker().onFinishInitialize(serverWorld, gameComponent);
     }
 
@@ -265,8 +265,7 @@ public class GameFunctions {
             }
         }
 
-        gameComponent.setGameStatus(GameWorldComponent.GameStatus.ACTIVE);
-        gameComponent.sync();
+
 
         return playerRoomMap;
     }
@@ -489,7 +488,7 @@ public class GameFunctions {
             component.stopPsycho();
         }
 
-        if (victim instanceof ServerPlayerEntity serverPlayerEntity && isPlayerAliveAndSurvival(serverPlayerEntity)) {
+        if (victim instanceof ServerPlayerEntity serverPlayerEntity && isPlayerPlayingAndAlive(serverPlayerEntity)) {
             serverPlayerEntity.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
             GameWorldComponent.KEY.get(victim.getWorld()).markPlayerDead(victim.getUuid());
         } else {
@@ -554,7 +553,11 @@ public class GameFunctions {
     }
 
     public static boolean isPlayerAliveAndSurvival(PlayerEntity player) {
-        return player != null && (GameWorldComponent.KEY.get(player.getWorld()).hasAnyRole(player.getUuid()) || !GameWorldComponent.KEY.get(player.getWorld()).isRunning()) && !GameWorldComponent.KEY.get(player.getWorld()).isPlayerDead(player.getUuid());
+        return player != null && !player.isSpectator() && !player.isCreative();
+    }
+
+    public static boolean isPlayerPlayingAndAlive(PlayerEntity player) {
+        return player != null && GameWorldComponent.KEY.get(player.getWorld()).isRunning() && GameWorldComponent.KEY.get(player.getWorld()).hasAnyRole(player.getUuid()) && !GameWorldComponent.KEY.get(player.getWorld()).isPlayerDead(player.getUuid());
     }
 
     public static boolean isPlayerSpectatingOrCreative(PlayerEntity player) {

@@ -18,8 +18,7 @@ public class StaminaRenderer {
     private static final Identifier STAMINA_TEXTURE = Wathe.id("textures/gui/stamina_bar.png");
 
     public static void renderHud(@NotNull PlayerEntity player, DrawContext context, RenderTickCounter tickCounter) {
-        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
-        if (!gameWorldComponent.isRunning() || !WatheClient.isPlayerAliveAndInSurvival() || player.isSpectator()) {
+        if (!WatheClient.isPlayerPlayingAndAlive()) {
             return;
         }
 

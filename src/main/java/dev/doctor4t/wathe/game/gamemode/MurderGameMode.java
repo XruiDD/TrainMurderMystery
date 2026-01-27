@@ -77,7 +77,7 @@ public class MurderGameMode extends GameMode {
             }
 
             // check if some civilians are still alive
-            if (gameWorldComponent.isInnocent(player) && GameFunctions.isPlayerAliveAndSurvival(player)) {
+            if (gameWorldComponent.isInnocent(player) && GameFunctions.isPlayerPlayingAndAlive(player)) {
                 civilianAlive = true;
             }
         }
@@ -91,7 +91,7 @@ public class MurderGameMode extends GameMode {
         if (winStatus == GameFunctions.WinStatus.NONE) {
             winStatus = GameFunctions.WinStatus.PASSENGERS;
             for (UUID player : gameWorldComponent.getAllKillerTeamPlayers()) {
-                if (!GameFunctions.isPlayerAliveAndSurvival(serverWorld.getPlayerByUuid(player))) {
+                if (GameFunctions.isPlayerPlayingAndAlive(serverWorld.getPlayerByUuid(player))) {
                     winStatus = GameFunctions.WinStatus.NONE;
                     break;
                 }

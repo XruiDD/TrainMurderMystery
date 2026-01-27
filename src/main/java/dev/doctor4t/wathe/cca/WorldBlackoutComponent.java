@@ -134,7 +134,7 @@ public class WorldBlackoutComponent implements ServerTickingComponent {
     private void applyBlackoutEffects(ServerWorld serverWorld) {
         GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
         for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-            if (!GameFunctions.isPlayerAliveAndSurvival(player)) {
+            if (!GameFunctions.isPlayerPlayingAndAlive(player)) {
                 continue;
             }
 

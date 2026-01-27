@@ -48,6 +48,9 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     @Shadow
     public abstract float getAttackCooldownProgress(float baseTime);
 
+    @Shadow
+    public abstract boolean isCreative();
+
     @Unique
     private Scheduler.ScheduledTask poisonSleepTask;
 
@@ -58,7 +61,8 @@ public abstract class PlayerEntityMixin extends LivingEntity {
 
     @ModifyReturnValue(method = "getMovementSpeed", at = @At("RETURN"))
     public float wathe$overrideMovementSpeed(float original) {
-        if (GameFunctions.isPlayerAliveAndSurvival((PlayerEntity) (Object) this)) {
+        GameWorldComponent gameComponent = GameWorldComponent.KEY.get(this.getWorld());
+        if (gameComponent.isRunning() && !this.isCreative()) {
             return this.isSprinting() ? 0.1f : 0.07f;
         } else {
             return original;

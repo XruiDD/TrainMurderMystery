@@ -361,6 +361,23 @@ public class WatheClient implements ClientModInitializer {
         }
     }
 
+
+
+    /**
+     * 判断是否在游戏中，正常游戏时
+     */
+    public static boolean isPlayerPlayingAndAlive() {
+        return GameFunctions.isPlayerPlayingAndAlive(MinecraftClient.getInstance().player);
+    }
+
+    public static boolean isPlayerCreative() {
+        if (MinecraftClient.getInstance().player != null) {
+            return MinecraftClient.getInstance().player.isCreative();
+        }
+        return false;
+    }
+
+    @Deprecated
     public static boolean isPlayerAliveAndInSurvival() {
         return GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player);
     }
@@ -389,7 +406,7 @@ public class WatheClient implements ClientModInitializer {
             return false; // 事件允许聊天，因此不禁用
         }
 
-        if (!isPlayerAliveAndInSurvival() || player.isCreative()) {
+        if (!isPlayerPlayingAndAlive() || player.isCreative()) {
             return false;
         }
 
@@ -403,7 +420,7 @@ public class WatheClient implements ClientModInitializer {
     }
 
     public static boolean canSeeSpectatorInformation() {
-        return GameFunctions.isPlayerSpectatingOrCreative(MinecraftClient.getInstance().player) && !isPlayerAliveAndInSurvival();
+        return GameFunctions.isPlayerSpectatingOrCreative(MinecraftClient.getInstance().player) && !isPlayerPlayingAndAlive();
     }
 
     public static boolean isKiller() {
@@ -440,7 +457,7 @@ public class WatheClient implements ClientModInitializer {
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(localPlayer.getWorld());
         if (canSeeSpectatorInformation()) {
             if (target instanceof PlayerEntity playerTarget) {
-                if (GameFunctions.isPlayerAliveAndSurvival(playerTarget)) {
+                if (GameFunctions.isPlayerPlayingAndAlive(playerTarget)) {
                     Role role = gameWorldComponent.getRole(playerTarget);
                     return Objects.requireNonNullElse(role, WatheRoles.CIVILIAN).color();
                 }
@@ -468,8 +485,9 @@ public class WatheClient implements ClientModInitializer {
     }
 
     public static boolean isInstinctEnabledAndIsKiller() {
-        return instinctKeybind.isPressed() && ((isPlayerAliveAndInSurvival() && isKiller())|| canSeeSpectatorInformation());
+        return instinctKeybind.isPressed() && ((isPlayerPlayingAndAlive() && isKiller())|| canSeeSpectatorInformation());
     }
+
     public static boolean isInstinctEnabled() {
         return instinctKeybind.isPressed();
     }

@@ -23,12 +23,12 @@ public abstract class KeyBindingMixin {
                     this.equals(MinecraftClient.getInstance().options.commandKey);
         }
         if(result) return result;
-        //游戏开始之后不能跳跃，旁观者跳过
-        if (WatheClient.gameComponent != null && WatheClient.gameComponent.isRunning() && WatheClient.isPlayerAliveAndInSurvival()){
+        //游戏开始之后不能跳跃
+        if (WatheClient.gameComponent != null && WatheClient.gameComponent.isRunning() && WatheClient.isPlayerPlayingAndAlive()){
             result = this.equals(MinecraftClient.getInstance().options.jumpKey);
         }
         //其他键位始终不允许，防止出现bug
-        if (!result && WatheClient.isPlayerAliveAndInSurvival() && WatheClient.trainComponent != null && WatheClient.trainComponent.hasHud()) {
+        if (!result && WatheClient.isPlayerPlayingAndAlive() && WatheClient.trainComponent != null && WatheClient.trainComponent.hasHud()) {
             result = this.equals(MinecraftClient.getInstance().options.swapHandsKey) ||
                     this.equals(MinecraftClient.getInstance().options.togglePerspectiveKey) ||
                     this.equals(MinecraftClient.getInstance().options.dropKey) ||

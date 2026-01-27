@@ -2,6 +2,7 @@ package dev.doctor4t.wathe.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheItems;
@@ -30,7 +31,8 @@ public class ServerPlayNetworkHandlerMixin {
     @WrapMethod(method = "onPlayerAction")
     private void wathe$restrictPlayerActions(PlayerActionC2SPacket packet, @NotNull Operation<Void> original) {
         // 如果玩家是存活的生存模式玩家
-        if (GameFunctions.isPlayerAliveAndSurvival(this.player)) {
+        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.player.getWorld());
+        if (gameWorldComponent != null && gameWorldComponent.isRunning() && GameFunctions.isPlayerAliveAndSurvival(this.player)) {
             // 阻止丢弃物品
             if (packet.getAction() == PlayerActionC2SPacket.Action.DROP_ITEM ||
                 packet.getAction() == PlayerActionC2SPacket.Action.DROP_ALL_ITEMS) {

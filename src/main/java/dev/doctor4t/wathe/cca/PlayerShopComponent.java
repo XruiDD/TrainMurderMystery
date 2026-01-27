@@ -249,7 +249,7 @@ public class PlayerShopComponent implements AutoSyncedComponent, ServerTickingCo
             return;
         }
 
-        if(!GameFunctions.isPlayerAliveAndSurvival(this.player)){
+        if(!GameFunctions.isPlayerPlayingAndAlive(this.player)){
             sendPurchaseError("shop.error.purchase_denied");
             return;
         }

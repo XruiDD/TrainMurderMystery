@@ -122,7 +122,7 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
 
     @Override
     public void clientTick() {
-        if (!GameWorldComponent.KEY.get(this.player.getWorld()).isRunning() || !WatheClient.isPlayerAliveAndInSurvival())
+        if (!WatheClient.isPlayerPlayingAndAlive())
             return;
         if (!this.tasks.isEmpty()) this.setMood(this.mood - this.tasks.size() * GameConstants.MOOD_DRAIN);
 
@@ -155,7 +155,7 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
     @Override
     public void serverTick() {
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.player.getWorld());
-        if (!gameWorldComponent.isRunning() || !GameFunctions.isPlayerAliveAndSurvival(this.player)) return;
+        if (!GameFunctions.isPlayerPlayingAndAlive(this.player)) return;
 
         Role role = gameWorldComponent.getRole(this.player);
         // 只有真实心情的角色才会受到心情系统影响

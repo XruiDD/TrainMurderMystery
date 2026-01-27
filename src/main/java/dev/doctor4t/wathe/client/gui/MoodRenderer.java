@@ -46,7 +46,7 @@ public class MoodRenderer {
     @Environment(EnvType.CLIENT)
     public static void renderHud(@NotNull PlayerEntity player, TextRenderer textRenderer, DrawContext context, RenderTickCounter tickCounter) {
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(player.getWorld());
-        if (!gameWorldComponent.isRunning() || !WatheClient.isPlayerAliveAndInSurvival() || !(gameWorldComponent.getGameMode() instanceof MurderGameMode))
+        if (!WatheClient.isPlayerPlayingAndAlive() || !(gameWorldComponent.getGameMode() instanceof MurderGameMode))
             return;
         PlayerMoodComponent component = PlayerMoodComponent.KEY.get(player);
         float oldMood = moodRender;

@@ -99,7 +99,7 @@ public class GameFunctions {
     public static void startGame(ServerWorld world, GameMode gameMode, MapEffect mapEffect, int time) {
         GameWorldComponent game = GameWorldComponent.KEY.get(world);
         MapVariablesWorldComponent areas = MapVariablesWorldComponent.KEY.get(world);
-        int playerCount = Math.toIntExact(world.getPlayers().stream().filter(serverPlayerEntity -> (areas.getReadyArea().contains(serverPlayerEntity.getPos()))).count());
+        int playerCount = Math.toIntExact(world.getPlayers().stream().filter(serverPlayerEntity -> isPlayerInReadyArea(serverPlayerEntity, areas)).count());
         game.setGameMode(gameMode);
         game.setMapEffect(mapEffect);
         GameTimeComponent.KEY.get(world).setResetTime(time);
@@ -397,9 +397,19 @@ public class GameFunctions {
         return name;
     }
 
+    /**
+     * 判断玩家是否在准备区域内
+     * @param player 要检查的玩家
+     * @param areas 地图区域组件
+     * @return 如果玩家在准备区域内返回true
+     */
+    private static boolean isPlayerInReadyArea(PlayerEntity player, MapVariablesWorldComponent areas) {
+        return areas.getReadyArea().contains(player.getPos()) && !player.isSpectator() && !player.isCreative();
+    }
+
     private static List<ServerPlayerEntity> getReadyPlayerList(ServerWorld serverWorld) {
         MapVariablesWorldComponent areas = MapVariablesWorldComponent.KEY.get(serverWorld);
-        List<ServerPlayerEntity> players = serverWorld.getPlayers(serverPlayerEntity -> areas.getReadyArea().contains(serverPlayerEntity.getPos()));
+        List<ServerPlayerEntity> players = serverWorld.getPlayers(serverPlayerEntity -> isPlayerInReadyArea(serverPlayerEntity, areas) && !serverPlayerEntity.isSpectator());
         return players;
     }
 
@@ -700,7 +710,7 @@ public class GameFunctions {
     public static int getReadyPlayerCount(World world) {
         List<? extends PlayerEntity> players = world.getPlayers();
         MapVariablesWorldComponent areas = MapVariablesWorldComponent.KEY.get(world);
-        return Math.toIntExact(players.stream().filter(p -> areas.getReadyArea().contains(p.getPos())).count());
+        return Math.toIntExact(players.stream().filter(p -> isPlayerInReadyArea(p, areas)).count());
     }
 
     /**

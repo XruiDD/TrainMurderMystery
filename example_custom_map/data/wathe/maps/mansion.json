@@ -1,0 +1,12 @@
+{
+  "_comment": "=== Wathe 多地图配置示例 - 庄园（最小配置） ===",
+  "_comment_usage": "这是一个最小配置示例，只包含必填字段",
+  "_comment_note": "enhancements 为可选项，如果不需要房间配置和渲染效果可以省略",
+  "_comment_mapvariables": "每个维度的 spawnPos, spectatorSpawnPos, readyArea, playArea 等需要在对应维度内使用 /wathe:mapVariables 命令配置",
+
+  "dimension": "wathe:mansion",
+  "display_name": "庄园",
+  "description": "隐秘的深山庄园",
+  "min_players": 4,
+  "max_players": 12
+}

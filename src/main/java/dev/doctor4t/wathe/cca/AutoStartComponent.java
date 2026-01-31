@@ -2,8 +2,6 @@ package dev.doctor4t.wathe.cca;
 
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.api.GameMode;
-import dev.doctor4t.wathe.api.WatheGameModes;
-import dev.doctor4t.wathe.api.WatheMapEffects;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.nbt.NbtCompound;
@@ -38,6 +36,13 @@ public class AutoStartComponent implements AutoSyncedComponent, CommonTickingCom
     public void tick() {
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.world);
         if (gameWorldComponent.isRunning()) return;
+
+        // Skip auto-start while map voting is active
+        if (this.world instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+            MapVotingComponent votingComponent = MapVotingComponent.KEY.get(
+                serverWorld.getServer().getScoreboard());
+            if (votingComponent.isVotingActive()) return;
+        }
 
         if (this.startTime <= 0 && this.time <= 0) return;
 

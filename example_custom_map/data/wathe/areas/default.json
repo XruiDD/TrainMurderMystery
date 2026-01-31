@@ -1,6 +1,8 @@
 {
-  "_comment": "=== Train Murder Mystery 区域配置示例 ===",
+  "_comment": "=== Wathe 区域配置示例（旧版格式，向后兼容） ===",
   "_comment_usage": "将此文件放置于 data/wathe/areas/ 目录下",
+  "_comment_deprecated": "推荐使用新版多地图格式：data/wathe/maps/*.json（参见 maps/ 目录下的示例）",
+  "_comment_legacy": "旧版 areas/ 配置仅在 maps/ 目录无任何配置时生效，自动注册为 overworld 地图",
   "_comment_reload": "使用 /reload 命令热重载配置",
   "_comment_rooms": "房间配置列表 - 定义每个房间的出生点和最大人数",
   "_comment_rooms_detail": "max_players: 可选，默认为 spawn_points 数量。当房间人数超过出生点数量时，循环使用出生点",

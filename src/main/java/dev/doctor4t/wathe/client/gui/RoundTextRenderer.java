@@ -266,6 +266,14 @@ public class RoundTextRenderer {
         endTime = END_DURATION;
     }
 
+    public static boolean isEndAnimationPlaying() {
+        return endTime > 0;
+    }
+
+    public static void clearEndAnimation() {
+        endTime = 0;
+    }
+
     /**
      * Helper method to render a player card with head and role name
      */

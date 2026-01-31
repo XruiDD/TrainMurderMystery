@@ -10,6 +10,7 @@ import dev.doctor4t.wathe.api.WatheRoles;
 import dev.doctor4t.wathe.api.event.ResetPlayer;
 import dev.doctor4t.wathe.cca.*;
 import dev.doctor4t.wathe.compat.TrainVoicePlugin;
+import dev.doctor4t.wathe.config.datapack.MapRegistry;
 import dev.doctor4t.wathe.util.ShopEntry;
 import dev.doctor4t.wathe.util.ShopUtils;
 import dev.doctor4t.wathe.config.datapack.RoomConfig;
@@ -44,6 +45,8 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Clearable;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Language;
 import net.minecraft.util.math.BlockBox;
@@ -133,9 +136,9 @@ public class GameFunctions {
         // 角色分配后再生成信件
         giveLettersToPlayers(serverWorld, gameComponent, readyPlayerList, playerRoomMap);
 
+        GameEvents.ON_FINISH_INITIALIZE.invoker().onFinishInitialize(serverWorld, gameComponent);
         gameComponent.setGameStatus(GameWorldComponent.GameStatus.ACTIVE);
         gameComponent.sync();
-        GameEvents.ON_FINISH_INITIALIZE.invoker().onFinishInitialize(serverWorld, gameComponent);
     }
 
     private static Map<UUID, Integer> baseInitialize(ServerWorld serverWorld, GameWorldComponent gameComponent, List<ServerPlayerEntity> players) {
@@ -441,6 +444,13 @@ public class GameFunctions {
         gameComponent.sync();
 
         GameEvents.ON_FINISH_FINALIZE.invoker().onFinishFinalize(world, gameComponent);
+
+        // Check if map voting should start
+        if (MapRegistry.getInstance().getMapCount() > 0) {
+            MapVotingComponent voting = MapVotingComponent.KEY.get(
+                world.getServer().getScoreboard());
+            voting.startVoting();
+        }
     }
 
     public static void resetPlayer(ServerPlayerEntity player) {
@@ -732,6 +742,36 @@ public class GameFunctions {
         // 所有房间都满了，按顺序强制塞人
         int totalPlayers = roomPlayerCounts.values().stream().mapToInt(Integer::intValue).sum();
         return (totalPlayers % totalRooms) + 1;
+    }
+
+    /**
+     * 投票结束后传送所有玩家到目标维度
+     */
+    public static void finalizeVoting(ServerWorld currentWorld, Identifier targetDimensionId) {
+        RegistryKey<World> dimKey = RegistryKey.of(RegistryKeys.WORLD, targetDimensionId);
+        ServerWorld targetWorld = currentWorld.getServer().getWorld(dimKey);
+
+        if (targetWorld == null) {
+            Wathe.LOGGER.warn("Target dimension {} not found, staying in current world", targetDimensionId);
+            return;
+        }
+
+        MapVariablesWorldComponent targetMapVars = MapVariablesWorldComponent.KEY.get(targetWorld);
+        MapVariablesWorldComponent.PosWithOrientation spawnPos = targetMapVars.getSpawnPos();
+
+        // Teleport all players from all worlds to the target dimension
+        for (ServerWorld world : currentWorld.getServer().getWorlds()) {
+            if (world.getRegistryKey().equals(dimKey)) continue; // Already in target
+            for (ServerPlayerEntity player : new ArrayList<>(world.getPlayers())) {
+                TeleportTarget target = new TeleportTarget(
+                    targetWorld, spawnPos.pos, Vec3d.ZERO,
+                    spawnPos.yaw, spawnPos.pitch, TeleportTarget.NO_OP
+                );
+                player.teleportTo(target);
+            }
+        }
+
+        Wathe.LOGGER.info("Teleported all players to dimension {}", targetDimensionId);
     }
 
     public enum WinStatus {

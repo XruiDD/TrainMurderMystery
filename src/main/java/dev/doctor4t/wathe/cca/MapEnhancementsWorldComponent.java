@@ -12,6 +12,7 @@ import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfigurationManager;
 import dev.doctor4t.wathe.config.datapack.RoomConfig;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
@@ -41,6 +42,17 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
         KEY.sync(this.world);
     }
 
+    /**
+     * 获取当前世界维度对应的地图配置
+     */
+    private MapEnhancementsConfiguration getConfigForCurrentWorld() {
+        Identifier dimId = world.getRegistryKey().getValue();
+        MapEnhancementsConfiguration config = MapEnhancementsConfigurationManager.getInstance().getConfiguration(dimId);
+        if (config != null) return config;
+        // Fallback: 无参版本（overworld 兼容）
+        return MapEnhancementsConfigurationManager.getInstance().getConfiguration();
+    }
+
     // ========== 客户端同步缓存字段 ==========
     // 服务端从数据包读取，通过NBT同步到客户端
     private SceneryConfig syncedScenery;
@@ -55,7 +67,7 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
         if (world.isClient() && syncedScenery != null) {
             return syncedScenery;
         }
-        MapEnhancementsConfiguration config = MapEnhancementsConfigurationManager.getInstance().getConfiguration();
+        MapEnhancementsConfiguration config = getConfigForCurrentWorld();
         return config != null ? config.getSceneryOrDefault() : SceneryConfig.DEFAULT;
     }
 
@@ -63,7 +75,7 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
         if (world.isClient() && syncedVisibility != null) {
             return syncedVisibility;
         }
-        MapEnhancementsConfiguration config = MapEnhancementsConfigurationManager.getInstance().getConfiguration();
+        MapEnhancementsConfiguration config = getConfigForCurrentWorld();
         return config != null ? config.getVisibilityOrDefault() : VisibilityConfig.DEFAULT;
     }
 
@@ -71,7 +83,7 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
         if (world.isClient() && syncedFog != null) {
             return syncedFog;
         }
-        MapEnhancementsConfiguration config = MapEnhancementsConfigurationManager.getInstance().getConfiguration();
+        MapEnhancementsConfiguration config = getConfigForCurrentWorld();
         return config != null ? config.getFogOrDefault() : FogConfig.DEFAULT;
     }
 
@@ -79,7 +91,7 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
         if (world.isClient() && syncedCameraShake != null) {
             return syncedCameraShake;
         }
-        MapEnhancementsConfiguration config = MapEnhancementsConfigurationManager.getInstance().getConfiguration();
+        MapEnhancementsConfiguration config = getConfigForCurrentWorld();
         return config != null ? config.getCameraShakeOrDefault() : CameraShakeConfig.DEFAULT;
     }
 
@@ -90,19 +102,19 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
         if (world.isClient() && syncedInteractionBlacklist != null) {
             return syncedInteractionBlacklist;
         }
-        MapEnhancementsConfiguration config = MapEnhancementsConfigurationManager.getInstance().getConfiguration();
+        MapEnhancementsConfiguration config = getConfigForCurrentWorld();
         return config != null ? config.getInteractionBlacklistOrDefault() : InteractionBlacklistConfig.DEFAULT;
     }
 
     // ========== 房间配置相关方法（仅服务端）==========
 
     public int getRoomCount() {
-        MapEnhancementsConfiguration config = MapEnhancementsConfigurationManager.getInstance().getConfiguration();
+        MapEnhancementsConfiguration config = getConfigForCurrentWorld();
         return config != null ? config.getRoomCount() : 0;
     }
 
     public Optional<RoomConfig> getRoomConfig(int roomNumber) {
-        MapEnhancementsConfiguration config = MapEnhancementsConfigurationManager.getInstance().getConfiguration();
+        MapEnhancementsConfiguration config = getConfigForCurrentWorld();
         if (config != null) {
             return config.getRoomConfig(roomNumber);
         }
@@ -110,7 +122,7 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
     }
 
     public Optional<RoomConfig.SpawnPoint> getSpawnPointForPlayer(int roomNumber, int playerIndexInRoom) {
-        MapEnhancementsConfiguration config = MapEnhancementsConfigurationManager.getInstance().getConfiguration();
+        MapEnhancementsConfiguration config = getConfigForCurrentWorld();
         if (config != null) {
             return config.getSpawnPointForPlayer(roomNumber, playerIndexInRoom);
         }
@@ -118,12 +130,12 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
     }
 
     public int getTotalRoomCapacity() {
-        MapEnhancementsConfiguration config = MapEnhancementsConfigurationManager.getInstance().getConfiguration();
+        MapEnhancementsConfiguration config = getConfigForCurrentWorld();
         return config != null ? config.getTotalCapacity() : 0;
     }
 
     public boolean hasAreaConfiguration() {
-        return MapEnhancementsConfigurationManager.getInstance().hasConfiguration();
+        return getConfigForCurrentWorld() != null;
     }
 
     // ========== NBT 序列化（同步渲染配置到客户端）==========

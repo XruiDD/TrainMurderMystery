@@ -8,10 +8,7 @@ import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.WatheConfig;
 import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.api.WatheRoles;
-import dev.doctor4t.wathe.cca.MapEnhancementsWorldComponent;
-import dev.doctor4t.wathe.cca.GameWorldComponent;
-import dev.doctor4t.wathe.cca.PlayerMoodComponent;
-import dev.doctor4t.wathe.cca.TrainWorldComponent;
+import dev.doctor4t.wathe.cca.*;
 import dev.doctor4t.wathe.client.gui.RoundTextRenderer;
 import dev.doctor4t.wathe.client.gui.StoreRenderer;
 import dev.doctor4t.wathe.client.gui.TimeRenderer;
@@ -83,8 +80,13 @@ public class WatheClient implements ClientModInitializer {
     public static final Map<UUID, PlayerListEntry> PLAYER_ENTRIES_CACHE = Maps.newHashMap();
 
     public static KeyBinding instinctKeybind;
+    public static KeyBinding mapVoteKeybind;
     public static float prevInstinctLightLevel = -.04f;
     public static float instinctLightLevel = -.04f;
+
+    // 投票界面自动打开标记：游戏结束时自动打开一次
+    private static boolean hasAutoOpenedVotingScreen = false;
+    private static boolean wasVotingActive = false;
 
     // 方块黑名单 debug 开关
     public static boolean blockBlacklistDebugEnabled = false;
@@ -281,6 +283,42 @@ public class WatheClient implements ClientModInitializer {
                 StoreRenderer.tick();
                 TimeRenderer.tick();
             }
+
+            // Map voting screen logic: auto-open once when voting starts, then allow keybind toggle
+            MinecraftClient mc = MinecraftClient.getInstance();
+            MapVotingComponent votingComp =
+                MapVotingComponent.KEY.get(clientWorld.getScoreboard());
+            boolean votingActive = votingComp.isVotingActive();
+
+            // 投票刚开始时重置自动打开标记
+            if (votingActive && !wasVotingActive) {
+                hasAutoOpenedVotingScreen = false;
+            }
+            // 等待结算动画播放完毕后再自动打开一次投票界面
+            if (votingActive && !hasAutoOpenedVotingScreen && !RoundTextRenderer.isEndAnimationPlaying()) {
+                if (!(mc.currentScreen instanceof dev.doctor4t.wathe.client.gui.screen.MapVotingScreen)) {
+                    mc.setScreen(new dev.doctor4t.wathe.client.gui.screen.MapVotingScreen());
+                }
+                hasAutoOpenedVotingScreen = true;
+            }
+
+            // 按键切换投票界面
+            if (votingActive && mapVoteKeybind.wasPressed()) {
+                if (mc.currentScreen instanceof dev.doctor4t.wathe.client.gui.screen.MapVotingScreen) {
+                    mc.setScreen(null);
+                } else {
+                    // 主动打开投票界面时，关闭结算动画
+                    RoundTextRenderer.clearEndAnimation();
+                    mc.setScreen(new dev.doctor4t.wathe.client.gui.screen.MapVotingScreen());
+                    hasAutoOpenedVotingScreen = true;
+                }
+            }
+
+            // 投票结束时关闭投票界面
+            if (!votingActive && mc.currentScreen instanceof dev.doctor4t.wathe.client.gui.screen.MapVotingScreen) {
+                mc.setScreen(null);
+            }
+            wasVotingActive = votingActive;
         });
 
         ClientTickEvents.END_CLIENT_TICK.register((client) -> {
@@ -305,6 +343,14 @@ public class WatheClient implements ClientModInitializer {
                 "key." + Wathe.MOD_ID + ".instinct",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_LEFT_ALT,
+                "category." + Wathe.MOD_ID + ".keybinds"
+        ));
+
+        // Map vote keybind
+        mapVoteKeybind = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key." + Wathe.MOD_ID + ".map_vote",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_H,
                 "category." + Wathe.MOD_ID + ".keybinds"
         ));
     }
@@ -377,7 +423,6 @@ public class WatheClient implements ClientModInitializer {
         return false;
     }
 
-    @Deprecated
     public static boolean isPlayerAliveAndInSurvival() {
         return GameFunctions.isPlayerAliveAndSurvival(MinecraftClient.getInstance().player);
     }

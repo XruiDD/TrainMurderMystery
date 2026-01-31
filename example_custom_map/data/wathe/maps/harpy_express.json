@@ -1,0 +1,108 @@
+{
+  "_comment": "=== Wathe 多地图配置示例 - 哈比快车 ===",
+  "_comment_usage": "将此文件放置于 data/wathe/maps/ 目录下",
+  "_comment_reload": "使用 /reload 命令热重载配置",
+  "_comment_dimension": "dimension: 此地图对应的维度ID，玩家投票选中后会被传送到该维度",
+  "_comment_display": "display_name: 投票UI中显示的地图名称",
+  "_comment_description": "description: 可选，投票UI中显示的地图描述",
+  "_comment_players": "min_players/max_players: 人数限制，不满足时该地图在投票中显示为不可用（灰色）",
+  "_comment_enhancements": "enhancements: 可选，与旧版 areas/*.json 格式相同的增强配置（房间、渲染等）",
+  "_comment_mapvariables": "注意：每个维度的出生点、准备区域等仍需在对应维度内使用 /wathe:mapVariables 命令配置",
+
+  "dimension": "wathe:harpy_express",
+  "display_name": "哈比快车",
+  "description": "经典列车地图",
+  "min_players": 6,
+  "max_players": 20,
+
+  "enhancements": {
+    "rooms": [
+      {
+        "name": "Room 1",
+        "max_players": 3,
+        "spawn_points": [
+          { "x": 11, "y": 122.5, "z": -535.5, "yaw": -90.0, "pitch": 0.0 },
+          { "x": 11, "y": 122.5, "z": -536.5, "yaw": -90.0, "pitch": 0.0 },
+          { "x": 11, "y": 122.5, "z": -537.5, "yaw": -90.0, "pitch": 0.0 }
+        ]
+      },
+      {
+        "name": "Room 2",
+        "max_players": 2,
+        "spawn_points": [
+          { "x": 64, "y": 122.5, "z": -535.5, "yaw": -270.0, "pitch": 0.0 },
+          { "x": 64, "y": 122.5, "z": -536.5, "yaw": -270.0, "pitch": 0.0 }
+        ]
+      },
+      {
+        "max_players": 2,
+        "spawn_points": [
+          { "x": 67, "y": 122.5, "z": -535.5, "yaw": -90.0, "pitch": 0.0 },
+          { "x": 67, "y": 122.5, "z": -536.5, "yaw": -90.0, "pitch": 0.0 }
+        ]
+      },
+      {
+        "max_players": 2,
+        "spawn_points": [
+          { "x": 107, "y": 122, "z": -535.5, "yaw": -90.0, "pitch": 0.0 },
+          { "x": 107, "y": 122, "z": -536.5, "yaw": -90.0, "pitch": 0.0 }
+        ]
+      },
+      {
+        "max_players": 2,
+        "spawn_points": [
+          { "x": 110.5, "y": 122, "z": -537, "yaw": 0.0, "pitch": 0.0 },
+          { "x": 111.5, "y": 122, "z": -537, "yaw": 0.0, "pitch": 0.0 }
+        ]
+      },
+      {
+        "max_players": 2,
+        "spawn_points": [
+          { "x": 116.5, "y": 122, "z": -534, "yaw": -180.0, "pitch": 0.0 },
+          { "x": 115.5, "y": 122, "z": -534, "yaw": -180.0, "pitch": 0.0 }
+        ]
+      },
+      {
+        "max_players": 2,
+        "spawn_points": [
+          { "x": 120.5, "y": 122, "z": -535, "yaw": -180.0, "pitch": 0.0 },
+          { "x": 119.5, "y": 122, "z": -535, "yaw": -180.0, "pitch": 0.0 }
+        ]
+      }
+    ],
+
+    "scenery": {
+      "height_offset": 116,
+      "min_x": -208,
+      "max_x": 303,
+      "min_z": -896,
+      "max_z": -177
+    },
+    "visibility": {
+      "day": 160,
+      "night": 160,
+      "sundown": 320
+    },
+    "fog": {
+      "start": 0,
+      "end_moving": 130,
+      "end_stationary": 200,
+      "night_color": "E406060B"
+    },
+    "camera_shake": {
+      "enabled": true,
+      "amplitude_indoor": 0.0025,
+      "amplitude_outdoor": 0.01,
+      "strength_indoor": 0.5,
+      "strength_outdoor": 1.0
+    },
+    "interaction_blacklist": {
+      "blocks": [
+        "minecraft:furnace",
+        "minecraft:blast_furnace",
+        "minecraft:smoker"
+      ],
+      "block_tags": []
+    }
+  }
+}

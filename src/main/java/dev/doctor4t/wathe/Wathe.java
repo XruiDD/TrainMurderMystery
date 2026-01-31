@@ -3,6 +3,8 @@ package dev.doctor4t.wathe;
 import com.google.common.reflect.Reflection;
 import dev.doctor4t.wathe.block.DoorPartBlock;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.cca.MapVariablesWorldComponent;
+import dev.doctor4t.wathe.cca.MapVotingComponent;
 import dev.doctor4t.wathe.command.*;
 import dev.doctor4t.wathe.command.argument.GameModeArgumentType;
 import dev.doctor4t.wathe.command.argument.MapEffectArgumentType;
@@ -92,6 +94,7 @@ public class Wathe implements ModInitializer {
 //            UpdateDoorsCommand.register(dispatcher);
             SetTimerCommand.register(dispatcher);
             SetMoneyCommand.register(dispatcher);
+            MapVoteCommand.register(dispatcher);
         }));
 
         // 版本检查 - 在配置阶段验证客户端 mod 版本
@@ -128,10 +131,12 @@ public class Wathe implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(GunShootPayload.ID, GunShootPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(StoreBuyPayload.ID, StoreBuyPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(NoteEditPayload.ID, NoteEditPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(MapVotePayload.ID, MapVotePayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(KnifeStabPayload.ID, new KnifeStabPayload.Receiver());
         ServerPlayNetworking.registerGlobalReceiver(GunShootPayload.ID, new GunShootPayload.Receiver());
         ServerPlayNetworking.registerGlobalReceiver(StoreBuyPayload.ID, new StoreBuyPayload.Receiver());
         ServerPlayNetworking.registerGlobalReceiver(NoteEditPayload.ID, new NoteEditPayload.Receiver());
+        ServerPlayNetworking.registerGlobalReceiver(MapVotePayload.ID, new MapVotePayload.Receiver());
 
         // Register event handlers
         WatheEventHandlers.register();
@@ -149,11 +154,65 @@ public class Wathe implements ModInitializer {
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
-            World world = player.getWorld();
-            GameWorldComponent game = GameWorldComponent.KEY.get(world);
-            if (game.isPlayerDead(player.getUuid())) {
-                player.changeGameMode(GameMode.SPECTATOR);
-                TrainVoicePlugin.addPlayer(player.getUuid());
+
+            // 查找是否有世界正在运行游戏
+            ServerWorld gameWorld = null;
+            GameWorldComponent runningGame = null;
+            for (ServerWorld sw : server.getWorlds()) {
+                GameWorldComponent g = GameWorldComponent.KEY.get(sw);
+                if (g.isRunning()) {
+                    gameWorld = sw;
+                    runningGame = g;
+                    break;
+                }
+            }
+
+            if (runningGame != null) {
+                // 游戏运行中：死亡玩家或不在本局游戏中的玩家 → 旁观模式 + 传送到旁观出生点
+                boolean isDead = runningGame.isPlayerDead(player.getUuid());
+                boolean notInGame = !runningGame.hasAnyRole(player.getUuid());
+
+                if (isDead || notInGame) {
+                    player.changeGameMode(GameMode.SPECTATOR);
+                    TrainVoicePlugin.addPlayer(player.getUuid());
+
+                    MapVariablesWorldComponent areas = MapVariablesWorldComponent.KEY.get(gameWorld);
+                    MapVariablesWorldComponent.PosWithOrientation spectatorSpawnPos = areas.getSpectatorSpawnPos();
+                    if (spectatorSpawnPos != null) {
+                        net.minecraft.world.TeleportTarget target = new net.minecraft.world.TeleportTarget(
+                            gameWorld, spectatorSpawnPos.pos, net.minecraft.util.math.Vec3d.ZERO,
+                            spectatorSpawnPos.yaw, spectatorSpawnPos.pitch, net.minecraft.world.TeleportTarget.NO_OP
+                        );
+                        player.teleportTo(target);
+                    }
+                }
+            } else {
+                // 游戏未运行：检查当前世界的死亡状态
+                GameWorldComponent game = GameWorldComponent.KEY.get(player.getWorld());
+                if (game.isPlayerDead(player.getUuid())) {
+                    player.changeGameMode(GameMode.SPECTATOR);
+                    TrainVoicePlugin.addPlayer(player.getUuid());
+                }
+
+                // Map voting: teleport to last selected dimension if available
+                MapVotingComponent voting = MapVotingComponent.KEY.get(server.getScoreboard());
+                voting.onPlayerJoin();
+
+                Identifier lastDim = voting.getLastSelectedDimension();
+                if (lastDim != null) {
+                    net.minecraft.registry.RegistryKey<World> dimKey =
+                        net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.WORLD, lastDim);
+                    ServerWorld targetWorld = server.getWorld(dimKey);
+                    if (targetWorld != null && !player.getWorld().getRegistryKey().equals(dimKey)) {
+                        MapVariablesWorldComponent targetMapVars = MapVariablesWorldComponent.KEY.get(targetWorld);
+                        MapVariablesWorldComponent.PosWithOrientation spawnPos = targetMapVars.getSpawnPos();
+                        net.minecraft.world.TeleportTarget target = new net.minecraft.world.TeleportTarget(
+                            targetWorld, spawnPos.pos, net.minecraft.util.math.Vec3d.ZERO,
+                            spawnPos.yaw, spawnPos.pitch, net.minecraft.world.TeleportTarget.NO_OP
+                        );
+                        player.teleportTo(target);
+                    }
+                }
             }
         });
 

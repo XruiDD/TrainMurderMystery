@@ -1,17 +1,15 @@
 package dev.doctor4t.wathe.config.datapack;
 
 import dev.doctor4t.wathe.Wathe;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * 地图配置管理器（单例模式）
- * 仅从 datapack 加载配置
+ * 所有配置通过 MapRegistry 管理，按维度ID获取
  */
 public class MapEnhancementsConfigurationManager {
     private static final MapEnhancementsConfigurationManager INSTANCE = new MapEnhancementsConfigurationManager();
-
-    @Nullable
-    private MapEnhancementsConfiguration configuration;
 
     private MapEnhancementsConfigurationManager() {
     }
@@ -21,39 +19,47 @@ public class MapEnhancementsConfigurationManager {
     }
 
     /**
-     * 设置配置（由 Reloader 调用）
+     * 获取指定维度地图的增强配置
+     * @param dimensionId 维度ID
+     * @return 配置，如果不存在返回 null
      */
-    public void setConfiguration(@Nullable MapEnhancementsConfiguration configuration) {
-        this.configuration = configuration;
-        if (configuration != null) {
-            Wathe.LOGGER.info("Loaded area configuration with {} rooms (total capacity: {})",
-                configuration.getRoomCount(), configuration.getTotalCapacity());
-        } else {
-            Wathe.LOGGER.warn("No area configuration loaded from datapack");
+    @Nullable
+    public MapEnhancementsConfiguration getConfiguration(Identifier dimensionId) {
+        // 先按 map ID 查找
+        MapRegistryEntry entry = MapRegistry.getInstance().getMap(dimensionId);
+        if (entry != null) {
+            return entry.enhancements();
         }
+        // 再按维度ID在所有地图中查找匹配的
+        for (MapRegistryEntry mapEntry : MapRegistry.getInstance().getMaps().values()) {
+            if (mapEntry.dimensionId().equals(dimensionId)) {
+                return mapEntry.enhancements();
+            }
+        }
+        return null;
     }
 
     /**
-     * 获取当前配置
-     * @return 配置，如果没有加载则返回 null
+     * 获取当前世界的配置（向后兼容：使用 overworld 的配置）
+     * @return 配置，如果没有则返回 null
      */
     @Nullable
     public MapEnhancementsConfiguration getConfiguration() {
-        return configuration;
+        // 向后兼容：返回 overworld 的配置
+        return getConfiguration(Identifier.ofVanilla("overworld"));
     }
 
     /**
-     * 是否已加载配置
+     * 是否已加载任何配置
      */
     public boolean hasConfiguration() {
-        return configuration != null;
+        return MapRegistry.getInstance().getMapCount() > 0;
     }
 
     /**
-     * 清除配置
+     * 是否有指定维度的配置
      */
-    public void clearConfiguration() {
-        this.configuration = null;
-        Wathe.LOGGER.info("Cleared area configuration");
+    public boolean hasConfiguration(Identifier dimensionId) {
+        return getConfiguration(dimensionId) != null;
     }
 }

@@ -340,7 +340,10 @@
   "itemGroup.wathe.decoration": "Wathe：装饰与功能",
   "itemGroup.wathe.equipment": "Wathe：装备",
   "key.wathe.instinct": "本能",
+  "key.wathe.map_vote": "地图投票",
   "lobby.autostart.active": "玩家数达到 %s 人以上后将自动开始游戏",
+  "lobby.voting.active": "地图投票进行中",
+  "lobby.voting.keybind_hint": "按 [%s] 打开/关闭投票界面",
   "lobby.autostart.starting": "游戏开始中",
   "lobby.autostart.time": "游戏将在 %ss 后开始",
   "lobby.players.count": "已登车玩家：%s / %s",
@@ -436,5 +439,16 @@
   "tip.letter.veteran.tooltip1": "你的军旅经验在这次旅程中至关重要。",
   "tip.letter.veteran.tooltip2": "你有一把使用次数有限的刀。请珍惜每一次出刀机会。",
   "hud.body.death_info": "死于 %s 秒前，死因：",
-  "hud.mood.breakdown_warning": "精神即将崩溃！"
+  "hud.mood.breakdown_warning": "精神即将崩溃！",
+
+  "gui.wathe.map_voting.title": "选择下一张地图",
+  "gui.wathe.map_voting.selecting": "正在选择地图...",
+  "gui.wathe.map_voting.votes": "%s 票",
+  "gui.wathe.map_voting.my_vote": "已投票",
+  "gui.wathe.map_voting.player_range": "%1$s-%2$s 人",
+  "gui.wathe.map_voting.players": "当前在线玩家：%s",
+  "gui.wathe.map_voting.voted_info": "已投票 %s / 在线 %s",
+  "gui.wathe.map_voting.unavailable": "不可用",
+  "gui.wathe.map_voting.unavailable.min_players": "至少需要 %s 人",
+  "gui.wathe.map_voting.unavailable.max_players": "最多 %s 人"
 }

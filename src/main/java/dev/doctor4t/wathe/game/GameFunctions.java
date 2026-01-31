@@ -598,112 +598,107 @@ public class GameFunctions {
 
     // returns whether another reset should be attempted
     public static boolean tryResetTrain(ServerWorld serverWorld) {
-        if (serverWorld.getServer().getOverworld().equals(serverWorld)) {
-            MapVariablesWorldComponent areas = MapVariablesWorldComponent.KEY.get(serverWorld);
-            BlockPos backupMinPos = BlockPos.ofFloored(areas.getResetTemplateArea().getMinPos());
-            BlockPos backupMaxPos = BlockPos.ofFloored(areas.getResetTemplateArea().getMaxPos());
-            BlockBox backupTrainBox = BlockBox.create(backupMinPos, backupMaxPos);
-            BlockPos trainMinPos = BlockPos.ofFloored(areas.getResetTemplateArea().offset(Vec3d.of(areas.getResetPasteOffset())).getMinPos());
-            BlockPos trainMaxPos = trainMinPos.add(backupTrainBox.getDimensions());
-            BlockBox trainBox = BlockBox.create(trainMinPos, trainMaxPos);
+        MapVariablesWorldComponent areas = MapVariablesWorldComponent.KEY.get(serverWorld);
+        BlockPos backupMinPos = BlockPos.ofFloored(areas.getResetTemplateArea().getMinPos());
+        BlockPos backupMaxPos = BlockPos.ofFloored(areas.getResetTemplateArea().getMaxPos());
+        BlockBox backupTrainBox = BlockBox.create(backupMinPos, backupMaxPos);
+        BlockPos trainMinPos = BlockPos.ofFloored(areas.getResetTemplateArea().offset(Vec3d.of(areas.getResetPasteOffset())).getMinPos());
+        BlockPos trainMaxPos = trainMinPos.add(backupTrainBox.getDimensions());
+        BlockBox trainBox = BlockBox.create(trainMinPos, trainMaxPos);
 
-            Mode mode = Mode.FORCE;
+        if (serverWorld.isRegionLoaded(backupMinPos, backupMaxPos) && serverWorld.isRegionLoaded(trainMinPos, trainMaxPos)) {
+            List<BlockInfo> list = Lists.newArrayList();
+            List<BlockInfo> list2 = Lists.newArrayList();
+            List<BlockInfo> list3 = Lists.newArrayList();
+            Deque<BlockPos> deque = Lists.newLinkedList();
+            BlockPos blockPos5 = new BlockPos(
+                    trainBox.getMinX() - backupTrainBox.getMinX(), trainBox.getMinY() - backupTrainBox.getMinY(), trainBox.getMinZ() - backupTrainBox.getMinZ()
+            );
 
-            if (serverWorld.isRegionLoaded(backupMinPos, backupMaxPos) && serverWorld.isRegionLoaded(trainMinPos, trainMaxPos)) {
-                List<BlockInfo> list = Lists.newArrayList();
-                List<BlockInfo> list2 = Lists.newArrayList();
-                List<BlockInfo> list3 = Lists.newArrayList();
-                Deque<BlockPos> deque = Lists.newLinkedList();
-                BlockPos blockPos5 = new BlockPos(
-                        trainBox.getMinX() - backupTrainBox.getMinX(), trainBox.getMinY() - backupTrainBox.getMinY(), trainBox.getMinZ() - backupTrainBox.getMinZ()
-                );
+            for (int k = backupTrainBox.getMinZ(); k <= backupTrainBox.getMaxZ(); k++) {
+                for (int l = backupTrainBox.getMinY(); l <= backupTrainBox.getMaxY(); l++) {
+                    for (int m = backupTrainBox.getMinX(); m <= backupTrainBox.getMaxX(); m++) {
+                        BlockPos blockPos6 = new BlockPos(m, l, k);
+                        BlockPos blockPos7 = blockPos6.add(blockPos5);
+                        CachedBlockPosition cachedBlockPosition = new CachedBlockPosition(serverWorld, blockPos6, false);
+                        BlockState blockState = cachedBlockPosition.getBlockState();
 
-                for (int k = backupTrainBox.getMinZ(); k <= backupTrainBox.getMaxZ(); k++) {
-                    for (int l = backupTrainBox.getMinY(); l <= backupTrainBox.getMaxY(); l++) {
-                        for (int m = backupTrainBox.getMinX(); m <= backupTrainBox.getMaxX(); m++) {
-                            BlockPos blockPos6 = new BlockPos(m, l, k);
-                            BlockPos blockPos7 = blockPos6.add(blockPos5);
-                            CachedBlockPosition cachedBlockPosition = new CachedBlockPosition(serverWorld, blockPos6, false);
-                            BlockState blockState = cachedBlockPosition.getBlockState();
-
-                            BlockEntity blockEntity = serverWorld.getBlockEntity(blockPos6);
-                            if (blockEntity != null) {
-                                BlockEntityInfo blockEntityInfo = new BlockEntityInfo(
-                                        blockEntity.createComponentlessNbt(serverWorld.getRegistryManager()), blockEntity.getComponents()
-                                );
-                                list2.add(new BlockInfo(blockPos7, blockState, blockEntityInfo));
-                                deque.addLast(blockPos6);
-                            } else if (!blockState.isOpaqueFullCube(serverWorld, blockPos6) && !blockState.isFullCube(serverWorld, blockPos6)) {
-                                list3.add(new BlockInfo(blockPos7, blockState, null));
-                                deque.addFirst(blockPos6);
-                            } else {
-                                list.add(new BlockInfo(blockPos7, blockState, null));
-                                deque.addLast(blockPos6);
-                            }
+                        BlockEntity blockEntity = serverWorld.getBlockEntity(blockPos6);
+                        if (blockEntity != null) {
+                            BlockEntityInfo blockEntityInfo = new BlockEntityInfo(
+                                    blockEntity.createComponentlessNbt(serverWorld.getRegistryManager()), blockEntity.getComponents()
+                            );
+                            list2.add(new BlockInfo(blockPos7, blockState, blockEntityInfo));
+                            deque.addLast(blockPos6);
+                        } else if (!blockState.isOpaqueFullCube(serverWorld, blockPos6) && !blockState.isFullCube(serverWorld, blockPos6)) {
+                            list3.add(new BlockInfo(blockPos7, blockState, null));
+                            deque.addFirst(blockPos6);
+                        } else {
+                            list.add(new BlockInfo(blockPos7, blockState, null));
+                            deque.addLast(blockPos6);
                         }
                     }
                 }
+            }
 
-                List<BlockInfo> list4 = Lists.newArrayList();
-                list4.addAll(list);
-                list4.addAll(list2);
-                list4.addAll(list3);
-                List<BlockInfo> list5 = Lists.reverse(list4);
+            List<BlockInfo> list4 = Lists.newArrayList();
+            list4.addAll(list);
+            list4.addAll(list2);
+            list4.addAll(list3);
+            List<BlockInfo> list5 = Lists.reverse(list4);
 
-                for (BlockInfo blockInfo : list5) {
-                    BlockEntity blockEntity3 = serverWorld.getBlockEntity(blockInfo.pos);
-                    Clearable.clear(blockEntity3);
-                    serverWorld.setBlockState(blockInfo.pos, Blocks.BARRIER.getDefaultState(), Block.NOTIFY_LISTENERS);
+            for (BlockInfo blockInfo : list5) {
+                BlockEntity blockEntity3 = serverWorld.getBlockEntity(blockInfo.pos);
+                Clearable.clear(blockEntity3);
+                serverWorld.setBlockState(blockInfo.pos, Blocks.BARRIER.getDefaultState(), Block.NOTIFY_LISTENERS);
+            }
+
+            int mx = 0;
+
+            for (BlockInfo blockInfo2 : list4) {
+                if (serverWorld.setBlockState(blockInfo2.pos, blockInfo2.state, Block.NOTIFY_LISTENERS)) {
+                    mx++;
+                }
+            }
+
+            for (BlockInfo blockInfo2x : list2) {
+                BlockEntity blockEntity4 = serverWorld.getBlockEntity(blockInfo2x.pos);
+                if (blockInfo2x.blockEntityInfo != null && blockEntity4 != null) {
+                    blockEntity4.readComponentlessNbt(blockInfo2x.blockEntityInfo.nbt, serverWorld.getRegistryManager());
+                    blockEntity4.setComponents(blockInfo2x.blockEntityInfo.components);
+                    blockEntity4.markDirty();
                 }
 
-                int mx = 0;
+                serverWorld.setBlockState(blockInfo2x.pos, blockInfo2x.state, Block.NOTIFY_LISTENERS);
+            }
 
-                for (BlockInfo blockInfo2 : list4) {
-                    if (serverWorld.setBlockState(blockInfo2.pos, blockInfo2.state, Block.NOTIFY_LISTENERS)) {
-                        mx++;
-                    }
-                }
+            for (BlockInfo blockInfo2x : list5) {
+                serverWorld.updateNeighbors(blockInfo2x.pos, blockInfo2x.state.getBlock());
+            }
 
-                for (BlockInfo blockInfo2x : list2) {
-                    BlockEntity blockEntity4 = serverWorld.getBlockEntity(blockInfo2x.pos);
-                    if (blockInfo2x.blockEntityInfo != null && blockEntity4 != null) {
-                        blockEntity4.readComponentlessNbt(blockInfo2x.blockEntityInfo.nbt, serverWorld.getRegistryManager());
-                        blockEntity4.setComponents(blockInfo2x.blockEntityInfo.components);
-                        blockEntity4.markDirty();
-                    }
-
-                    serverWorld.setBlockState(blockInfo2x.pos, blockInfo2x.state, Block.NOTIFY_LISTENERS);
-                }
-
-                for (BlockInfo blockInfo2x : list5) {
-                    serverWorld.updateNeighbors(blockInfo2x.pos, blockInfo2x.state.getBlock());
-                }
-
-                serverWorld.getBlockTickScheduler().scheduleTicks(serverWorld.getBlockTickScheduler(), backupTrainBox, blockPos5);
-                if (mx == 0) {
-                    Wathe.LOGGER.info("Train reset failed: No blocks copied. Queueing another attempt.");
-                    return true;
-                }
-            } else {
-                Wathe.LOGGER.info("Train reset failed: Clone positions not loaded. Queueing another attempt.");
+            serverWorld.getBlockTickScheduler().scheduleTicks(serverWorld.getBlockTickScheduler(), backupTrainBox, blockPos5);
+            if (mx == 0) {
+                Wathe.LOGGER.info("Train reset failed: No blocks copied. Queueing another attempt.");
                 return true;
             }
-
-            // discard all player bodies and items
-            for (PlayerBodyEntity body : serverWorld.getEntitiesByType(WatheEntities.PLAYER_BODY, playerBodyEntity -> true)) {
-                body.discard();
-            }
-            for (ItemEntity item : serverWorld.getEntitiesByType(EntityType.ITEM, playerBodyEntity -> true)) {
-                item.discard();
-            }
-            for (FirecrackerEntity entity : serverWorld.getEntitiesByType(WatheEntities.FIRECRACKER, entity -> true))
-                entity.discard();
-            for (NoteEntity entity : serverWorld.getEntitiesByType(WatheEntities.NOTE, entity -> true))
-                entity.discard();
-
-            Wathe.LOGGER.info("Train reset successful.");
-            return false;
+        } else {
+            Wathe.LOGGER.info("Train reset failed: Clone positions not loaded. Queueing another attempt.");
+            return true;
         }
+
+        // discard all player bodies and items
+        for (PlayerBodyEntity body : serverWorld.getEntitiesByType(WatheEntities.PLAYER_BODY, playerBodyEntity -> true)) {
+            body.discard();
+        }
+        for (ItemEntity item : serverWorld.getEntitiesByType(EntityType.ITEM, playerBodyEntity -> true)) {
+            item.discard();
+        }
+        for (FirecrackerEntity entity : serverWorld.getEntitiesByType(WatheEntities.FIRECRACKER, entity -> true))
+            entity.discard();
+        for (NoteEntity entity : serverWorld.getEntitiesByType(WatheEntities.NOTE, entity -> true))
+            entity.discard();
+
+        Wathe.LOGGER.info("Train reset successful.");
         return false;
     }
 

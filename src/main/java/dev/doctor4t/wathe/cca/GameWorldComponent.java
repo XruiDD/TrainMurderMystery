@@ -707,37 +707,35 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
             }
         }
 
-        if (serverWorld.getServer().getOverworld().equals(serverWorld)) {
-            GameWorldComponent trainComponent = GameWorldComponent.KEY.get(serverWorld);
+        GameWorldComponent trainComponent = GameWorldComponent.KEY.get(serverWorld);
 
-            // spectator limits
-            if (trainComponent.getGameStatus() != GameStatus.INACTIVE) {
-                for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-                    if (!GameFunctions.isPlayerPlayingAndAlive(player) && player.isSpectator() && isBound() && playArea != null) {
-                        GameFunctions.limitPlayerToBox(player, playArea);
-                    }
+        // spectator limits
+        if (trainComponent.getGameStatus() != GameStatus.INACTIVE) {
+            for (ServerPlayerEntity player : serverWorld.getPlayers()) {
+                if (!GameFunctions.isPlayerPlayingAndAlive(player) && player.isSpectator() && isBound() && playArea != null) {
+                    GameFunctions.limitPlayerToBox(player, playArea);
                 }
             }
+        }
 
-            if (this.isRunning()) {
-                for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-                    if (GameFunctions.isPlayerPlayingAndAlive(player)) {
-                        // kill players who fell off the train
-                        if (playArea != null && player.getY() < playArea.minY) {
-                            GameFunctions.killPlayer(player, false, player.getLastAttacker() instanceof PlayerEntity killerPlayer ? killerPlayer : null, GameConstants.DeathReasons.FELL_OUT_OF_TRAIN);
-                        }
-                    } else {
-                        if(!GameFunctions.isPlayerSpectatingOrCreative(player)) {
-                            player.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
-                            TrainVoicePlugin.addPlayer(player.getUuid());
-                        }
+        if (this.isRunning()) {
+            for (ServerPlayerEntity player : serverWorld.getPlayers()) {
+                if (GameFunctions.isPlayerPlayingAndAlive(player)) {
+                    // kill players who fell off the train
+                    if (playArea != null && player.getY() < playArea.minY) {
+                        GameFunctions.killPlayer(player, false, player.getLastAttacker() instanceof PlayerEntity killerPlayer ? killerPlayer : null, GameConstants.DeathReasons.FELL_OUT_OF_TRAIN);
                     }
-
+                } else {
+                    if(!GameFunctions.isPlayerSpectatingOrCreative(player)) {
+                        player.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
+                        TrainVoicePlugin.addPlayer(player.getUuid());
+                    }
                 }
 
-                // run game loop logic
-                gameMode.tickServerGameLoop(serverWorld, this);
             }
+
+            // run game loop logic
+            gameMode.tickServerGameLoop(serverWorld, this);
         }
 
         if (serverWorld.getTime() % 20 == 0) {

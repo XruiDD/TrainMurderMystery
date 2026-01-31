@@ -24,6 +24,6 @@ public abstract class MinecraftClientMixin {
             return;
         }
 
-        original.call(instance, WatheClient.isPlayerPlayingAndAlive() && !WatheClient.isPlayerCreative() && WatheClient.trainComponent.hasHud() ? new LimitedInventoryScreen(this.player) : screen);
+        original.call(instance, WatheClient.isPlayerAliveAndInSurvival() && WatheClient.trainComponent.hasHud() ? new LimitedInventoryScreen(this.player) : screen);
     }
 }

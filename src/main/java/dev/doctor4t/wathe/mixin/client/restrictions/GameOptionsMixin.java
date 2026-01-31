@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 public class GameOptionsMixin {
     @ModifyReturnValue(method = "getPerspective", at = @At("RETURN"))
     public Perspective getPerspective(Perspective original) {
-        if (WatheClient.isPlayerPlayingAndAlive() || !WatheClient.isPlayerCreative()) {
+        if (WatheClient.isPlayerAliveAndInSurvival() || !WatheClient.isPlayerCreative()) {
             return Perspective.FIRST_PERSON;
         } else {
             return original;

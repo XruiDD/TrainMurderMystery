@@ -1,7 +1,9 @@
 package dev.doctor4t.wathe.config.datapack;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.mojang.datafixers.util.Either;
 import net.minecraft.block.Block;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
@@ -66,12 +68,42 @@ public record MapEnhancementsConfiguration(
     public record FogConfig(float start, float endMoving, float endStationary, int nightColor) {
         public static final FogConfig DEFAULT = new FogConfig(32.0f, 96.0f, 64.0f, 0x0D0D14);
 
+        private static final Codec<Integer> NIGHT_COLOR_CODEC = Codec.either(Codec.INT, Codec.STRING)
+            .flatXmap(
+                either -> either.map(DataResult::success, FogConfig::parseNightColor),
+                value -> DataResult.success(Either.left(value))
+            );
+
         public static final Codec<FogConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.FLOAT.optionalFieldOf("start", 32.0f).forGetter(FogConfig::start),
             Codec.FLOAT.optionalFieldOf("end_moving", 96.0f).forGetter(FogConfig::endMoving),
             Codec.FLOAT.optionalFieldOf("end_stationary", 64.0f).forGetter(FogConfig::endStationary),
-            Codec.INT.optionalFieldOf("night_color", 0x0D0D14).forGetter(FogConfig::nightColor)
+            NIGHT_COLOR_CODEC.optionalFieldOf("night_color", 0x0D0D14).forGetter(FogConfig::nightColor)
         ).apply(instance, FogConfig::new));
+
+        private static DataResult<Integer> parseNightColor(String raw) {
+            String value = raw.trim();
+            if (value.startsWith("#")) {
+                value = value.substring(1);
+            } else if (value.startsWith("0x") || value.startsWith("0X")) {
+                value = value.substring(2);
+            }
+            if (value.isEmpty()) {
+                return DataResult.error(() -> "night_color hex string is empty");
+            }
+            if (!value.matches("[0-9a-fA-F]+")) {
+                return DataResult.error(() -> "night_color must be a hex string like #RRGGBB or 0xAARRGGBB");
+            }
+            if (value.length() > 8) {
+                return DataResult.error(() -> "night_color hex string is too long (max 8 hex digits)");
+            }
+            try {
+                int parsed = (int) Long.parseLong(value, 16);
+                return DataResult.success(parsed);
+            } catch (NumberFormatException e) {
+                return DataResult.error(() -> "Invalid night_color hex string: " + raw);
+            }
+        }
     }
 
     /**

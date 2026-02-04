@@ -46,6 +46,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public class Wathe implements ModInitializer {
@@ -153,67 +154,76 @@ public class Wathe implements ModInitializer {
             }
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            ServerPlayerEntity player = handler.getPlayer();
+//            ServerPlayerEntity player = handler.getPlayer();
+//
+//            // 查找是否有世界正在运行游戏
+//            ServerWorld gameWorld = null;
+//            GameWorldComponent runningGame = null;
+//            for (ServerWorld sw : server.getWorlds()) {
+//                GameWorldComponent g = GameWorldComponent.KEY.get(sw);
+//                if (g.isRunning()) {
+//                    gameWorld = sw;
+//                    runningGame = g;
+//                    break;
+//                }
+//            }
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(handler.getPlayer().getWorld());
 
-            // 查找是否有世界正在运行游戏
-            ServerWorld gameWorld = null;
-            GameWorldComponent runningGame = null;
-            for (ServerWorld sw : server.getWorlds()) {
-                GameWorldComponent g = GameWorldComponent.KEY.get(sw);
-                if (g.isRunning()) {
-                    gameWorld = sw;
-                    runningGame = g;
-                    break;
+            MapVotingComponent voting = MapVotingComponent.KEY.get(server.getScoreboard());
+            if (!gameWorldComponent.isRunning()) {
+                if (!Objects.equals(voting.getLastSelectedDimension(), handler.getPlayer().getWorld().getRegistryKey().getValue().toString())) {
+                    GameFunctions.teleportPlayer(handler.getPlayer());
                 }
+            } else if (!GameFunctions.isPlayerAliveAndSurvival(handler.player)){
+                GameFunctions.teleportPlayer(handler.getPlayer());
             }
-
-            if (runningGame != null) {
-                // 游戏运行中：死亡玩家或不在本局游戏中的玩家 → 旁观模式 + 传送到旁观出生点
-                boolean isDead = runningGame.isPlayerDead(player.getUuid());
-                boolean notInGame = !runningGame.hasAnyRole(player.getUuid());
-
-                if (isDead || notInGame) {
-                    player.changeGameMode(GameMode.SPECTATOR);
-                    TrainVoicePlugin.addPlayer(player.getUuid());
-
-                    MapVariablesWorldComponent areas = MapVariablesWorldComponent.KEY.get(gameWorld);
-                    MapVariablesWorldComponent.PosWithOrientation spectatorSpawnPos = areas.getSpectatorSpawnPos();
-                    if (spectatorSpawnPos != null) {
-                        net.minecraft.world.TeleportTarget target = new net.minecraft.world.TeleportTarget(
-                            gameWorld, spectatorSpawnPos.pos, net.minecraft.util.math.Vec3d.ZERO,
-                            spectatorSpawnPos.yaw, spectatorSpawnPos.pitch, net.minecraft.world.TeleportTarget.NO_OP
-                        );
-                        player.teleportTo(target);
-                    }
-                }
-            } else {
-                // 游戏未运行：检查当前世界的死亡状态
-                GameWorldComponent game = GameWorldComponent.KEY.get(player.getWorld());
-                if (game.isPlayerDead(player.getUuid())) {
-                    player.changeGameMode(GameMode.SPECTATOR);
-                    TrainVoicePlugin.addPlayer(player.getUuid());
-                }
-
-                // Map voting: teleport to last selected dimension if available
-                MapVotingComponent voting = MapVotingComponent.KEY.get(server.getScoreboard());
-                voting.onPlayerJoin();
-
-                Identifier lastDim = voting.getLastSelectedDimension();
-                if (lastDim != null) {
-                    net.minecraft.registry.RegistryKey<World> dimKey =
-                        net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.WORLD, lastDim);
-                    ServerWorld targetWorld = server.getWorld(dimKey);
-                    if (targetWorld != null && !player.getWorld().getRegistryKey().equals(dimKey)) {
-                        MapVariablesWorldComponent targetMapVars = MapVariablesWorldComponent.KEY.get(targetWorld);
-                        MapVariablesWorldComponent.PosWithOrientation spawnPos = targetMapVars.getSpawnPos();
-                        net.minecraft.world.TeleportTarget target = new net.minecraft.world.TeleportTarget(
-                            targetWorld, spawnPos.pos, net.minecraft.util.math.Vec3d.ZERO,
-                            spawnPos.yaw, spawnPos.pitch, net.minecraft.world.TeleportTarget.NO_OP
-                        );
-                        player.teleportTo(target);
-                    }
-                }
-            }
+//            if (runningGame != null) {
+//                // 游戏运行中：死亡玩家或不在本局游戏中的玩家 → 旁观模式 + 传送到旁观出生点
+//                boolean isDead = runningGame.isPlayerDead(player.getUuid());
+//                boolean notInGame = !runningGame.hasAnyRole(player.getUuid());
+//
+//                if (isDead || notInGame) {
+//                    player.changeGameMode(GameMode.SPECTATOR);
+//                    TrainVoicePlugin.addPlayer(player.getUuid());
+//
+//                    MapVariablesWorldComponent areas = MapVariablesWorldComponent.KEY.get(gameWorld);
+//                    MapVariablesWorldComponent.PosWithOrientation spectatorSpawnPos = areas.getSpectatorSpawnPos();
+//                    if (spectatorSpawnPos != null) {
+//                        net.minecraft.world.TeleportTarget target = new net.minecraft.world.TeleportTarget(
+//                            gameWorld, spectatorSpawnPos.pos, net.minecraft.util.math.Vec3d.ZERO,
+//                            spectatorSpawnPos.yaw, spectatorSpawnPos.pitch, net.minecraft.world.TeleportTarget.NO_OP
+//                        );
+//                        player.teleportTo(target);
+//                    }
+//                }
+//            } else {
+//                // 游戏未运行：检查当前世界的死亡状态
+//                GameWorldComponent game = GameWorldComponent.KEY.get(player.getWorld());
+//                if (game.isPlayerDead(player.getUuid())) {
+//                    player.changeGameMode(GameMode.SPECTATOR);
+//                    TrainVoicePlugin.addPlayer(player.getUuid());
+//                }
+//
+//                // Map voting: teleport to last selected dimension if available
+//                MapVotingComponent voting = MapVotingComponent.KEY.get(server.getScoreboard());
+//                voting.onPlayerJoin();
+//
+//                Identifier lastDim = voting.getLastSelectedDimension();
+//                if (lastDim != null) {
+//                    net.minecraft.registry.RegistryKey<World> dimKey =
+//                        net.minecraft.registry.RegistryKey.of(net.minecraft.registry.RegistryKeys.WORLD, lastDim);
+//                    ServerWorld targetWorld = server.getWorld(dimKey);
+//                    if (targetWorld != null && !player.getWorld().getRegistryKey().equals(dimKey)) {
+//                        MapVariablesWorldComponent targetMapVars = MapVariablesWorldComponent.KEY.get(targetWorld);
+//                        MapVariablesWorldComponent.PosWithOrientation spawnPos = targetMapVars.getSpawnPos();
+//                        net.minecraft.world.TeleportTarget target = new net.minecraft.world.TeleportTarget(
+//                            targetWorld, spawnPos.pos, net.minecraft.util.math.Vec3d.ZERO,
+//                            spawnPos.yaw, spawnPos.pitch, net.minecraft.world.TeleportTarget.NO_OP
+//                        );
+//                        player.teleportTo(target);
+//                    }
+//                }
+//            }
         });
 
         ServerLifecycleEvents.SERVER_STARTED.register((MinecraftServer server) -> {

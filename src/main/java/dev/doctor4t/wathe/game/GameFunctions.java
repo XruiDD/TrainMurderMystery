@@ -39,6 +39,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -62,6 +63,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;
 
 public class GameFunctions {
@@ -743,7 +747,55 @@ public class GameFunctions {
         int totalPlayers = roomPlayerCounts.values().stream().mapToInt(Integer::intValue).sum();
         return (totalPlayers % totalRooms) + 1;
     }
+    public static RegistryKey<World> getWorldByPath(MinecraftServer server, String path) {
+        for (RegistryKey<World> key : server.getWorldRegistryKeys()) {
+            Identifier id = key.getValue();
+            if (id.getPath().equals(path)) {
+                return key;
+            }
+        }
+        return null;
+    }
+    public static BlockPos Vec3dToBlockPos(Vec3d vec3d) {
+        return new BlockPos(
+                (int) Math.round(vec3d.x),
+                (int) Math.round(vec3d.y),
+                (int) Math.round(vec3d.z)
+        );
 
+    }
+    public static final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor();
+
+    public static void teleportPlayer(ServerPlayerEntity player) {
+        MinecraftServer server = player.getServer();
+        SCHEDULER.schedule(() -> {
+            if (server == null) return;
+            server.execute(() -> {
+                RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, MapVotingComponent.KEY.get(player.getServer().getScoreboard()).getLastSelectedDimension());
+                if (worldKey == null) return;
+                ServerWorld world = server.getWorld(worldKey);
+                if (world == null) return;
+                MapVariablesWorldComponent spawn = MapVariablesWorldComponent.KEY.get(world);
+                MapVariablesWorldComponent.PosWithOrientation spawnPos = spawn.getSpawnPos();
+                if(player.isSpectator()){
+                    spawnPos = spawn.getSpectatorSpawnPos();
+                }
+                world.getChunk(Vec3dToBlockPos(spawnPos.pos));
+
+                player.teleport(
+                        world,
+                        spawnPos.pos.getX() + 0.5,
+                        spawnPos.pos.getY() + 1,
+                        spawnPos.pos.getZ() + 0.5,
+                        spawnPos.yaw,
+                        spawnPos.pitch
+                );
+                player.setSpawnPoint(worldKey, new BlockPos((int) spawnPos.pos.getX(), (int) spawnPos.pos.getY(), (int) spawnPos.pos.getZ()), spawnPos.yaw, true, false);
+                TrainVoicePlugin.resetPlayer(player.getUuid());
+                player.getInventory().clear();
+            });
+        }, 100, TimeUnit.MILLISECONDS);
+    }
     /**
      * 投票结束后传送所有玩家到目标维度
      */
@@ -756,18 +808,11 @@ public class GameFunctions {
             return;
         }
 
-        MapVariablesWorldComponent targetMapVars = MapVariablesWorldComponent.KEY.get(targetWorld);
-        MapVariablesWorldComponent.PosWithOrientation spawnPos = targetMapVars.getSpawnPos();
-
         // Teleport all players from all worlds to the target dimension
         for (ServerWorld world : currentWorld.getServer().getWorlds()) {
             if (world.getRegistryKey().equals(dimKey)) continue; // Already in target
             for (ServerPlayerEntity player : new ArrayList<>(world.getPlayers())) {
-                TeleportTarget target = new TeleportTarget(
-                    targetWorld, spawnPos.pos, Vec3d.ZERO,
-                    spawnPos.yaw, spawnPos.pitch, TeleportTarget.NO_OP
-                );
-                player.teleportTo(target);
+                teleportPlayer(player);
             }
         }
 

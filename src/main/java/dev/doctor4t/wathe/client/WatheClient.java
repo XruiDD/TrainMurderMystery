@@ -43,8 +43,6 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.option.CloudRenderMode;
@@ -257,14 +255,6 @@ public class WatheClient implements ClientModInitializer {
                 instinctLightLevel -= .1f;
             }
             instinctLightLevel = MathHelper.clamp(instinctLightLevel, -.04f, .5f);
-
-            // Cache player entries
-            for (AbstractClientPlayerEntity player : clientWorld.getPlayers()) {
-                ClientPlayNetworkHandler networkHandler = MinecraftClient.getInstance().getNetworkHandler();
-                if (networkHandler != null) {
-                    PLAYER_ENTRIES_CACHE.put(player.getUuid(), networkHandler.getPlayerListEntry(player.getUuid()));
-                }
-            }
             if (!prevGameRunning && gameComponent.isRunning()) {
                 MinecraftClient.getInstance().player.getInventory().selectedSlot = 8;
             }

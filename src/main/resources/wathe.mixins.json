@@ -28,6 +28,7 @@
     "client.EntityRendererDispatchMixin",
     "client.GameRendererMixin",
     "client.MinecraftClientMixin",
+    "client.ClientPlayNetworkHandlerMixin",
     "client.PlayerEntityRendererMixin",
     "client.ResourceTextureMixin",
     "client.ResourceTextureMixin$TextureDataMixin",

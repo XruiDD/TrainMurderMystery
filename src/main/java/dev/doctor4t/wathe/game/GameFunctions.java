@@ -620,6 +620,7 @@ public class GameFunctions {
 
     // returns whether another reset should be attempted
     public static boolean tryResetTrain(ServerWorld serverWorld) {
+        Identifier dimensionId = serverWorld.getRegistryKey().getValue();
         MapVariablesWorldComponent areas = MapVariablesWorldComponent.KEY.get(serverWorld);
         BlockPos backupMinPos = BlockPos.ofFloored(areas.getResetTemplateArea().getMinPos());
         BlockPos backupMaxPos = BlockPos.ofFloored(areas.getResetTemplateArea().getMaxPos());
@@ -700,11 +701,11 @@ public class GameFunctions {
 
             serverWorld.getBlockTickScheduler().scheduleTicks(serverWorld.getBlockTickScheduler(), backupTrainBox, blockPos5);
             if (mx == 0) {
-                Wathe.LOGGER.info("Train reset failed: No blocks copied. Queueing another attempt.");
+                Wathe.LOGGER.info("Train reset failed: No blocks copied. Queueing another attempt. Dimension: {}", dimensionId);
                 return true;
             }
         } else {
-            Wathe.LOGGER.info("Train reset failed: Clone positions not loaded. Queueing another attempt.");
+            Wathe.LOGGER.info("Train reset failed: Clone positions not loaded. Queueing another attempt. Dimension: {}", dimensionId);
             return true;
         }
 
@@ -720,7 +721,7 @@ public class GameFunctions {
         for (NoteEntity entity : serverWorld.getEntitiesByType(WatheEntities.NOTE, entity -> true))
             entity.discard();
 
-        Wathe.LOGGER.info("Train reset successful.");
+        Wathe.LOGGER.info("Train reset successful. Dimension: {}", dimensionId);
         return false;
     }
 

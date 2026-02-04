@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
+import dev.doctor4t.wathe.cca.TrainWorldComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheItems;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
@@ -30,9 +31,8 @@ public class ServerPlayNetworkHandlerMixin {
     // 服务端限制丢弃物品和交换手
     @WrapMethod(method = "onPlayerAction")
     private void wathe$restrictPlayerActions(PlayerActionC2SPacket packet, @NotNull Operation<Void> original) {
-        // 如果玩家是存活的生存模式玩家
-        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.player.getWorld());
-        if (gameWorldComponent != null && gameWorldComponent.isRunning() && GameFunctions.isPlayerAliveAndSurvival(this.player)) {
+        TrainWorldComponent trainWorldComponent = TrainWorldComponent.KEY.get(this.player.getWorld());
+        if (trainWorldComponent != null && trainWorldComponent.hasHud() && GameFunctions.isPlayerAliveAndSurvival(this.player)) {
             // 阻止丢弃物品
             if (packet.getAction() == PlayerActionC2SPacket.Action.DROP_ITEM ||
                 packet.getAction() == PlayerActionC2SPacket.Action.DROP_ALL_ITEMS) {

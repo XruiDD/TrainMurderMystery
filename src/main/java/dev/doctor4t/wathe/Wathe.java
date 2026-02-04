@@ -171,7 +171,7 @@ public class Wathe implements ModInitializer {
 
             MapVotingComponent voting = MapVotingComponent.KEY.get(server.getScoreboard());
             if (!gameWorldComponent.isRunning()) {
-                if (!Objects.equals(voting.getLastSelectedDimension(), handler.getPlayer().getWorld().getRegistryKey().getValue().toString())) {
+                if (!Objects.equals(voting.getLastSelectedDimension(), handler.getPlayer().getWorld().getRegistryKey().getValue())) {
                     GameFunctions.teleportPlayer(handler.getPlayer());
                 }
             } else if (!GameFunctions.isPlayerAliveAndSurvival(handler.player)){

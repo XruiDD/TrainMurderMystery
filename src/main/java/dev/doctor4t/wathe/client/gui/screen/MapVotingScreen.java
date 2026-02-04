@@ -143,7 +143,8 @@ public class MapVotingScreen extends Screen {
 
     @Override
     public boolean shouldCloseOnEsc() {
-        return true;
+        MapVotingComponent voting = getVoting();
+        return voting == null || !voting.isRoulettePhase();
     }
 
     private MapVotingComponent getVoting() {

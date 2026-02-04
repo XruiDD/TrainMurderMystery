@@ -12,6 +12,7 @@ import dev.doctor4t.wathe.cca.*;
 import dev.doctor4t.wathe.client.gui.RoundTextRenderer;
 import dev.doctor4t.wathe.client.gui.StoreRenderer;
 import dev.doctor4t.wathe.client.gui.TimeRenderer;
+import dev.doctor4t.wathe.client.gui.screen.MapVotingScreen;
 import dev.doctor4t.wathe.client.model.WatheModelLayers;
 import dev.doctor4t.wathe.client.model.item.KnifeModelLoadingPlugin;
 import dev.doctor4t.wathe.client.render.block_entity.PlateBlockEntityRenderer;
@@ -289,6 +290,7 @@ public class WatheClient implements ClientModInitializer {
             MapVotingComponent votingComp =
                 MapVotingComponent.KEY.get(clientWorld.getScoreboard());
             boolean votingActive = votingComp.isVotingActive();
+            boolean roulettePhase = votingActive && votingComp.isRoulettePhase();
 
             // 投票刚开始时重置自动打开标记
             if (votingActive && !wasVotingActive) {
@@ -296,26 +298,39 @@ public class WatheClient implements ClientModInitializer {
             }
             // 等待结算动画播放完毕后再自动打开一次投票界面
             if (votingActive && !hasAutoOpenedVotingScreen && !RoundTextRenderer.isEndAnimationPlaying()) {
-                if (!(mc.currentScreen instanceof dev.doctor4t.wathe.client.gui.screen.MapVotingScreen)) {
-                    mc.setScreen(new dev.doctor4t.wathe.client.gui.screen.MapVotingScreen());
+                if (!(mc.currentScreen instanceof MapVotingScreen)) {
+                    mc.setScreen(new MapVotingScreen());
                 }
                 hasAutoOpenedVotingScreen = true;
             }
 
             // 按键切换投票界面
             if (votingActive && mapVoteKeybind.wasPressed()) {
-                if (mc.currentScreen instanceof dev.doctor4t.wathe.client.gui.screen.MapVotingScreen) {
+                if (roulettePhase) {
+                    if (!(mc.currentScreen instanceof MapVotingScreen)) {
+                        RoundTextRenderer.clearEndAnimation();
+                        mc.setScreen(new MapVotingScreen());
+                        hasAutoOpenedVotingScreen = true;
+                    }
+                } else if (mc.currentScreen instanceof MapVotingScreen) {
                     mc.setScreen(null);
                 } else {
                     // 主动打开投票界面时，关闭结算动画
                     RoundTextRenderer.clearEndAnimation();
-                    mc.setScreen(new dev.doctor4t.wathe.client.gui.screen.MapVotingScreen());
+                    mc.setScreen(new MapVotingScreen());
                     hasAutoOpenedVotingScreen = true;
                 }
             }
 
+            // 轮盘阶段强制保持投票界面开启
+            if (roulettePhase && !(mc.currentScreen instanceof MapVotingScreen)) {
+                RoundTextRenderer.clearEndAnimation();
+                mc.setScreen(new MapVotingScreen());
+                hasAutoOpenedVotingScreen = true;
+            }
+
             // 投票结束时关闭投票界面
-            if (!votingActive && mc.currentScreen instanceof dev.doctor4t.wathe.client.gui.screen.MapVotingScreen) {
+            if (!votingActive && mc.currentScreen instanceof MapVotingScreen) {
                 mc.setScreen(null);
             }
             wasVotingActive = votingActive;

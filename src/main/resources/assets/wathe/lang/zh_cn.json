@@ -282,6 +282,7 @@
   "game.psycho_mode.text": "杀光他们！",
   "game.psycho_mode.time": "疯魔模式：%s",
   "game.start_error.game_running": "无法开始游戏：已有游戏正在进行。请从大厅重新尝试。",
+  "game.start_error.voting_active": "无法开始游戏：地图投票进行中。请等待投票结束。",
   "game.start_error.not_enough_players": "无法开始游戏：至少需要 %s 名玩家。",
   "game.tip.cohort": "杀手同伙",
   "game.win.killers": "杀手杀光了所有乘客",

@@ -104,6 +104,14 @@ public class GameFunctions {
     }
 
     public static void startGame(ServerWorld world, GameMode gameMode, MapEffect mapEffect, int time) {
+        MapVotingComponent votingComponent = MapVotingComponent.KEY.get(world.getServer().getScoreboard());
+        if (votingComponent.isVotingActive()) {
+            for (ServerPlayerEntity player : world.getPlayers()) {
+                player.sendMessage(Text.translatable("game.start_error.voting_active"), true);
+            }
+            return;
+        }
+
         GameWorldComponent game = GameWorldComponent.KEY.get(world);
         MapVariablesWorldComponent areas = MapVariablesWorldComponent.KEY.get(world);
         int playerCount = Math.toIntExact(world.getPlayers().stream().filter(serverPlayerEntity -> isPlayerInReadyArea(serverPlayerEntity, areas)).count());

@@ -35,16 +35,31 @@ public class AutoStartComponent implements AutoSyncedComponent, CommonTickingCom
     @Override
     public void tick() {
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.world);
-        if (gameWorldComponent.isRunning()) return;
+        if (gameWorldComponent.getGameStatus() != GameWorldComponent.GameStatus.INACTIVE) {
+            this.resetCountdown();
+            return;
+        }
 
         // Skip auto-start while map voting is active
         if (this.world instanceof net.minecraft.server.world.ServerWorld serverWorld) {
             MapVotingComponent votingComponent = MapVotingComponent.KEY.get(
                 serverWorld.getServer().getScoreboard());
-            if (votingComponent.isVotingActive()) return;
+            if (votingComponent.isVotingActive()) {
+                this.resetCountdown();
+                return;
+            }
         }
 
-        if (this.startTime <= 0 && this.time <= 0) return;
+        if (this.startTime <= 0) {
+            if (this.time != 0) {
+                this.setTime(0);
+            }
+            return;
+        }
+
+        if (this.time < 0) {
+            this.setTime(this.startTime);
+        }
 
         GameMode gameMode = gameWorldComponent.getGameMode();
         if (GameFunctions.getReadyPlayerCount(world) >= gameMode.minPlayerCount) {
@@ -83,11 +98,19 @@ public class AutoStartComponent implements AutoSyncedComponent, CommonTickingCom
 
     public void setStartTime(int time) {
         this.startTime = time;
+        this.setTime(time);
     }
 
     public void setTime(int time) {
         this.time = time;
         this.sync();
+    }
+
+    private void resetCountdown() {
+        int targetTime = Math.max(0, this.startTime);
+        if (this.time != targetTime) {
+            this.setTime(targetTime);
+        }
     }
 
     @Override

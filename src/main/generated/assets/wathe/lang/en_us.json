@@ -293,6 +293,7 @@
   "game.psycho_mode.text": "Kill them all!",
   "game.psycho_mode.time": "Psycho Mode: %s",
   "game.start_error.game_running": "Game cannot start: a game is already running. Please try again from the lobby.",
+  "game.start_error.voting_active": "Game cannot start: map voting is active. Please wait for voting to finish.",
   "game.start_error.not_enough_players": "Game cannot start: %s players minimum are required.",
   "game.tip.cohort": "Killer Cohort",
   "game.win.killers": "The killers reached their kill count, they win!",

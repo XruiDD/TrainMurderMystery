@@ -8,6 +8,7 @@
     "AbstractBlockSettingsMixin",
     "DedicatedPlayerManagerMixin",
     "EntityMixin",
+    "FarmlandBlockMixin",
     "HungerManagerMixin",
     "ItemEntityMixin",
     "ItemMixin",

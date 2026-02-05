@@ -451,5 +451,34 @@
   "gui.wathe.map_voting.voted_info": "已投票 %s / 在线 %s",
   "gui.wathe.map_voting.unavailable": "不可用",
   "gui.wathe.map_voting.unavailable.min_players": "至少需要 %s 人",
-  "gui.wathe.map_voting.unavailable.max_players": "最多 %s 人"
+  "gui.wathe.map_voting.unavailable.max_players": "最多 %s 人",
+
+  "replay.title": "=== 对局回放 ===",
+  "replay.footer": "--- 回放结束 ---",
+
+  "replay.death.wathe.knife_stab.killed": "%s 被 %s 用§e匕首§r刺杀",
+  "replay.death.wathe.knife_stab.died": "%s 被§e匕首§r刺杀",
+  "replay.death.wathe.gun_shot.killed": "%s 被 %s 用§e枪§r击杀",
+  "replay.death.wathe.gun_shot.died": "%s 被§e枪§r击杀",
+  "replay.death.wathe.gun_shot_backfire.died": "%s 的§e枪§r走火",
+  "replay.death.wathe.bat_hit.killed": "%s 被 %s 用§e球棒§r击杀",
+  "replay.death.wathe.bat_hit.died": "%s 被§e球棒§r击杀",
+  "replay.death.wathe.grenade.killed": "%s 被 %s 的§e手雷§r炸死",
+  "replay.death.wathe.grenade.died": "%s 被§e手雷§r炸死",
+  "replay.death.wathe.poison.killed": "%s 被 %s §2下毒§r致死",
+  "replay.death.wathe.poison.died": "%s §2中毒§r身亡",
+  "replay.death.wathe.fell_out_of_train.died": "%s §7坠落§r出列车",
+  "replay.death.wathe.escaped.died": "%s §7逃离§r了游戏",
+  "replay.death.wathe.shot_innocent.died": "%s 因§c误杀无辜§r而死",
+  "replay.death.wathe.mental_breakdown.died": "%s §c精神崩溃§r",
+  "replay.death.unknown.killed": "%s 被 %s 杀死",
+  "replay.death.unknown.died": "%s 死亡",
+
+  "replay.shop_purchase": "%s 购买了§e%s§r，花费§6%d§r金币",
+  "replay.poisoned.by": "%s 被 %s §2下毒§r",
+  "replay.poisoned": "%s §2中毒§r",
+
+  "replay.skill.unknown.target": "%s 对 %s 使用了§b技能§r",
+  "replay.skill.unknown": "%s 使用了§b技能§r",
+  "replay.global.unknown": "发生了§d全局事件§r"
 }

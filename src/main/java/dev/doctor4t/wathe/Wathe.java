@@ -19,6 +19,11 @@ import dev.doctor4t.wathe.network.VersionCheckConfigurationTask;
 import dev.doctor4t.wathe.network.VersionCheckPayload;
 import dev.doctor4t.wathe.record.GameRecordHooks;
 import dev.doctor4t.wathe.record.GameRecordManager;
+import dev.doctor4t.wathe.record.GameRecordTypes;
+import dev.doctor4t.wathe.record.replay.DefaultReplayFormatters;
+import dev.doctor4t.wathe.record.replay.ReplayGenerator;
+import dev.doctor4t.wathe.record.replay.ReplayRegistry;
+import dev.doctor4t.wathe.api.event.RecordEvents;
 import dev.doctor4t.wathe.util.*;
 import dev.upcraft.datasync.api.util.Entitlements;
 import net.fabricmc.api.ModInitializer;
@@ -144,6 +149,18 @@ public class Wathe implements ModInitializer {
         // Register event handlers
         WatheEventHandlers.register();
         GameRecordHooks.register();
+
+        // 注册回放默认格式化器
+        ReplayRegistry.registerFormatter(GameRecordTypes.DEATH, DefaultReplayFormatters::formatDeath);
+        ReplayRegistry.registerFormatter(GameRecordTypes.SHOP_PURCHASE, DefaultReplayFormatters::formatShopPurchase);
+        ReplayRegistry.registerFormatter(GameRecordTypes.PLAYER_POISONED, DefaultReplayFormatters::formatPoisoned);
+        ReplayRegistry.registerFormatter(GameRecordTypes.SKILL_USE, DefaultReplayFormatters::formatSkillUse);
+        ReplayRegistry.registerFormatter(GameRecordTypes.GLOBAL_EVENT, DefaultReplayFormatters::formatGlobalEvent);
+
+        // 监听记录结束事件，生成并发送回放
+        RecordEvents.ON_RECORD_END.register((world, match) -> {
+            ReplayGenerator.generateAndSend(world, match);
+        });
 
         // 玩家断开连接时,不管是什么阵营都视为死亡
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {

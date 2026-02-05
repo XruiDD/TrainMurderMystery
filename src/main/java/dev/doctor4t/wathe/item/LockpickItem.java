@@ -4,12 +4,16 @@ import dev.doctor4t.wathe.block.SmallDoorBlock;
 import dev.doctor4t.wathe.block_entity.SmallDoorBlockEntity;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.index.WatheSounds;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import dev.doctor4t.wathe.util.AdventureUsable;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemUsageContext;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
@@ -39,6 +43,12 @@ public class LockpickItem extends Item implements AdventureUsable {
 
                     if (!player.isCreative()) {
                         player.getItemCooldownManager().set(this, GameConstants.ITEM_COOLDOWNS.get(this));
+                    }
+
+                    if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer) {
+                        NbtCompound extra = new NbtCompound();
+                        GameRecordManager.putBlockPos(extra, "pos", lowerPos);
+                        GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(this), null, extra);
                     }
 
                     if (!world.isClient)

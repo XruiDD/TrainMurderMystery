@@ -5,6 +5,7 @@ import dev.doctor4t.wathe.block_entity.BeveragePlateBlockEntity;
 import dev.doctor4t.wathe.index.WatheBlockEntities;
 import dev.doctor4t.wathe.index.WatheDataComponentTypes;
 import dev.doctor4t.wathe.index.WatheItems;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
@@ -15,6 +16,9 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
@@ -83,6 +87,11 @@ public class FoodPlatterBlock extends BlockWithEntity {
             blockEntity.setPoisoner(player.getUuidAsString());
             player.getStackInHand(Hand.MAIN_HAND).decrement(1);
             player.playSoundToPlayer(SoundEvents.BLOCK_BREWING_STAND_BREW, SoundCategory.BLOCKS, 0.5f, 1f);
+            if (player instanceof ServerPlayerEntity serverPlayer) {
+                NbtCompound extra = new NbtCompound();
+                GameRecordManager.putBlockPos(extra, "pos", pos);
+                GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(WatheItems.POISON_VIAL), null, extra);
+            }
             return ActionResult.SUCCESS;
         }
         if (player.getStackInHand(Hand.MAIN_HAND).isEmpty()) {
@@ -106,6 +115,13 @@ public class FoodPlatterBlock extends BlockWithEntity {
                 ItemStack randomItem = platter.get(world.random.nextInt(platter.size())).copy();
                 randomItem.setCount(1);
                 randomItem.set(DataComponentTypes.MAX_STACK_SIZE, 1);
+                if (player instanceof ServerPlayerEntity serverPlayer) {
+                    NbtCompound extra = new NbtCompound();
+                    extra.putString("action", "take");
+                    extra.putString("source", "food_platter");
+                    GameRecordManager.putBlockPos(extra, "pos", pos);
+                    GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(randomItem.getItem()), null, extra);
+                }
                 String poisoner = blockEntity.getPoisoner();
                 if (poisoner != null) {
                     randomItem.set(WatheDataComponentTypes.POISONER, poisoner);

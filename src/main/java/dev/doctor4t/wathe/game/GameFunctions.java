@@ -24,6 +24,7 @@ import dev.doctor4t.wathe.index.WatheEntities;
 import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.index.WatheSounds;
 import dev.doctor4t.wathe.util.AnnounceEndingPayload;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -431,6 +432,7 @@ public class GameFunctions {
     public static void finalizeGame(ServerWorld world) {
         GameWorldComponent gameComponent = GameWorldComponent.KEY.get(world);
         GameEvents.ON_GAME_STOP.invoker().onGameStop(gameComponent.getGameMode());
+        GameRecordManager.endMatch(world);
         gameComponent.getGameMode().finalizeGame(world, gameComponent);
 
         WorldBlackoutComponent.KEY.get(world).reset();

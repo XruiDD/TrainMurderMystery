@@ -11,6 +11,7 @@ import dev.doctor4t.wathe.index.WatheDataComponentTypes;
 import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.index.WatheSounds;
 import dev.doctor4t.wathe.index.tag.WatheItemTags;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.ItemEntity;
@@ -21,6 +22,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +60,15 @@ public record GunShootPayload(int target) implements CustomPayload {
                 if (!player.isCreative()) mainHandStack.set(WatheDataComponentTypes.USED, true);
             }
 
-            if (player.getServerWorld().getEntityById(payload.target()) instanceof PlayerEntity target && target.distanceTo(player) < 65.0) {
+            PlayerEntity target = null;
+            if (player.getServerWorld().getEntityById(payload.target()) instanceof PlayerEntity candidate && candidate.distanceTo(player) < 65.0) {
+                target = candidate;
+            }
+
+            ServerPlayerEntity recordTarget = target instanceof ServerPlayerEntity serverTarget ? serverTarget : null;
+            GameRecordManager.recordItemUse(player, Registries.ITEM.getId(mainHandStack.getItem()), recordTarget, null);
+
+            if (target != null) {
                 GameWorldComponent game = GameWorldComponent.KEY.get(player.getWorld());
                 Item revolver = WatheItems.REVOLVER;
 

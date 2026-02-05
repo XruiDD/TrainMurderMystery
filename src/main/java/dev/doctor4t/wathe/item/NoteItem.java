@@ -3,11 +3,15 @@ package dev.doctor4t.wathe.item;
 import dev.doctor4t.wathe.cca.PlayerNoteComponent;
 import dev.doctor4t.wathe.entity.NoteEntity;
 import dev.doctor4t.wathe.index.WatheEntities;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import dev.doctor4t.wathe.util.AdventureUsable;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -56,6 +60,12 @@ public class NoteItem extends Item implements AdventureUsable {
         note.setLines(component.text);
         Vec3d hitPos = context.getHitPos().add(context.getHitPos().subtract(player.getEyePos()).normalize().multiply(-.01f)).subtract(0, note.getHeight() / 2f, 0);
         note.setPosition(hitPos.getX(), hitPos.getY(), hitPos.getZ());
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            NbtCompound extra = new NbtCompound();
+            extra.putString("action", "place");
+            GameRecordManager.putPos(extra, "pos", hitPos);
+            GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(this), null, extra);
+        }
         world.spawnEntity(note);
         if (!player.isCreative()) player.getStackInHand(context.getHand()).decrement(1);
         return ActionResult.SUCCESS;

@@ -4,9 +4,12 @@ import dev.doctor4t.wathe.entity.GrenadeEntity;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.index.WatheEntities;
 import dev.doctor4t.wathe.index.WatheSounds;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.stat.Stats;
 import net.minecraft.util.Hand;
@@ -29,6 +32,9 @@ public class GrenadeItem extends Item {
             grenade.setPos(user.getX(), user.getEyeY() - 0.1, user.getZ());
             grenade.setVelocity(user, user.getPitch(), user.getYaw(), 0.0F, 0.5F, 1.0F);
             world.spawnEntity(grenade);
+            if (user instanceof ServerPlayerEntity serverPlayer) {
+                GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(this), null, null);
+            }
         }
 
         if (!user.isCreative()) {

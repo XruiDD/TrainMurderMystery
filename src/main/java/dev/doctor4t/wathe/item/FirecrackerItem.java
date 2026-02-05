@@ -2,10 +2,14 @@ package dev.doctor4t.wathe.item;
 
 import dev.doctor4t.wathe.entity.FirecrackerEntity;
 import dev.doctor4t.wathe.index.WatheEntities;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import dev.doctor4t.wathe.util.AdventureUsable;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemUsageContext;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -29,6 +33,11 @@ public class FirecrackerItem extends Item implements AdventureUsable {
                 firecracker.setPosition(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ());
                 firecracker.setYaw(player.getHeadYaw());
                 world.spawnEntity(firecracker);
+                if (player instanceof ServerPlayerEntity serverPlayer) {
+                    NbtCompound extra = new NbtCompound();
+                    GameRecordManager.putBlockPos(extra, "pos", context.getBlockPos());
+                    GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(this), null, extra);
+                }
                 if (!player.isCreative()) player.getStackInHand(context.getHand()).decrement(1);
             }
             return ActionResult.SUCCESS;

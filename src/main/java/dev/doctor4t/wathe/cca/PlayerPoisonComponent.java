@@ -4,6 +4,7 @@ import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.api.event.PlayerPoisoned;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.RegistryByteBuf;
@@ -12,6 +13,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
@@ -115,6 +117,10 @@ public class PlayerPoisonComponent implements AutoSyncedComponent, ServerTicking
     }
 
     public void setPoisonTicks(int ticks, UUID poisoner) {
+        setPoisonTicks(ticks, poisoner, null);
+    }
+
+    public void setPoisonTicks(int ticks, UUID poisoner, @Nullable NbtCompound recordExtra) {
         // Call before event - allow cancellation
         PlayerPoisoned.PoisonResult result = PlayerPoisoned.BEFORE.invoker().beforePlayerPoisoned(this.player, ticks, poisoner);
         if (result != null && result.cancelled()) {
@@ -129,6 +135,9 @@ public class PlayerPoisonComponent implements AutoSyncedComponent, ServerTicking
 
         // Call after event
         PlayerPoisoned.AFTER.invoker().afterPlayerPoisoned(this.player, ticks, poisoner);
+        if (this.player instanceof ServerPlayerEntity serverPlayer) {
+            GameRecordManager.recordPoisoned(serverPlayer, poisoner, ticks, recordExtra);
+        }
     }
 
     @Override

@@ -17,6 +17,8 @@ import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.*;
 import dev.doctor4t.wathe.network.VersionCheckConfigurationTask;
 import dev.doctor4t.wathe.network.VersionCheckPayload;
+import dev.doctor4t.wathe.record.GameRecordHooks;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import dev.doctor4t.wathe.util.*;
 import dev.upcraft.datasync.api.util.Entitlements;
 import net.fabricmc.api.ModInitializer;
@@ -141,10 +143,12 @@ public class Wathe implements ModInitializer {
 
         // Register event handlers
         WatheEventHandlers.register();
+        GameRecordHooks.register();
 
         // 玩家断开连接时,不管是什么阵营都视为死亡
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
+            GameRecordManager.recordPlayerLeave(player);
             GameWorldComponent game = GameWorldComponent.KEY.get(player.getWorld());
             if (game.isRunning()
                 && game.hasAnyRole(player.getUuid())
@@ -154,6 +158,7 @@ public class Wathe implements ModInitializer {
             }
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            GameRecordManager.recordPlayerJoin(handler.getPlayer());
 //            ServerPlayerEntity player = handler.getPlayer();
 //
 //            // 查找是否有世界正在运行游戏

@@ -10,6 +10,7 @@ import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.index.WatheSounds;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -17,6 +18,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 import org.jetbrains.annotations.NotNull;
@@ -60,6 +62,9 @@ public record KnifeStabPayload(int target) implements CustomPayload {
                     }
                 }
             }
+
+            ServerPlayerEntity recordTarget = target instanceof ServerPlayerEntity serverTarget ? serverTarget : null;
+            GameRecordManager.recordItemUse(player, Registries.ITEM.getId(WatheItems.KNIFE), recordTarget, null);
 
             GameFunctions.killPlayer(target, true, player, GameConstants.DeathReasons.KNIFE);
             target.playSound(WatheSounds.ITEM_KNIFE_STAB, 1.0f, 1.0f);

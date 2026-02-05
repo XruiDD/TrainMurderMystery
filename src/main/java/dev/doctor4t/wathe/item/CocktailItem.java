@@ -1,12 +1,14 @@
 package dev.doctor4t.wathe.item;
 
 import dev.doctor4t.wathe.cca.PlayerMoodComponent;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsage;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
@@ -28,6 +30,7 @@ public class CocktailItem extends Item {
             Criteria.CONSUME_ITEM.trigger(serverPlayerEntity, stack);
             serverPlayerEntity.incrementStat(Stats.USED.getOrCreateStat(this));
             PlayerMoodComponent.KEY.get(serverPlayerEntity).drinkCocktail();
+            GameRecordManager.recordItemUse(serverPlayerEntity, Registries.ITEM.getId(this), null, null);
         }
         return stack;
     }

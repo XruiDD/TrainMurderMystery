@@ -2,11 +2,15 @@ package dev.doctor4t.wathe.util;
 
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.cca.PlayerNoteComponent;
+import dev.doctor4t.wathe.index.WatheItems;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.registry.Registries;
 import org.jetbrains.annotations.NotNull;
 
 public record NoteEditPayload(String line1, String line2, String line3, String line4) implements CustomPayload {
@@ -22,6 +26,9 @@ public record NoteEditPayload(String line1, String line2, String line3, String l
         @Override
         public void receive(@NotNull NoteEditPayload payload, ServerPlayNetworking.@NotNull Context context) {
             PlayerNoteComponent.KEY.get(context.player()).setNote(payload.line1(), payload.line2(), payload.line3(), payload.line4());
+            NbtCompound extra = new NbtCompound();
+            extra.putString("action", "edit");
+            GameRecordManager.recordItemUse(context.player(), Registries.ITEM.getId(WatheItems.NOTE), null, extra);
         }
     }
 }

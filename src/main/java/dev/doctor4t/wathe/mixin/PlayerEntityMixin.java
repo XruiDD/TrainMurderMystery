@@ -20,12 +20,14 @@ import dev.doctor4t.wathe.index.WatheSounds;
 import dev.doctor4t.wathe.item.CocktailItem;
 import dev.doctor4t.wathe.util.PoisonUtils;
 import dev.doctor4t.wathe.util.Scheduler;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.Unit;
@@ -144,11 +146,22 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         if (world.isClient) return;
         String poisoner = stack.getOrDefault(WatheDataComponentTypes.POISONER, null);
         if (poisoner != null) {
+            NbtCompound recordExtra = new NbtCompound();
+            recordExtra.putString("source", "food");
+            recordExtra.putString("item", Registries.ITEM.getId(stack.getItem()).toString());
             int poisonTicks = PlayerPoisonComponent.KEY.get(this).poisonTicks;
             if (poisonTicks == -1) {
-                PlayerPoisonComponent.KEY.get(this).setPoisonTicks(world.getRandom().nextBetween(PlayerPoisonComponent.clampTime.getLeft(), PlayerPoisonComponent.clampTime.getRight()), UUID.fromString(poisoner));
+                PlayerPoisonComponent.KEY.get(this).setPoisonTicks(
+                        world.getRandom().nextBetween(PlayerPoisonComponent.clampTime.getLeft(), PlayerPoisonComponent.clampTime.getRight()),
+                        UUID.fromString(poisoner),
+                        recordExtra
+                );
             } else {
-                PlayerPoisonComponent.KEY.get(this).setPoisonTicks(MathHelper.clamp(poisonTicks - world.getRandom().nextBetween(100, 300), 0, PlayerPoisonComponent.clampTime.getRight()), UUID.fromString(poisoner));
+                PlayerPoisonComponent.KEY.get(this).setPoisonTicks(
+                        MathHelper.clamp(poisonTicks - world.getRandom().nextBetween(100, 300), 0, PlayerPoisonComponent.clampTime.getRight()),
+                        UUID.fromString(poisoner),
+                        recordExtra
+                );
             }
         }
     }

@@ -3,6 +3,7 @@ package dev.doctor4t.wathe.block;
 import dev.doctor4t.wathe.block_entity.TrimmedBedBlockEntity;
 import dev.doctor4t.wathe.index.WatheBlockEntities;
 import dev.doctor4t.wathe.index.WatheItems;
+import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -16,6 +17,9 @@ import net.minecraft.entity.ai.pathing.NavigationType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.state.StateManager;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -148,6 +152,11 @@ public class TrimmedBedBlock extends BedBlock {
                     if (!blockEntity.hasScorpion()) {
                         blockEntity.setHasScorpion(true, player.getUuid());
                         player.getStackInHand(Hand.MAIN_HAND).decrement(1);
+                        if (player instanceof ServerPlayerEntity serverPlayer) {
+                            NbtCompound extra = new NbtCompound();
+                            GameRecordManager.putBlockPos(extra, "pos", blockEntity.getPos());
+                            GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(WatheItems.SCORPION), null, extra);
+                        }
 
                         return ActionResult.SUCCESS;
                     }

@@ -76,8 +76,8 @@ public final class GameRecordManager {
             return Collections.unmodifiableList(events);
         }
 
-        private void addEvent(String type, long worldTick, long realTimeMs, Identifier dimensionId, NbtCompound data) {
-            events.add(new GameRecordEvent(matchId, nextSeq++, type, worldTick, realTimeMs, dimensionId, data));
+        private void addEvent(String type, long worldTick, long realTimeMs, NbtCompound data) {
+            events.add(new GameRecordEvent(matchId, nextSeq++, type, worldTick, realTimeMs, data));
         }
     }
 
@@ -144,7 +144,7 @@ public final class GameRecordManager {
             }
             GameProfile profile = gameComponent.getGameProfiles().get(uuid);
             NbtCompound data = new NbtCompound();
-            data.put("actor", buildPlayerInfo(uuid, profile, role, gameComponent));
+            data.put("player", buildPlayerSnapshot(uuid, profile, role, gameComponent));
             addEvent(world, GameRecordTypes.ROLE_ASSIGNED, null, null, data);
         }
     }
@@ -173,9 +173,9 @@ public final class GameRecordManager {
         for (GameRoundEndComponent.RoundEndData entry : roundEnd.getPlayers()) {
             Role role = WatheRoles.getRole(entry.role());
             NbtCompound data = new NbtCompound();
+            data.putUuid("player", entry.player().getId());
             data.putString("end_status", entry.endStatus().name());
             data.putBoolean("is_winner", entry.isWinner());
-            data.put("actor", buildPlayerInfo(entry.player().getId(), entry.player(), role, GameWorldComponent.KEY.get(world)));
             addEvent(world, GameRecordTypes.PLAYER_RESULT, null, null, data);
         }
 
@@ -201,9 +201,6 @@ public final class GameRecordManager {
             return;
         }
         NbtCompound data = new NbtCompound();
-        GameWorldComponent gameComponent = GameWorldComponent.KEY.get(player.getWorld());
-        data.putBoolean("in_game", gameComponent.hasAnyRole(player.getUuid()));
-        data.putBoolean("alive", !gameComponent.isPlayerDead(player.getUuid()));
         putPos(data, "pos", player.getPos());
         addEvent(player.getServerWorld(), GameRecordTypes.PLAYER_LEAVE, player, null, data);
     }
@@ -295,6 +292,117 @@ public final class GameRecordManager {
         addEvent(player.getServerWorld(), GameRecordTypes.DOOR_INTERACTION, player, null, data);
     }
 
+    // ==================== 通用事件 API ====================
+
+    /**
+     * 创建通用事件构建器
+     * <p>使用示例:</p>
+     * <pre>{@code
+     * GameRecordManager.event("custom_event")
+     *     .actor(player)
+     *     .target(targetPlayer)
+     *     .put("key", "value")
+     *     .putInt("count", 5)
+     *     .record();
+     * }</pre>
+     */
+    public static EventBuilder event(String type) {
+        return new EventBuilder(type);
+    }
+
+    public static final class EventBuilder {
+        private final String type;
+        private ServerWorld world;
+        private ServerPlayerEntity actor;
+        private ServerPlayerEntity target;
+        private final NbtCompound data = new NbtCompound();
+
+        private EventBuilder(String type) {
+            this.type = type;
+        }
+
+        public EventBuilder world(ServerWorld world) {
+            this.world = world;
+            return this;
+        }
+
+        public EventBuilder actor(ServerPlayerEntity actor) {
+            this.actor = actor;
+            if (this.world == null && actor != null) {
+                this.world = actor.getServerWorld();
+            }
+            return this;
+        }
+
+        public EventBuilder target(ServerPlayerEntity target) {
+            this.target = target;
+            return this;
+        }
+
+        public EventBuilder put(String key, String value) {
+            data.putString(key, value);
+            return this;
+        }
+
+        public EventBuilder putInt(String key, int value) {
+            data.putInt(key, value);
+            return this;
+        }
+
+        public EventBuilder putLong(String key, long value) {
+            data.putLong(key, value);
+            return this;
+        }
+
+        public EventBuilder putFloat(String key, float value) {
+            data.putFloat(key, value);
+            return this;
+        }
+
+        public EventBuilder putDouble(String key, double value) {
+            data.putDouble(key, value);
+            return this;
+        }
+
+        public EventBuilder putBool(String key, boolean value) {
+            data.putBoolean(key, value);
+            return this;
+        }
+
+        public EventBuilder putUuid(String key, UUID value) {
+            data.putUuid(key, value);
+            return this;
+        }
+
+        public EventBuilder putPos(String key, Vec3d pos) {
+            GameRecordManager.putPos(data, key, pos);
+            return this;
+        }
+
+        public EventBuilder putBlockPos(String key, BlockPos pos) {
+            GameRecordManager.putBlockPos(data, key, pos);
+            return this;
+        }
+
+        public EventBuilder putNbt(String key, NbtCompound nbt) {
+            data.put(key, nbt.copy());
+            return this;
+        }
+
+        /**
+         * 提交事件记录
+         */
+        public void record() {
+            if (!hasActiveMatch()) {
+                return;
+            }
+            if (world == null) {
+                return;
+            }
+            addEvent(world, type, actor, target, data);
+        }
+    }
+
     public static void putPos(NbtCompound data, String key, Vec3d pos) {
         NbtCompound posTag = new NbtCompound();
         posTag.putDouble("x", pos.x);
@@ -316,9 +424,6 @@ public final class GameRecordManager {
             return;
         }
         NbtCompound data = new NbtCompound();
-        GameWorldComponent gameComponent = GameWorldComponent.KEY.get(player.getWorld());
-        data.putBoolean("in_game", gameComponent.hasAnyRole(player.getUuid()));
-        data.putBoolean("alive", !gameComponent.isPlayerDead(player.getUuid()));
         putPos(data, "pos", player.getPos());
         addEvent(player.getServerWorld(), GameRecordTypes.PLAYER_JOIN, player, null, data);
     }
@@ -329,23 +434,19 @@ public final class GameRecordManager {
         }
         MatchRecord match = currentMatch;
         NbtCompound payload = data == null ? new NbtCompound() : data.copy();
-        GameWorldComponent gameComponent = GameWorldComponent.KEY.get(world);
         if (actor != null) {
-            payload.put("actor", buildPlayerInfo(actor, gameComponent));
+            payload.putUuid("actor", actor.getUuid());
         }
         if (target != null) {
-            payload.put("target", buildPlayerInfo(target, gameComponent));
+            payload.putUuid("target", target.getUuid());
         }
-        Identifier dimensionId = world.getRegistryKey().getValue();
-        match.addEvent(type, world.getTime(), System.currentTimeMillis(), dimensionId, payload);
+        match.addEvent(type, world.getTime(), System.currentTimeMillis(), payload);
     }
 
-    private static NbtCompound buildPlayerInfo(ServerPlayerEntity player, GameWorldComponent gameComponent) {
-        Role role = gameComponent.getRole(player);
-        return buildPlayerInfo(player.getUuid(), player.getGameProfile(), role, gameComponent);
-    }
-
-    private static NbtCompound buildPlayerInfo(UUID uuid, @Nullable GameProfile profile, @Nullable Role role, GameWorldComponent gameComponent) {
+    /**
+     * 构建完整玩家快照信息，仅用于开局 ROLE_ASSIGNED 事件
+     */
+    private static NbtCompound buildPlayerSnapshot(UUID uuid, @Nullable GameProfile profile, @Nullable Role role, GameWorldComponent gameComponent) {
         NbtCompound info = new NbtCompound();
         info.putUuid("uuid", uuid);
         if (profile != null) {
@@ -356,8 +457,6 @@ public final class GameRecordManager {
             Faction faction = role.getFaction();
             info.putString("faction", faction.name());
         }
-        info.putBoolean("alive", !gameComponent.isPlayerDead(uuid));
-        info.putBoolean("in_game", gameComponent.hasAnyRole(uuid));
         GameWorldComponent.RoomData room = gameComponent.getPlayerRoom(uuid);
         if (room != null) {
             info.putInt("room_index", room.getIndex());

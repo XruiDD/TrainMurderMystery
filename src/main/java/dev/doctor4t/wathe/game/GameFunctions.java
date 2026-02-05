@@ -447,6 +447,7 @@ public class GameFunctions {
         for (ItemEntity item : world.getEntitiesByType(EntityType.ITEM, playerBodyEntity -> true)) item.discard();
         // reset all players
         for (ServerPlayerEntity player : world.getPlayers()) {
+            ServerPlayNetworking.send(player, new AnnounceEndingPayload());
             resetPlayer(player);
         }
 
@@ -468,7 +469,6 @@ public class GameFunctions {
     }
 
     public static void resetPlayer(ServerPlayerEntity player) {
-        ServerPlayNetworking.send(player, new AnnounceEndingPayload());
         player.dismountVehicle();
         player.getInventory().clear();
         PlayerMoodComponent.KEY.get(player).reset();

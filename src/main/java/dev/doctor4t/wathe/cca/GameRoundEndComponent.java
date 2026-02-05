@@ -10,10 +10,13 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
@@ -25,7 +28,8 @@ import java.util.UUID;
 
 public class GameRoundEndComponent implements AutoSyncedComponent {
     public static final ComponentKey<GameRoundEndComponent> KEY = ComponentRegistry.getOrCreate(Wathe.id("roundend"), GameRoundEndComponent.class);
-    private final World world;
+    private final Scoreboard scoreboard;
+    private final MinecraftServer server;
     private final List<RoundEndData> players = new ArrayList<>();
     private GameFunctions.WinStatus winStatus = GameFunctions.WinStatus.NONE;
 
@@ -36,18 +40,19 @@ public class GameRoundEndComponent implements AutoSyncedComponent {
         LEFT_DEAD   // 死后退出
     }
 
-    public GameRoundEndComponent(World world) {
-        this.world = world;
+    public GameRoundEndComponent(Scoreboard scoreboard, @Nullable MinecraftServer server)  {
+        this.scoreboard = scoreboard;
+        this.server = server;
     }
 
     public void sync() {
-        KEY.sync(this.world);
+        KEY.sync(this.scoreboard);
     }
 
     // 新方法：从 GameWorldComponent 获取所有玩家数据（包括退出的玩家）
     public void setRoundEndData(ServerWorld serverWorld, GameFunctions.WinStatus winStatus) {
         this.players.clear();
-        GameWorldComponent game = GameWorldComponent.KEY.get(this.world);
+        GameWorldComponent game = GameWorldComponent.KEY.get(serverWorld);
 
         for (Map.Entry<UUID, Role> entry : game.getRoles().entrySet()) {
             UUID uuid = entry.getKey();
@@ -86,7 +91,7 @@ public class GameRoundEndComponent implements AutoSyncedComponent {
     // 中立胜利重载
     public void setRoundEndData(ServerWorld serverWorld, UUID winnerUuid) {
         this.players.clear();
-        GameWorldComponent game = GameWorldComponent.KEY.get(this.world);
+        GameWorldComponent game = GameWorldComponent.KEY.get(serverWorld);
 
         for (Map.Entry<UUID, Role> entry : game.getRoles().entrySet()) {
             UUID uuid = entry.getKey();

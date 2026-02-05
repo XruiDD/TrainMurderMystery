@@ -20,7 +20,7 @@ public class WatheComponents implements WorldComponentInitializer, EntityCompone
         registry.register(WorldBlackoutComponent.KEY, WorldBlackoutComponent::new);
         registry.register(GameTimeComponent.KEY, GameTimeComponent::new);
         registry.register(AutoStartComponent.KEY, AutoStartComponent::new);
-        registry.register(GameRoundEndComponent.KEY, GameRoundEndComponent::new);
+
     }
 
     @Override
@@ -38,5 +38,6 @@ public class WatheComponents implements WorldComponentInitializer, EntityCompone
     public void registerScoreboardComponentFactories(@NotNull ScoreboardComponentFactoryRegistry registry) {
         registry.registerScoreboardComponent(ScoreboardRoleSelectorComponent.KEY, ScoreboardRoleSelectorComponent::new);
         registry.registerScoreboardComponent(MapVotingComponent.KEY, MapVotingComponent::new);
+        registry.registerScoreboardComponent(GameRoundEndComponent.KEY, GameRoundEndComponent::new);
     }
 }

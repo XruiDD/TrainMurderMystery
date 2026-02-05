@@ -154,7 +154,7 @@ public final class GameRecordManager {
             return;
         }
         MatchRecord match = currentMatch;
-        GameRoundEndComponent roundEnd = GameRoundEndComponent.KEY.get(world);
+        GameRoundEndComponent roundEnd = GameRoundEndComponent.KEY.get(world.getScoreboard());
         GameFunctions.WinStatus winStatus = roundEnd.getWinStatus();
 
         NbtCompound endData = new NbtCompound();

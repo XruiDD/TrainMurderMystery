@@ -80,7 +80,7 @@ public class RoundTextRenderer {
         }
         GameWorldComponent game = GameWorldComponent.KEY.get(player.getWorld());
         if (endTime > 0 && endTime < END_DURATION - (GameConstants.FADE_TIME * 2) && !game.isRunning() && game.getGameMode() != WatheGameModes.DISCOVERY) {
-            GameRoundEndComponent roundEnd = GameRoundEndComponent.KEY.get(player.getWorld());
+            GameRoundEndComponent roundEnd = GameRoundEndComponent.KEY.get(player.getScoreboard());
             if (roundEnd.getWinStatus() == GameFunctions.WinStatus.NONE) return;
             Text endText = null;
             String winRolePath = null;
@@ -245,7 +245,7 @@ public class RoundTextRenderer {
             if (endTime > 0) {
                 if (endTime == END_DURATION - (GameConstants.FADE_TIME * 2)) {
                     if (player != null)
-                        player.getWorld().playSound(player, player.getX(), player.getY(), player.getZ(), GameRoundEndComponent.KEY.get(player.getWorld()).didWin(player.getUuid()) ? WatheSounds.UI_PIANO_WIN : WatheSounds.UI_PIANO_LOSE, SoundCategory.MASTER, 10f, 1f, player.getRandom().nextLong());
+                        player.getWorld().playSound(player, player.getX(), player.getY(), player.getZ(), GameRoundEndComponent.KEY.get(player.getScoreboard()).didWin(player.getUuid()) ? WatheSounds.UI_PIANO_WIN : WatheSounds.UI_PIANO_LOSE, SoundCategory.MASTER, 10f, 1f, player.getRandom().nextLong());
                 }
                 endTime--;
             }

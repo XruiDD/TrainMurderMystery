@@ -118,9 +118,9 @@ public class MurderGameMode extends GameMode {
 
             if (winStatus == GameFunctions.WinStatus.NEUTRAL && neutralWinner != null) {
                 // use single winner method for neutral wins
-                GameRoundEndComponent.KEY.get(serverWorld).setRoundEndData(serverWorld, neutralWinner.getUuid());
+                GameRoundEndComponent.KEY.get(serverWorld.getScoreboard()).setRoundEndData(serverWorld, neutralWinner.getUuid());
             } else {
-                GameRoundEndComponent.KEY.get(serverWorld).setRoundEndData(serverWorld, winStatus);
+                GameRoundEndComponent.KEY.get(serverWorld.getScoreboard()).setRoundEndData(serverWorld, winStatus);
             }
 
             GameFunctions.stopGame(serverWorld);

@@ -476,6 +476,8 @@
   "replay.death.unknown.died": "%s 死亡",
 
   "replay.shop_purchase": "%s 购买了§e%s§r，花费§6%d§r金币",
+  "replay.item_pickup": "%s 捡起了§e%s§r",
+  "replay.item_pickup.multiple": "%s 捡起了§e%s§r x%d",
   "replay.poisoned.by": "%s 被 %s §2下毒§r",
   "replay.poisoned": "%s §2中毒§r",
 

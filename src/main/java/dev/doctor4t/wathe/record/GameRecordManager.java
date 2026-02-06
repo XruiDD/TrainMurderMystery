@@ -14,8 +14,10 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
 import net.minecraft.registry.Registries;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -215,6 +217,8 @@ public final class GameRecordManager {
         data.putInt("price", entry.price());
         data.putInt("price_paid", pricePaid);
         data.putString("item", Registries.ITEM.getId(entry.stack().getItem()).toString());
+        // 存储物品显示名称（Text.translatable），让客户端根据语言设置解析
+        data.putString("item_name", Text.Serialization.toJsonString(entry.displayStack().getName(), player.getRegistryManager()));
         data.putInt("balance_after", PlayerShopComponent.KEY.get(player).getBalance());
         addEvent(player.getServerWorld(), GameRecordTypes.SHOP_PURCHASE, player, null, data);
     }
@@ -251,6 +255,18 @@ public final class GameRecordManager {
         NbtCompound data = new NbtCompound();
         data.putString("death_reason", deathReason.toString());
         addEvent(victim.getServerWorld(), GameRecordTypes.DEATH, killer, victim, data);
+    }
+
+    public static void recordItemPickup(ServerPlayerEntity player, ItemStack stack, int count) {
+        if (!hasActiveMatch()) {
+            return;
+        }
+        NbtCompound data = new NbtCompound();
+        data.putString("item", Registries.ITEM.getId(stack.getItem()).toString());
+        // 存储物品显示名称（Text.translatable），让客户端根据语言设置解析
+        data.putString("item_name", Text.Serialization.toJsonString(stack.getName(), player.getRegistryManager()));
+        data.putInt("count", count);
+        addEvent(player.getServerWorld(), GameRecordTypes.ITEM_PICKUP, player, null, data);
     }
 
     public static void recordItemUse(ServerPlayerEntity player, Identifier itemId, @Nullable ServerPlayerEntity target, @Nullable NbtCompound extra) {

@@ -2,9 +2,10 @@ package dev.doctor4t.wathe.record.replay;
 
 import dev.doctor4t.wathe.record.GameRecordEvent;
 import dev.doctor4t.wathe.record.GameRecordManager;
+import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
@@ -90,7 +91,6 @@ public final class DefaultReplayFormatters {
 
         NbtCompound data = event.data();
         UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
-        String itemId = data.getString("item");
         int price = data.getInt("price_paid");
 
         if (actorUuid == null) {
@@ -99,25 +99,65 @@ public final class DefaultReplayFormatters {
 
         Text playerText = ReplayGenerator.formatPlayerName(actorUuid, currentPlayerInfoCache);
 
-        // 获取物品名称
-        String itemName = getItemDisplayName(itemId);
+        // 获取物品名称（支持自定义名称和翻译）
+        Text itemName = getItemDisplayText(data, world);
 
         return Text.translatable("replay.shop_purchase", playerText, itemName, price);
     }
 
     /**
-     * 获取物品显示名称
+     * 获取物品显示名称（使用序列化的 Text，让客户端根据语言设置解析）
      */
-    private static String getItemDisplayName(String itemId) {
-        if (itemId == null || itemId.isEmpty()) {
-            return "unknown";
+    private static Text getItemDisplayText(NbtCompound data, ServerWorld world) {
+        // 优先使用存储的物品名称（Text.translatable 序列化后的 JSON）
+        if (data.contains("item_name")) {
+            String nameJson = data.getString("item_name");
+            if (nameJson != null && !nameJson.isEmpty()) {
+                Text name = Text.Serialization.fromJson(nameJson, world.getRegistryManager());
+                if (name != null) {
+                    return name;
+                }
+            }
         }
-        Identifier id = Identifier.tryParse(itemId);
-        if (id != null) {
-            // 返回物品翻译键，让 Text.translatable 处理
-            return id.getPath();
+
+        // 兼容旧记录：使用物品翻译键
+        String itemId = data.getString("item");
+        if (itemId != null && !itemId.isEmpty()) {
+            Identifier id = Identifier.tryParse(itemId);
+            if (id != null) {
+                Item item = Registries.ITEM.get(id);
+                if (item != null) {
+                    return Text.translatable(item.getTranslationKey());
+                }
+            }
         }
-        return itemId;
+        return Text.literal("unknown");
+    }
+
+    /**
+     * 格式化物品拾取事件
+     */
+    @Nullable
+    public static Text formatItemPickup(GameRecordEvent event, GameRecordManager.MatchRecord match, ServerWorld world) {
+        if (currentPlayerInfoCache == null) {
+            currentPlayerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+        }
+
+        NbtCompound data = event.data();
+        UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+
+        if (actorUuid == null) {
+            return null;
+        }
+
+        Text playerText = ReplayGenerator.formatPlayerName(actorUuid, currentPlayerInfoCache);
+        Text itemName = getItemDisplayText(data, world);
+        int count = data.getInt("count");
+
+        if (count > 1) {
+            return Text.translatable("replay.item_pickup.multiple", playerText, itemName, count);
+        }
+        return Text.translatable("replay.item_pickup", playerText, itemName);
     }
 
     /**
@@ -157,9 +197,21 @@ public final class DefaultReplayFormatters {
         }
 
         NbtCompound data = event.data();
+        String skillId = data.getString("skill");
+
+        // 优先查找技能专属格式化器
+        if (skillId != null && !skillId.isEmpty()) {
+            Identifier id = Identifier.tryParse(skillId);
+            if (id != null) {
+                ReplayEventFormatter skillFormatter = ReplayRegistry.getSkillFormatter(id);
+                if (skillFormatter != null) {
+                    return skillFormatter.format(event, match, world);
+                }
+            }
+        }
+
         UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
         UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
-        String skillId = data.getString("skill");
 
         if (actorUuid == null) {
             return null;

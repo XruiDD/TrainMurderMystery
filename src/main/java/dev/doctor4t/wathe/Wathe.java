@@ -153,6 +153,7 @@ public class Wathe implements ModInitializer {
         // 注册回放默认格式化器
         ReplayRegistry.registerFormatter(GameRecordTypes.DEATH, DefaultReplayFormatters::formatDeath);
         ReplayRegistry.registerFormatter(GameRecordTypes.SHOP_PURCHASE, DefaultReplayFormatters::formatShopPurchase);
+        ReplayRegistry.registerFormatter(GameRecordTypes.ITEM_PICKUP, DefaultReplayFormatters::formatItemPickup);
         ReplayRegistry.registerFormatter(GameRecordTypes.PLAYER_POISONED, DefaultReplayFormatters::formatPoisoned);
         ReplayRegistry.registerFormatter(GameRecordTypes.SKILL_USE, DefaultReplayFormatters::formatSkillUse);
         ReplayRegistry.registerFormatter(GameRecordTypes.GLOBAL_EVENT, DefaultReplayFormatters::formatGlobalEvent);

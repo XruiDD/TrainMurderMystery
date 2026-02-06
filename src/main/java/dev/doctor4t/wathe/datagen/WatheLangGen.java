@@ -250,5 +250,36 @@ public class WatheLangGen extends FabricLanguageProvider {
         // Disconnect messages
         builder.add("disconnect.wathe.version_mismatch", "Mod version mismatch! Server: %s, Client: %s");
         builder.add("disconnect.wathe.not_in_ready_area", "The game has started, but you were not in the ready area, so you cannot join!");
+
+        // Replay
+        builder.add("replay.title", "=== Match Replay ===");
+        builder.add("replay.footer", "--- Replay End ---");
+        builder.add("replay.death.wathe.knife_stab.killed", "%s was stabbed by %s with a knife");
+        builder.add("replay.death.wathe.knife_stab.died", "%s was stabbed with a knife");
+        builder.add("replay.death.wathe.gun_shot.killed", "%s was shot by %s");
+        builder.add("replay.death.wathe.gun_shot.died", "%s was shot");
+        builder.add("replay.death.wathe.gun_shot_backfire.died", "%s's gun backfired");
+        builder.add("replay.death.wathe.bat_hit.killed", "%s was beaten by %s with a bat");
+        builder.add("replay.death.wathe.bat_hit.died", "%s was beaten with a bat");
+        builder.add("replay.death.wathe.grenade.killed", "%s was blown up by %s's grenade");
+        builder.add("replay.death.wathe.grenade.died", "%s was blown up by a grenade");
+        builder.add("replay.death.wathe.poison.killed", "%s was poisoned by %s");
+        builder.add("replay.death.wathe.poison.died", "%s was poisoned");
+        builder.add("replay.death.wathe.fell_out_of_train.killed", "%s was pushed off the train by %s");
+        builder.add("replay.death.wathe.fell_out_of_train.died", "%s fell out of the train");
+        builder.add("replay.death.wathe.escaped.died", "%s escaped the game");
+        builder.add("replay.death.wathe.shot_innocent.killed", "%s was shot by %s (innocent kill)");
+        builder.add("replay.death.wathe.shot_innocent.died", "%s died from shooting an innocent");
+        builder.add("replay.death.wathe.mental_breakdown.died", "%s had a mental breakdown");
+        builder.add("replay.death.unknown.killed", "%s was killed by %s");
+        builder.add("replay.death.unknown.died", "%s died");
+        builder.add("replay.shop_purchase", "%s purchased %s for %d coins");
+        builder.add("replay.item_pickup", "%s picked up %s");
+        builder.add("replay.item_pickup.multiple", "%s picked up %s x%d");
+        builder.add("replay.poisoned.by", "%s was poisoned by %s");
+        builder.add("replay.poisoned", "%s was poisoned");
+        builder.add("replay.skill.unknown.target", "%s used a skill on %s");
+        builder.add("replay.skill.unknown", "%s used a skill");
+        builder.add("replay.global.unknown", "A global event occurred");
     }
 }

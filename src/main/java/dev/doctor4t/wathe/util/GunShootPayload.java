@@ -60,8 +60,8 @@ public record GunShootPayload(int target) implements CustomPayload {
                 if (!player.isCreative()) mainHandStack.set(WatheDataComponentTypes.USED, true);
             }
 
-            PlayerEntity target = null;
-            if (player.getServerWorld().getEntityById(payload.target()) instanceof PlayerEntity candidate && candidate.distanceTo(player) < 65.0) {
+            ServerPlayerEntity target = null;
+            if (player.getServerWorld().getEntityById(payload.target()) instanceof ServerPlayerEntity candidate && candidate.distanceTo(player) < 65.0) {
                 target = candidate;
             }
 

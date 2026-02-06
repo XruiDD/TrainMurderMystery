@@ -41,7 +41,7 @@ public class GrenadeEntity extends ThrownItemEntity {
             for (ServerPlayerEntity player : world.getPlayers(serverPlayerEntity ->
                     this.getBoundingBox().expand(3f).contains(serverPlayerEntity.getPos()) &&
                             GameFunctions.isPlayerAliveAndSurvival(serverPlayerEntity))) {
-                GameFunctions.killPlayer(player, true, this.getOwner() instanceof PlayerEntity playerEntity ? playerEntity : null, GameConstants.DeathReasons.GRENADE);
+                GameFunctions.killPlayer(player, true, this.getOwner() instanceof ServerPlayerEntity playerEntity ? playerEntity : null, GameConstants.DeathReasons.GRENADE);
             }
 
             this.discard();

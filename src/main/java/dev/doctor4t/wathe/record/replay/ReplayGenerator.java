@@ -14,7 +14,6 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Language;
 
 import java.util.*;
 
@@ -29,7 +28,7 @@ public final class ReplayGenerator {
     /**
      * 玩家信息缓存
      */
-    public record PlayerInfo(String name, String roleName, int roleColor) {
+    public record PlayerInfo(String name, String roleTranslationKey, int roleColor) {
     }
 
     /**
@@ -53,7 +52,6 @@ public final class ReplayGenerator {
      */
     private static Map<UUID, PlayerInfo> buildPlayerInfoCache(GameRecordManager.MatchRecord match) {
         Map<UUID, PlayerInfo> cache = new HashMap<>();
-        Language language = Language.getInstance();
 
         for (GameRecordEvent event : match.getEvents()) {
             if (GameRecordTypes.ROLE_ASSIGNED.equals(event.type())) {
@@ -66,12 +64,12 @@ public final class ReplayGenerator {
                 Identifier roleId = Identifier.tryParse(roleIdStr);
                 Role role = WatheRoles.getRole(roleId);
                 int roleColor = role != null ? role.color() : 0xFFFFFF;
-                // 使用 announcement.role.killer 格式（不带命名空间）
-                String roleName = role != null && roleId != null
-                        ? language.get("announcement.role." + roleId.getPath())
+                // 使用翻译键，让客户端根据语言设置解析
+                String roleTranslationKey = role != null && roleId != null
+                        ? "announcement.role." + roleId.getPath()
                         : "unknown";
 
-                cache.put(uuid, new PlayerInfo(name, roleName, roleColor));
+                cache.put(uuid, new PlayerInfo(name, roleTranslationKey, roleColor));
             }
         }
         return cache;
@@ -156,10 +154,13 @@ public final class ReplayGenerator {
         }
 
         String playerName = info.name();
-        String roleName = info.roleName();
+        String roleTranslationKey = info.roleTranslationKey();
         int roleColor = info.roleColor();
 
-        MutableText text = Text.literal(playerName + "(" + roleName + ")");
+        // 使用 Text.translatable 让客户端根据语言设置显示角色名
+        MutableText text = Text.literal(playerName + "(")
+                .append(Text.translatable(roleTranslationKey))
+                .append(Text.literal(")"));
         return text.setStyle(Style.EMPTY.withColor(TextColor.fromRgb(roleColor)));
     }
 

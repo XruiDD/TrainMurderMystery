@@ -488,15 +488,15 @@ public class GameFunctions {
     }
 
     @SuppressWarnings("unused")
-    public static void killPlayer(PlayerEntity victim, boolean spawnBody, @Nullable PlayerEntity killer) {
+    public static void killPlayer(ServerPlayerEntity victim, boolean spawnBody, @Nullable ServerPlayerEntity killer) {
         killPlayer(victim, spawnBody, killer, GameConstants.DeathReasons.GENERIC);
     }
 
-    public static void killPlayer(PlayerEntity victim, boolean spawnBody, @Nullable PlayerEntity killer, Identifier deathReason){
+    public static void killPlayer(ServerPlayerEntity victim, boolean spawnBody, @Nullable ServerPlayerEntity killer, Identifier deathReason){
         killPlayer(victim, spawnBody, killer, deathReason, false);
     }
 
-    public static void killPlayer(PlayerEntity victim, boolean spawnBody, @Nullable PlayerEntity killer, Identifier deathReason, boolean force) {
+    public static void killPlayer(ServerPlayerEntity victim, boolean spawnBody, @Nullable ServerPlayerEntity killer, Identifier deathReason, boolean force) {
         PlayerPsychoComponent component = PlayerPsychoComponent.KEY.get(victim);
 
         // Fire BEFORE event
@@ -577,6 +577,8 @@ public class GameFunctions {
         }
 
         TrainVoicePlugin.addPlayer(victim.getUuid());
+
+        GameRecordManager.recordDeath(serverPlayerEntity, killer, deathReason);
 
         // Fire AFTER event
         KillPlayer.AFTER.invoker().afterKillPlayer(victim, killer, deathReason);

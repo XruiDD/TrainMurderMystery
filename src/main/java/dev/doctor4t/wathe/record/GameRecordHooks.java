@@ -29,14 +29,6 @@ public final class GameRecordHooks {
             GameRecordManager.recordShopPurchase(player, entry, index, pricePaid);
         });
 
-        KillPlayer.AFTER.register((victim, killer, deathReason) -> {
-            if (!(victim instanceof ServerPlayerEntity serverVictim)) {
-                return;
-            }
-            ServerPlayerEntity serverKiller = killer instanceof ServerPlayerEntity sk ? sk : null;
-            GameRecordManager.recordDeath(serverVictim, serverKiller, deathReason);
-        });
-
         TaskComplete.EVENT.register((player, taskType) -> {
             String taskName = taskType == null ? "unknown" : taskType.name().toLowerCase();
             GameRecordManager.recordTaskComplete(player, taskName);

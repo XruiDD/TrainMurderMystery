@@ -167,7 +167,7 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
 
         // 心情达到 -100% 时触发精神崩溃，直接死亡
         if (hasRealMood && this.mood <= -1f && this.player instanceof ServerPlayerEntity) {
-            GameFunctions.killPlayer(this.player, true, null, GameConstants.DeathReasons.MENTAL_BREAKDOWN, true);
+            GameFunctions.killPlayer((ServerPlayerEntity) this.player, true, null, GameConstants.DeathReasons.MENTAL_BREAKDOWN, true);
             return;
         }
 

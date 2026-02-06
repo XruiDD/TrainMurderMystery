@@ -116,11 +116,7 @@ public class FoodPlatterBlock extends BlockWithEntity {
                 randomItem.setCount(1);
                 randomItem.set(DataComponentTypes.MAX_STACK_SIZE, 1);
                 if (player instanceof ServerPlayerEntity serverPlayer) {
-                    NbtCompound extra = new NbtCompound();
-                    extra.putString("action", "take");
-                    extra.putString("source", "food_platter");
-                    GameRecordManager.putBlockPos(extra, "pos", pos);
-                    GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(randomItem.getItem()), null, extra);
+                    GameRecordManager.recordPlatterTake(serverPlayer, Registries.ITEM.getId(randomItem.getItem()), pos);
                 }
                 String poisoner = blockEntity.getPoisoner();
                 if (poisoner != null) {

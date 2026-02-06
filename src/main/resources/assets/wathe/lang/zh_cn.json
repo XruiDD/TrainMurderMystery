@@ -470,14 +470,15 @@
   "replay.death.wathe.fell_out_of_train.killed": "%s 被 %s §7推下§r列车",
   "replay.death.wathe.fell_out_of_train.died": "%s §7坠落§r出列车",
   "replay.death.wathe.escaped.died": "%s §7逃离§r了游戏",
+  "replay.death.wathe.shot_innocent.killed": "%s 被 %s §c误杀§r",
   "replay.death.wathe.shot_innocent.died": "%s 因§c误杀无辜§r而死",
   "replay.death.wathe.mental_breakdown.died": "%s §c精神崩溃§r",
   "replay.death.unknown.killed": "%s 被 %s 杀死",
   "replay.death.unknown.died": "%s 死亡",
 
-  "replay.shop_purchase": "%s 购买了§e%s§r，花费§6%d§r金币",
-  "replay.item_pickup": "%s 捡起了§e%s§r",
-  "replay.item_pickup.multiple": "%s 捡起了§e%s§r x%d",
+  "replay.shop_purchase": "%s 购买了 %s，花费§6%d§r金币",
+  "replay.item_pickup": "%s 捡起了 %s",
+  "replay.item_pickup.multiple": "%s 捡起了 %s x%d",
   "replay.poisoned.by": "%s 被 %s §2下毒§r",
   "replay.poisoned": "%s §2中毒§r",
 

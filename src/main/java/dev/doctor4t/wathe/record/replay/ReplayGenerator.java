@@ -5,7 +5,9 @@ import dev.doctor4t.wathe.api.WatheRoles;
 import dev.doctor4t.wathe.record.GameRecordEvent;
 import dev.doctor4t.wathe.record.GameRecordManager;
 import dev.doctor4t.wathe.record.GameRecordTypes;
+import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.MutableText;
@@ -162,6 +164,50 @@ public final class ReplayGenerator {
                 .append(Text.translatable(roleTranslationKey))
                 .append(Text.literal(")"));
         return text.setStyle(Style.EMPTY.withColor(TextColor.fromRgb(roleColor)));
+    }
+
+    /**
+     * 格式化物品名称，统一为 [物品名] 格式，白色文本
+     *
+     * @param data  事件 NBT 数据（需包含 item_name 或 item 字段）
+     * @param world 服务器世界
+     * @return 格式化后的物品名称文本
+     */
+    public static Text formatItemName(NbtCompound data, ServerWorld world) {
+        Text rawName = resolveItemName(data, world);
+        return Text.literal("[")
+                .append(rawName)
+                .append(Text.literal("]"))
+                .formatted(Formatting.WHITE);
+    }
+
+    /**
+     * 解析物品原始名称（优先序列化的 Text，兼容旧记录的 registry ID）
+     */
+    private static Text resolveItemName(NbtCompound data, ServerWorld world) {
+        // 优先使用存储的物品名称（Text.translatable 序列化后的 JSON）
+        if (data.contains("item_name")) {
+            String nameJson = data.getString("item_name");
+            if (nameJson != null && !nameJson.isEmpty()) {
+                Text name = Text.Serialization.fromJson(nameJson, world.getRegistryManager());
+                if (name != null) {
+                    return name;
+                }
+            }
+        }
+
+        // 兼容旧记录：使用物品翻译键
+        String itemId = data.getString("item");
+        if (itemId != null && !itemId.isEmpty()) {
+            Identifier id = Identifier.tryParse(itemId);
+            if (id != null) {
+                Item item = Registries.ITEM.get(id);
+                if (item != null) {
+                    return Text.translatable(item.getTranslationKey());
+                }
+            }
+        }
+        return Text.literal("unknown");
     }
 
     /**

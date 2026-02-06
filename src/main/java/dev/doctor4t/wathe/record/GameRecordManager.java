@@ -278,6 +278,16 @@ public final class GameRecordManager {
         addEvent(player.getServerWorld(), GameRecordTypes.ITEM_USE, player, target, data);
     }
 
+    public static void recordPlatterTake(ServerPlayerEntity player, Identifier itemId, BlockPos platterPos) {
+        if (!hasActiveMatch()) {
+            return;
+        }
+        NbtCompound data = new NbtCompound();
+        data.putString("item", itemId.toString());
+        putBlockPos(data, "pos", platterPos);
+        addEvent(player.getServerWorld(), GameRecordTypes.PLATTER_TAKE, player, null, data);
+    }
+
     public static void recordSkillUse(ServerPlayerEntity player, Identifier skillId, @Nullable ServerPlayerEntity target, @Nullable NbtCompound extra) {
         if (!hasActiveMatch()) {
             return;

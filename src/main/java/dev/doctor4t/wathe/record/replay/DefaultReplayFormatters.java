@@ -2,9 +2,7 @@ package dev.doctor4t.wathe.record.replay;
 
 import dev.doctor4t.wathe.record.GameRecordEvent;
 import dev.doctor4t.wathe.record.GameRecordManager;
-import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.Registries;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -98,40 +96,9 @@ public final class DefaultReplayFormatters {
         }
 
         Text playerText = ReplayGenerator.formatPlayerName(actorUuid, currentPlayerInfoCache);
-
-        // 获取物品名称（支持自定义名称和翻译）
-        Text itemName = getItemDisplayText(data, world);
+        Text itemName = ReplayGenerator.formatItemName(data, world);
 
         return Text.translatable("replay.shop_purchase", playerText, itemName, price);
-    }
-
-    /**
-     * 获取物品显示名称（使用序列化的 Text，让客户端根据语言设置解析）
-     */
-    private static Text getItemDisplayText(NbtCompound data, ServerWorld world) {
-        // 优先使用存储的物品名称（Text.translatable 序列化后的 JSON）
-        if (data.contains("item_name")) {
-            String nameJson = data.getString("item_name");
-            if (nameJson != null && !nameJson.isEmpty()) {
-                Text name = Text.Serialization.fromJson(nameJson, world.getRegistryManager());
-                if (name != null) {
-                    return name;
-                }
-            }
-        }
-
-        // 兼容旧记录：使用物品翻译键
-        String itemId = data.getString("item");
-        if (itemId != null && !itemId.isEmpty()) {
-            Identifier id = Identifier.tryParse(itemId);
-            if (id != null) {
-                Item item = Registries.ITEM.get(id);
-                if (item != null) {
-                    return Text.translatable(item.getTranslationKey());
-                }
-            }
-        }
-        return Text.literal("unknown");
     }
 
     /**
@@ -151,13 +118,57 @@ public final class DefaultReplayFormatters {
         }
 
         Text playerText = ReplayGenerator.formatPlayerName(actorUuid, currentPlayerInfoCache);
-        Text itemName = getItemDisplayText(data, world);
+        Text itemName = ReplayGenerator.formatItemName(data, world);
         int count = data.getInt("count");
 
         if (count > 1) {
             return Text.translatable("replay.item_pickup.multiple", playerText, itemName, count);
         }
         return Text.translatable("replay.item_pickup", playerText, itemName);
+    }
+
+    /**
+     * 格式化物品使用事件（分发给按物品 ID 注册的子格式化器）
+     * 未注册格式化器的物品使用事件将被忽略
+     */
+    @Nullable
+    public static Text formatItemUse(GameRecordEvent event, GameRecordManager.MatchRecord match, ServerWorld world) {
+        NbtCompound data = event.data();
+        String itemIdStr = data.getString("item");
+        if (itemIdStr == null || itemIdStr.isEmpty()) {
+            return null;
+        }
+        Identifier itemId = Identifier.tryParse(itemIdStr);
+        if (itemId == null) {
+            return null;
+        }
+        ReplayEventFormatter formatter = ReplayRegistry.getItemUseFormatter(itemId);
+        if (formatter == null) {
+            return null; // 未注册的物品使用事件，忽略
+        }
+        return formatter.format(event, match, world);
+    }
+
+    /**
+     * 格式化餐盘拿取事件（分发给按物品 ID 注册的子格式化器）
+     * 未注册格式化器的餐盘拿取事件将被忽略
+     */
+    @Nullable
+    public static Text formatPlatterTake(GameRecordEvent event, GameRecordManager.MatchRecord match, ServerWorld world) {
+        NbtCompound data = event.data();
+        String itemIdStr = data.getString("item");
+        if (itemIdStr == null || itemIdStr.isEmpty()) {
+            return null;
+        }
+        Identifier itemId = Identifier.tryParse(itemIdStr);
+        if (itemId == null) {
+            return null;
+        }
+        ReplayEventFormatter formatter = ReplayRegistry.getPlatterTakeFormatter(itemId);
+        if (formatter == null) {
+            return null; // 未注册的餐盘拿取事件，忽略
+        }
+        return formatter.format(event, match, world);
     }
 
     /**

@@ -16,6 +16,8 @@ public final class ReplayRegistry {
 
     private static final Map<String, ReplayEventFormatter> FORMATTERS = new HashMap<>();
     private static final Map<Identifier, ReplayEventFormatter> SKILL_FORMATTERS = new HashMap<>();
+    private static final Map<Identifier, ReplayEventFormatter> ITEM_USE_FORMATTERS = new HashMap<>();
+    private static final Map<Identifier, ReplayEventFormatter> PLATTER_TAKE_FORMATTERS = new HashMap<>();
 
     /**
      * 注册事件格式化器
@@ -38,14 +40,40 @@ public final class ReplayRegistry {
     }
 
     /**
-     * 获取技能专属格式化器
+     * 注册物品使用专属格式化器
+     * 仅注册了格式化器的物品使用事件才会出现在回放中，未注册的将被忽略
      *
-     * @param skillId 技能标识符
-     * @return 格式化器，如果未注册则返回 null
+     * @param itemId    物品标识符（如 Identifier.of("wathe", "poison_vial")）
+     * @param formatter 格式化器实现
      */
+    public static void registerItemUseFormatter(Identifier itemId, ReplayEventFormatter formatter) {
+        ITEM_USE_FORMATTERS.put(itemId, formatter);
+    }
+
+    /**
+     * 注册餐盘拿取专属格式化器
+     * 仅注册了格式化器的物品才会出现在回放中，未注册的将被忽略
+     *
+     * @param itemId    物品标识符
+     * @param formatter 格式化器实现
+     */
+    public static void registerPlatterTakeFormatter(Identifier itemId, ReplayEventFormatter formatter) {
+        PLATTER_TAKE_FORMATTERS.put(itemId, formatter);
+    }
+
     @Nullable
     public static ReplayEventFormatter getSkillFormatter(Identifier skillId) {
         return SKILL_FORMATTERS.get(skillId);
+    }
+
+    @Nullable
+    public static ReplayEventFormatter getItemUseFormatter(Identifier itemId) {
+        return ITEM_USE_FORMATTERS.get(itemId);
+    }
+
+    @Nullable
+    public static ReplayEventFormatter getPlatterTakeFormatter(Identifier itemId) {
+        return PLATTER_TAKE_FORMATTERS.get(itemId);
     }
 
     /**

@@ -11,6 +11,7 @@ public final class GameRecordTypes {
     public static final String TASK_COMPLETE = "task_complete";
     public static final String ITEM_USE = "item_use";
     public static final String ITEM_PICKUP = "item_pickup";
+    public static final String PLATTER_TAKE = "platter_take";
     public static final String SKILL_USE = "skill_use";
     public static final String GLOBAL_EVENT = "global_event";
     public static final String MATCH_END = "match_end";

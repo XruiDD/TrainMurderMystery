@@ -103,7 +103,7 @@ public record GunShootPayload(int target) implements CustomPayload {
                                 PlayerMoodComponent.KEY.get(player).setMood(0);
                                 game.addToPreventGunPickup(player);
                                 if(game.isInnocent(player) && punishment == GameWorldComponent.ShootInnocentPunishment.KILL_SHOOTER){
-                                    GameFunctions.killPlayer(player, true, player, GameConstants.DeathReasons.SHOT_INNOCENT);
+                                    GameFunctions.killPlayer(player, true, null, GameConstants.DeathReasons.SHOT_INNOCENT);
                                 }
                             }
                         }, 4);

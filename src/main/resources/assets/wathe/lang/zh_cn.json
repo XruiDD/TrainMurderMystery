@@ -467,6 +467,7 @@
   "replay.death.wathe.grenade.died": "%s 被§e手雷§r炸死",
   "replay.death.wathe.poison.killed": "%s 被 %s §2下毒§r致死",
   "replay.death.wathe.poison.died": "%s §2中毒§r身亡",
+  "replay.death.wathe.fell_out_of_train.killed": "%s 被 %s §7推下§r列车",
   "replay.death.wathe.fell_out_of_train.died": "%s §7坠落§r出列车",
   "replay.death.wathe.escaped.died": "%s §7逃离§r了游戏",
   "replay.death.wathe.shot_innocent.died": "%s 因§c误杀无辜§r而死",

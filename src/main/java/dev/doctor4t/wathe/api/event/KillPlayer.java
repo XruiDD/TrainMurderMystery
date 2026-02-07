@@ -1,7 +1,7 @@
 package dev.doctor4t.wathe.api.event;
 
 import net.fabricmc.fabric.api.event.Event;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +59,7 @@ public final class KillPlayer {
          * @return {@code KillResult} to override, or {@code null} to defer
          */
         @Nullable
-        KillResult beforeKillPlayer(PlayerEntity victim, @Nullable PlayerEntity killer, Identifier deathReason);
+        KillResult beforeKillPlayer(ServerPlayerEntity victim, @Nullable ServerPlayerEntity killer, Identifier deathReason);
     }
 
     @FunctionalInterface
@@ -71,7 +71,7 @@ public final class KillPlayer {
          * @param killer The player who killed them (may be null for environmental deaths)
          * @param deathReason The identifier of the death reason
          */
-        void afterKillPlayer(PlayerEntity victim, @Nullable PlayerEntity killer, Identifier deathReason);
+        void afterKillPlayer(ServerPlayerEntity victim, @Nullable ServerPlayerEntity killer, Identifier deathReason);
     }
 
     /**

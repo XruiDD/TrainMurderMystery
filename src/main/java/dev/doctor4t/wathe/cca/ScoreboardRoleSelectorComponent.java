@@ -113,6 +113,7 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
 
         return new RoleSelectionContext(
                 world,
+                gameComponent,
                 Collections.unmodifiableList(players),
                 totalPlayerCount,
                 targetKillerCount,

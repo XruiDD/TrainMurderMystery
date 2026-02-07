@@ -1,12 +1,34 @@
 {
-  "_comment": "=== Wathe 多地图配置示例 - 庄园（最小配置） ===",
-  "_comment_usage": "这是一个最小配置示例，只包含必填字段",
-  "_comment_note": "enhancements 为可选项，如果不需要房间配置和渲染效果可以省略",
-  "_comment_mapvariables": "每个维度的 spawnPos, spectatorSpawnPos, readyArea, playArea 等需要在对应维度内使用 /wathe:mapVariables 命令配置",
+  "_comment": "=== Wathe 多地图配置示例 - 庄园（展示全部游戏参数配置） ===",
+  "_comment_usage": "这是一个展示所有新增游戏参数配置的示例",
+  "_comment_movement": "movement: 移动速度倍率，1.0 为默认速度（行走 0.07f / 疾跑 0.1f）",
+  "_comment_jump": "jump: allowed=true 允许跳跃, stamina_cost>0 每次跳跃消耗体力",
+  "_comment_ambience": "ambience: inside_sound/outside_sound 配置室内/室外环境音（默认为列车音效），设为空字符串 '' 可关闭",
+  "_comment_ambience2": "require_train_moving: 默认 true（列车地图），非列车地图需设为 false 才能播放环境音",
 
   "dimension": "wathe:mansion",
   "display_name": "庄园",
   "description": "隐秘的深山庄园",
   "min_players": 4,
-  "max_players": 12
+  "max_players": 12,
+
+  "enhancements": {
+    "rooms": [],
+
+    "movement": {
+      "walk_speed_multiplier": 1.5,
+      "sprint_speed_multiplier": 1.2
+    },
+
+    "jump": {
+      "allowed": true,
+      "stamina_cost": 20
+    },
+
+    "ambience": {
+      "require_train_moving": false,
+      "inside_sound": "",
+      "outside_sound": "wathe:ambient.ship.outside"
+    }
+  }
 }

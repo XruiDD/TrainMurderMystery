@@ -23,7 +23,8 @@ public record MapRegistryEntry(
         Codec.STRING.fieldOf("display_name").forGetter(MapRegistryEntry::displayName),
         Codec.STRING.optionalFieldOf("description").forGetter(MapRegistryEntry::description),
         MapEnhancementsConfiguration.CODEC.optionalFieldOf("enhancements", new MapEnhancementsConfiguration(
-            java.util.List.of(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()
+            java.util.List.of(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+            Optional.empty(), Optional.empty(), Optional.empty()
         )).forGetter(MapRegistryEntry::enhancements),
         Codec.INT.optionalFieldOf("min_players", 0).forGetter(MapRegistryEntry::minPlayers),
         Codec.INT.optionalFieldOf("max_players", 100).forGetter(MapRegistryEntry::maxPlayers)

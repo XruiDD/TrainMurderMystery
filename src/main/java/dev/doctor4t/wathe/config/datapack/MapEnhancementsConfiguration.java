@@ -31,7 +31,11 @@ public record MapEnhancementsConfiguration(
     Optional<FogConfig> fog,
     Optional<CameraShakeConfig> cameraShake,
     // 交互黑名单
-    Optional<InteractionBlacklistConfig> interactionBlacklist
+    Optional<InteractionBlacklistConfig> interactionBlacklist,
+    // 游戏参数配置
+    Optional<MovementConfig> movement,
+    Optional<JumpConfig> jump,
+    Optional<AmbienceConfig> ambience
 ) {
 
     /**
@@ -136,6 +140,52 @@ public record MapEnhancementsConfiguration(
     }
 
     /**
+     * 移动配置
+     */
+    public record MovementConfig(float walkSpeedMultiplier, float sprintSpeedMultiplier) {
+        public static final MovementConfig DEFAULT = new MovementConfig(1.0f, 1.0f);
+
+        public static final Codec<MovementConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.FLOAT.optionalFieldOf("walk_speed_multiplier", 1.0f).forGetter(MovementConfig::walkSpeedMultiplier),
+            Codec.FLOAT.optionalFieldOf("sprint_speed_multiplier", 1.0f).forGetter(MovementConfig::sprintSpeedMultiplier)
+        ).apply(instance, MovementConfig::new));
+    }
+
+    /**
+     * 跳跃配置
+     */
+    public record JumpConfig(boolean allowed, float staminaCost) {
+        public static final JumpConfig DEFAULT = new JumpConfig(false, 0f);
+
+        public static final Codec<JumpConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.BOOL.optionalFieldOf("allowed", false).forGetter(JumpConfig::allowed),
+            Codec.FLOAT.optionalFieldOf("stamina_cost", 0f).forGetter(JumpConfig::staminaCost)
+        ).apply(instance, JumpConfig::new));
+    }
+
+    /**
+     * 环境音配置
+     * 默认使用列车室内/室外音效，地图可覆盖为其他音效或设为空以关闭
+     */
+    public record AmbienceConfig(boolean requireTrainMoving, Optional<String> insideSound, Optional<String> outsideSound) {
+        public static final String DEFAULT_INSIDE_SOUND = "wathe:ambient.train.inside";
+        public static final String DEFAULT_OUTSIDE_SOUND = "wathe:ambient.train.outside";
+        public static final AmbienceConfig DEFAULT = new AmbienceConfig(true, Optional.of(DEFAULT_INSIDE_SOUND), Optional.of(DEFAULT_OUTSIDE_SOUND));
+
+        public static final Codec<AmbienceConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.BOOL.optionalFieldOf("require_train_moving", true).forGetter(AmbienceConfig::requireTrainMoving),
+            Codec.STRING.optionalFieldOf("inside_sound", DEFAULT_INSIDE_SOUND).xmap(
+                s -> s.isEmpty() ? Optional.<String>empty() : Optional.of(s),
+                opt -> opt.orElse("")
+            ).forGetter(AmbienceConfig::insideSound),
+            Codec.STRING.optionalFieldOf("outside_sound", DEFAULT_OUTSIDE_SOUND).xmap(
+                s -> s.isEmpty() ? Optional.<String>empty() : Optional.of(s),
+                opt -> opt.orElse("")
+            ).forGetter(AmbienceConfig::outsideSound)
+        ).apply(instance, AmbienceConfig::new));
+    }
+
+    /**
      * 右键交互方块黑名单配置
      * 支持单个方块ID和方块标签
      */
@@ -206,7 +256,11 @@ public record MapEnhancementsConfiguration(
         FogConfig.CODEC.optionalFieldOf("fog").forGetter(MapEnhancementsConfiguration::fog),
         CameraShakeConfig.CODEC.optionalFieldOf("camera_shake").forGetter(MapEnhancementsConfiguration::cameraShake),
         // 交互黑名单
-        InteractionBlacklistConfig.CODEC.optionalFieldOf("interaction_blacklist").forGetter(MapEnhancementsConfiguration::interactionBlacklist)
+        InteractionBlacklistConfig.CODEC.optionalFieldOf("interaction_blacklist").forGetter(MapEnhancementsConfiguration::interactionBlacklist),
+        // 游戏参数配置
+        MovementConfig.CODEC.optionalFieldOf("movement").forGetter(MapEnhancementsConfiguration::movement),
+        JumpConfig.CODEC.optionalFieldOf("jump").forGetter(MapEnhancementsConfiguration::jump),
+        AmbienceConfig.CODEC.optionalFieldOf("ambience").forGetter(MapEnhancementsConfiguration::ambience)
     ).apply(instance, MapEnhancementsConfiguration::new));
 
     // ========== 便捷获取方法（带默认值）==========
@@ -229,6 +283,18 @@ public record MapEnhancementsConfiguration(
 
     public InteractionBlacklistConfig getInteractionBlacklistOrDefault() {
         return interactionBlacklist.orElse(InteractionBlacklistConfig.DEFAULT);
+    }
+
+    public MovementConfig getMovementOrDefault() {
+        return movement.orElse(MovementConfig.DEFAULT);
+    }
+
+    public JumpConfig getJumpOrDefault() {
+        return jump.orElse(JumpConfig.DEFAULT);
+    }
+
+    public AmbienceConfig getAmbienceOrDefault() {
+        return ambience.orElse(AmbienceConfig.DEFAULT);
     }
 
     // ========== 房间配置相关方法 ==========

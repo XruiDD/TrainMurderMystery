@@ -9,9 +9,11 @@ import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.api.event.AllowPlayerPunching;
 import dev.doctor4t.wathe.block.entity.SeatEntity;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.cca.MapEnhancementsWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
 import dev.doctor4t.wathe.cca.PlayerStaminaComponent;
+import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.MovementConfig;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheDataComponentTypes;
@@ -65,7 +67,8 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     public float wathe$overrideMovementSpeed(float original) {
         GameWorldComponent gameComponent = GameWorldComponent.KEY.get(this.getWorld());
         if (gameComponent.isRunning() && !this.isCreative()) {
-            return this.isSprinting() ? 0.1f : 0.07f;
+            MovementConfig movement = MapEnhancementsWorldComponent.KEY.get(this.getWorld()).getMovementConfig();
+            return this.isSprinting() ? 0.1f * movement.sprintSpeedMultiplier() : 0.07f * movement.walkSpeedMultiplier();
         } else {
             return original;
         }

@@ -7,6 +7,7 @@
   "_comment_description": "description: 可选，投票UI中显示的地图描述",
   "_comment_players": "min_players/max_players: 人数限制，不满足时该地图在投票中显示为不可用（灰色）",
   "_comment_enhancements": "enhancements: 可选，与旧版 areas/*.json 格式相同的增强配置（房间、渲染等）",
+  "_comment_gameplay": "movement/jump/ambience: 可选的游戏参数配置，不配置时使用默认值（速度 1.0x、禁止跳跃、列车环境音）",
   "_comment_mapvariables": "注意：每个维度的出生点、准备区域等仍需在对应维度内使用 /wathe:mapVariables 命令配置",
 
   "dimension": "wathe:harpy_express",

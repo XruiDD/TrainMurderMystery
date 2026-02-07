@@ -8,6 +8,9 @@ import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.FogConfig
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.CameraShakeConfig;
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.SnowParticlesConfig;
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.InteractionBlacklistConfig;
+import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.MovementConfig;
+import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.JumpConfig;
+import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.AmbienceConfig;
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfigurationManager;
 import dev.doctor4t.wathe.config.datapack.RoomConfig;
 import net.minecraft.nbt.NbtCompound;
@@ -60,6 +63,9 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
     private FogConfig syncedFog;
     private CameraShakeConfig syncedCameraShake;
     private InteractionBlacklistConfig syncedInteractionBlacklist;
+    private MovementConfig syncedMovement;
+    private JumpConfig syncedJump;
+    private AmbienceConfig syncedAmbience;
     // ========== 渲染配置 Getter 方法 ==========
 
     public SceneryConfig getSceneryConfig() {
@@ -104,6 +110,30 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
         }
         MapEnhancementsConfiguration config = getConfigForCurrentWorld();
         return config != null ? config.getInteractionBlacklistOrDefault() : InteractionBlacklistConfig.DEFAULT;
+    }
+
+    public MovementConfig getMovementConfig() {
+        if (world.isClient() && syncedMovement != null) {
+            return syncedMovement;
+        }
+        MapEnhancementsConfiguration config = getConfigForCurrentWorld();
+        return config != null ? config.getMovementOrDefault() : MovementConfig.DEFAULT;
+    }
+
+    public JumpConfig getJumpConfig() {
+        if (world.isClient() && syncedJump != null) {
+            return syncedJump;
+        }
+        MapEnhancementsConfiguration config = getConfigForCurrentWorld();
+        return config != null ? config.getJumpOrDefault() : JumpConfig.DEFAULT;
+    }
+
+    public AmbienceConfig getAmbienceConfig() {
+        if (world.isClient() && syncedAmbience != null) {
+            return syncedAmbience;
+        }
+        MapEnhancementsConfiguration config = getConfigForCurrentWorld();
+        return config != null ? config.getAmbienceOrDefault() : AmbienceConfig.DEFAULT;
     }
 
     // ========== 房间配置相关方法（仅服务端）==========
@@ -192,6 +222,31 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
 
             this.syncedInteractionBlacklist = new InteractionBlacklistConfig(blocks, blockTags);
         }
+        // 反序列化移动配置
+        if (tag.contains("movementWalkMultiplier")) {
+            this.syncedMovement = new MovementConfig(
+                tag.getFloat("movementWalkMultiplier"),
+                tag.getFloat("movementSprintMultiplier")
+            );
+        }
+        // 反序列化跳跃配置
+        if (tag.contains("jumpAllowed")) {
+            this.syncedJump = new JumpConfig(
+                tag.getBoolean("jumpAllowed"),
+                tag.getFloat("jumpStaminaCost")
+            );
+        }
+        // 反序列化环境音配置
+        if (tag.contains("ambienceInsideSound")) {
+            boolean requireTrainMoving = !tag.contains("ambienceRequireTrainMoving") || tag.getBoolean("ambienceRequireTrainMoving");
+            String inside = tag.getString("ambienceInsideSound");
+            String outside = tag.getString("ambienceOutsideSound");
+            this.syncedAmbience = new AmbienceConfig(
+                requireTrainMoving,
+                inside.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(inside),
+                outside.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(outside)
+            );
+        }
     }
 
     @Override
@@ -232,5 +287,21 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
         for (int i = 0; i < blacklist.blockTags().size(); i++) {
             tag.putString("blacklistTag_" + i, blacklist.blockTags().get(i));
         }
+
+        // 序列化移动配置
+        MovementConfig movement = getMovementConfig();
+        tag.putFloat("movementWalkMultiplier", movement.walkSpeedMultiplier());
+        tag.putFloat("movementSprintMultiplier", movement.sprintSpeedMultiplier());
+
+        // 序列化跳跃配置
+        JumpConfig jump = getJumpConfig();
+        tag.putBoolean("jumpAllowed", jump.allowed());
+        tag.putFloat("jumpStaminaCost", jump.staminaCost());
+
+        // 序列化环境音配置
+        AmbienceConfig ambience = getAmbienceConfig();
+        tag.putBoolean("ambienceRequireTrainMoving", ambience.requireTrainMoving());
+        tag.putString("ambienceInsideSound", ambience.insideSound().orElse(""));
+        tag.putString("ambienceOutsideSound", ambience.outsideSound().orElse(""));
     }
 }

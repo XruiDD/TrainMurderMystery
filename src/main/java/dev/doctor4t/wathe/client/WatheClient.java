@@ -210,9 +210,17 @@ public class WatheClient implements ClientModInitializer {
         );
         BlockEntityRendererFactories.register(WatheBlockEntities.HORN, HornBlockEntityRenderer::new);
 
-        // Ambience
-        AmbienceUtil.registerBackgroundAmbience(new BackgroundAmbience(WatheSounds.AMBIENT_TRAIN_INSIDE, player -> isTrainMoving() && !Wathe.isSkyVisibleAdjacent(player), 20));
-        AmbienceUtil.registerBackgroundAmbience(new BackgroundAmbience(WatheSounds.AMBIENT_TRAIN_OUTSIDE, player -> isTrainMoving() && Wathe.isSkyVisibleAdjacent(player), 20));
+        // Ambience - 每个已知音效静态注册，由 AmbienceConfig 中的 ID 匹配决定是否播放
+        // 列车室内
+        AmbienceUtil.registerBackgroundAmbience(new BackgroundAmbience(WatheSounds.AMBIENT_TRAIN_INSIDE,
+            player -> isAmbienceActive("wathe:ambient.train.inside", true) && !Wathe.isSkyVisibleAdjacent(player), 20));
+        // 列车室外
+        AmbienceUtil.registerBackgroundAmbience(new BackgroundAmbience(WatheSounds.AMBIENT_TRAIN_OUTSIDE,
+            player -> isAmbienceActive("wathe:ambient.train.outside", false) && Wathe.isSkyVisibleAdjacent(player), 20));
+        // 轮船室外
+        AmbienceUtil.registerBackgroundAmbience(new BackgroundAmbience(WatheSounds.AMBIENT_SHIP_OUTSIDE,
+            player -> isAmbienceActive("wathe:ambient.ship.outside", false) && Wathe.isSkyVisibleAdjacent(player), 20));
+        // Psycho drone（独立于环境音配置）
         AmbienceUtil.registerBackgroundAmbience(new BackgroundAmbience(WatheSounds.AMBIENT_PSYCHO_DRONE, player -> gameComponent.isPsychoActive(), 20));
 //        AmbienceUtil.registerBlockEntityAmbience(WatheBlockEntities.SPRINKLER, new BlockEntityAmbience(WatheSounds.BLOCK_SPRINKLER_RUN, 0.5f, blockEntity -> blockEntity instanceof SprinklerBlockEntity sprinklerBlockEntity && sprinklerBlockEntity.isPowered(), 20));
 
@@ -413,6 +421,22 @@ public class WatheClient implements ClientModInitializer {
     }
 
 
+
+    /**
+     * 检查指定音效ID是否匹配当前地图的环境音配置，且满足播放条件
+     * @param soundId 要检查的音效标识符
+     * @param inside true=检查室内音效, false=检查室外音效
+     */
+    private static boolean isAmbienceActive(String soundId, boolean inside) {
+        if (mapEnhancementsWorldComponent == null || gameComponent == null) return false;
+        var cfg = mapEnhancementsWorldComponent.getAmbienceConfig();
+        // 检查配置的音效ID是否匹配
+        String configuredId = (inside ? cfg.insideSound() : cfg.outsideSound()).orElse(null);
+        if (!soundId.equals(configuredId)) return false;
+        // 检查播放条件
+        if (cfg.requireTrainMoving()) return isTrainMoving();
+        return gameComponent.getGameStatus() != GameWorldComponent.GameStatus.INACTIVE;
+    }
 
     /**
      * 判断是否在游戏中，正常游戏时

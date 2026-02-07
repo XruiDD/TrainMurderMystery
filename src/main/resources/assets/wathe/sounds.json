@@ -196,6 +196,12 @@
 		],
 		"subtitle": "subtitles.ambient.train.horn"
 	},
+	"ambient.ship.outside": {
+		"sounds": [
+			"wathe:ambient/ship_outside"
+		],
+		"subtitle": "subtitles.ambient.ship.outside"
+	},
 
 	"ui.shop.buy": {
 		"sounds": [

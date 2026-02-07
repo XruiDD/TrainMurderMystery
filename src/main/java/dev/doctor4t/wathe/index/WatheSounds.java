@@ -41,6 +41,7 @@ public interface WatheSounds {
     SoundEvent AMBIENT_PSYCHO_DRONE = registrar.create("ambient.psycho_drone");
     SoundEvent AMBIENT_BLACKOUT = registrar.create("ambient.blackout");
     SoundEvent AMBIENT_TRAIN_HORN = registrar.create("ambient.train.horn");
+    SoundEvent AMBIENT_SHIP_OUTSIDE = registrar.create("ambient.ship.outside");
 
     // UI
     SoundEvent UI_SHOP_BUY = registrar.create("ui.shop.buy");

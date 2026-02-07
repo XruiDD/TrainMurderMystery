@@ -2,6 +2,9 @@ package dev.doctor4t.wathe.mixin;
 
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
+import dev.doctor4t.wathe.cca.MapEnhancementsWorldComponent;
+import dev.doctor4t.wathe.cca.PlayerStaminaComponent;
+import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.JumpConfig;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheItems;
 import net.minecraft.entity.LivingEntity;
@@ -42,16 +45,31 @@ public abstract class LivingEntityMixin extends EntityMixin {
         }
     }
 
-    // 服务端限制跳跃 - 游戏进行中存活的生存模式玩家不能跳跃
+    // 服务端限制跳跃 - 根据地图配置决定是否允许跳跃
     @Inject(method = "jump", at = @At("HEAD"), cancellable = true)
     public void wathe$restrictJump(CallbackInfo ci) {
         if ((Object) this instanceof PlayerEntity player) {
             // 仅在服务端检查
             if (!player.getWorld().isClient) {
                 GameWorldComponent gameComponent = GameWorldComponent.KEY.get(player.getWorld());
-                // 游戏进行中且玩家是存活的生存模式玩家时阻止跳跃
+                // 游戏进行中且玩家是存活的生存模式玩家时检查跳跃配置
                 if (gameComponent != null && gameComponent.isRunning() && GameFunctions.isPlayerAliveAndSurvival(player)) {
-                    ci.cancel();
+                    JumpConfig jumpConfig = MapEnhancementsWorldComponent.KEY.get(player.getWorld()).getJumpConfig();
+                    if (!jumpConfig.allowed()) {
+                        // 不允许跳跃
+                        ci.cancel();
+                    } else if (jumpConfig.staminaCost() > 0) {
+                        // 允许跳跃但消耗体力
+                        PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(player);
+                        if (stamina.getSprintingTicks() < jumpConfig.staminaCost()) {
+                            // 体力不足，取消跳跃
+                            ci.cancel();
+                        } else {
+                            // 扣除体力
+                            stamina.setSprintingTicks(stamina.getSprintingTicks() - jumpConfig.staminaCost());
+                        }
+                    }
+                    // allowed=true 且 staminaCost=0 → 自由跳跃，不取消
                 }
             }
         }

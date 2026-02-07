@@ -61,7 +61,9 @@ public abstract class LivingEntityMixin extends EntityMixin {
                     } else if (jumpConfig.staminaCost() > 0) {
                         // 允许跳跃但消耗体力
                         PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(player);
-                        if (stamina.getSprintingTicks() < jumpConfig.staminaCost()) {
+                        if (stamina.isInfiniteStamina()) {
+                            // 无限体力，允许跳跃且不消耗体力
+                        } else if (stamina.getSprintingTicks() < jumpConfig.staminaCost()) {
                             // 体力不足，取消跳跃
                             ci.cancel();
                         } else {

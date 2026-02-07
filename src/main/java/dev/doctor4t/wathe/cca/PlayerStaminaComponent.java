@@ -82,6 +82,14 @@ public class PlayerStaminaComponent implements AutoSyncedComponent, ServerTickin
         return EXHAUSTION_RECOVERY_TICKS;
     }
 
+    /**
+     * 判断玩家是否拥有无限体力
+     * maxSprintTime 为负数、sprintingTicks 为负数或 >= Integer.MAX_VALUE 时视为无限体力
+     */
+    public boolean isInfiniteStamina() {
+        return this.maxSprintTime < 0 || this.sprintingTicks < 0 || this.sprintingTicks >= Integer.MAX_VALUE;
+    }
+
     public void reset() {
         this.sprintingTicks = 0f;
         this.maxSprintTime = -1;

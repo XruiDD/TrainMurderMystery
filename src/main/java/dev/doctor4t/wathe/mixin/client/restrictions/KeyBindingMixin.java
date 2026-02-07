@@ -38,7 +38,10 @@ public abstract class KeyBindingMixin {
                     var player = MinecraftClient.getInstance().player;
                     if (player != null) {
                         PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(player);
-                        result = stamina.getSprintingTicks() < jumpConfig.staminaCost();
+                        // 非无限体力时，体力不足则屏蔽跳跃键
+                        if (!stamina.isInfiniteStamina()) {
+                            result = stamina.getSprintingTicks() < jumpConfig.staminaCost();
+                        }
                     }
                 }
             } else {

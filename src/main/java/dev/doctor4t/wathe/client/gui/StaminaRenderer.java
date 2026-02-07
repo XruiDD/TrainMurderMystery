@@ -24,8 +24,8 @@ public class StaminaRenderer {
 
         PlayerStaminaComponent staminaComponent = PlayerStaminaComponent.KEY.get(player);
 
+        if (staminaComponent.isInfiniteStamina()) return;
         int maxSprintTime = staminaComponent.getMaxSprintTime();
-        if (maxSprintTime < 0) return;
 
         float sprintingTicks = staminaComponent.getSprintingTicks();
         boolean exhausted = staminaComponent.isExhausted();

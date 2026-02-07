@@ -5,6 +5,8 @@ import dev.doctor4t.wathe.block.DoorPartBlock;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.MapVariablesWorldComponent;
 import dev.doctor4t.wathe.cca.MapVotingComponent;
+import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
+import dev.doctor4t.wathe.cca.PlayerShopComponent;
 import dev.doctor4t.wathe.command.*;
 import dev.doctor4t.wathe.command.argument.GameModeArgumentType;
 import dev.doctor4t.wathe.command.argument.MapEffectArgumentType;
@@ -174,7 +176,17 @@ public class Wathe implements ModInitializer {
                 && game.hasAnyRole(player.getUuid())
                 && !game.isPlayerDead(player.getUuid())
                 && GameFunctions.isPlayerPlayingAndAlive(player)) {
-                server.execute(()->GameFunctions.killPlayer(player, true, null, GameConstants.DeathReasons.ESCAPED, true));
+                server.execute(()-> {
+                    // 如果玩家正在中毒，直接给下毒者加钱，防止中毒玩家退出游戏来逃避杀手获得奖励
+                    PlayerPoisonComponent poisonComponent = PlayerPoisonComponent.KEY.get(player);
+                    if (poisonComponent.poisonTicks > 0 && poisonComponent.poisoner != null) {
+                        ServerPlayerEntity poisoner = player.getServer().getPlayerManager().getPlayer(poisonComponent.poisoner);
+                        if (poisoner != null) {
+                            PlayerShopComponent.KEY.get(poisoner).addToBalance(GameConstants.MONEY_PER_KILL);
+                        }
+                    }
+                    GameFunctions.killPlayer(player, true, null, GameConstants.DeathReasons.ESCAPED, true);
+                });
             }
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {

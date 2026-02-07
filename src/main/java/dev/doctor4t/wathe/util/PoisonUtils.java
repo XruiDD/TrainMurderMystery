@@ -68,10 +68,9 @@ public class PoisonUtils {
         if (blockEntity == null) return;
 
         if (!world.isClient) {
+            UUID poisoner = blockEntity.getPoisoner();
             blockEntity.setHasScorpion(false, null);
             int poisonTicks = PlayerPoisonComponent.KEY.get(player).poisonTicks;
-
-            UUID poisoner = blockEntity.getPoisoner();
             NbtCompound recordExtra = new NbtCompound();
             recordExtra.putString("source", "bed");
             GameRecordManager.putBlockPos(recordExtra, "pos", blockEntity.getPos());

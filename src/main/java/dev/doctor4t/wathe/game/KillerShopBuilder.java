@@ -60,8 +60,12 @@ public class KillerShopBuilder {
     }
 
     private static void addPoisons(BuildShopEntries.ShopContext context) {
-        // 毒药: 100, 无限制
-        context.addEntry(new ShopEntry.Builder("poison_vial", WatheItems.POISON_VIAL.getDefaultStack(), 100, ShopEntry.Type.POISON)
+        // 毒药: 75, 无限制
+        context.addEntry(new ShopEntry.Builder("poison_vial", WatheItems.POISON_VIAL.getDefaultStack(), 75, ShopEntry.Type.POISON)
+            .build());
+
+        // 蝎子: 75, 无限制
+        context.addEntry(new ShopEntry.Builder("scorpion", WatheItems.SCORPION.getDefaultStack(), 75, ShopEntry.Type.POISON)
             .build());
     }
 
@@ -82,6 +86,10 @@ public class KillerShopBuilder {
 
         // 裹尸袋: 100, 无限制
         context.addEntry(new ShopEntry.Builder("body_bag", WatheItems.BODY_BAG.getDefaultStack(), 100, ShopEntry.Type.TOOL)
+            .build());
+
+        // 鞭炮: 25, 无限制
+        context.addEntry(new ShopEntry.Builder("firecracker", WatheItems.FIRECRACKER.getDefaultStack(), 25, ShopEntry.Type.TOOL)
             .build());
 
         // 关灯: 300, 共享冷却在onBuy中处理

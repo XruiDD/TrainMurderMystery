@@ -8,6 +8,7 @@ import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
@@ -59,15 +60,17 @@ public abstract class ItemEntityMixin {
     /**
      * 在 sendPickup 调用处精准记录物品拾取事件
      * sendPickup 仅在 insertStack 成功后调用，此时拾取一定成功
-     * 通过 @Local 捕获原始总量 i，实际拾取量 = i - 剩余量
+     * 通过 @Local 捕获原始总量 i 和 insertStack 之前保存的 item
+     * 注意：此时 itemStack 已被 insertStack 原地修改，count 可能为 0，getItem() 会返回 AIR
      */
     @Inject(method = "onPlayerCollision",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/entity/player/PlayerEntity;sendPickup(Lnet/minecraft/entity/Entity;I)V"))
-    private void wathe$recordItemPickup(PlayerEntity player, CallbackInfo ci, @Local(ordinal = 0) int originalCount) {
+    private void wathe$recordItemPickup(PlayerEntity player, CallbackInfo ci, @Local(ordinal = 0) int originalCount, @Local Item item) {
         if (player instanceof ServerPlayerEntity serverPlayer) {
             int pickedUp = originalCount - this.getStack().getCount();
-            GameRecordManager.recordItemPickup(serverPlayer, this.getStack(), pickedUp);
+            ItemStack recordStack = new ItemStack(item, pickedUp);
+            GameRecordManager.recordItemPickup(serverPlayer, recordStack, pickedUp);
         }
     }
 }

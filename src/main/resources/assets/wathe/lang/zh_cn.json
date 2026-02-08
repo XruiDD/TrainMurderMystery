@@ -486,6 +486,8 @@
   "replay.poisoned.wathe.bed.by": "%s 被 %s §2放置的蝎子蜇伤§r",
   "replay.poisoned.wathe.bed": "%s 在睡梦中§2被蝎子蜇伤§r",
 
+  "replay.platter_take.poisoned": "%1$s 从餐盘拿走了 %3$s §2投毒§r的 %2$s",
+
   "replay.skill.unknown.target": "%s 对 %s 使用了§b技能§r",
   "replay.skill.unknown": "%s 使用了§b技能§r",
   "replay.global.unknown": "发生了§d全局事件§r"

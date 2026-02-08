@@ -115,10 +115,10 @@ public class FoodPlatterBlock extends BlockWithEntity {
                 ItemStack randomItem = platter.get(world.random.nextInt(platter.size())).copy();
                 randomItem.setCount(1);
                 randomItem.set(DataComponentTypes.MAX_STACK_SIZE, 1);
-                if (player instanceof ServerPlayerEntity serverPlayer) {
-                    GameRecordManager.recordPlatterTake(serverPlayer, Registries.ITEM.getId(randomItem.getItem()), pos);
-                }
                 String poisoner = blockEntity.getPoisoner();
+                if (player instanceof ServerPlayerEntity serverPlayer) {
+                    GameRecordManager.recordPlatterTake(serverPlayer, Registries.ITEM.getId(randomItem.getItem()), pos, poisoner);
+                }
                 if (poisoner != null) {
                     randomItem.set(WatheDataComponentTypes.POISONER, poisoner);
                     blockEntity.setPoisoner(null);

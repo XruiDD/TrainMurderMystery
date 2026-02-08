@@ -182,11 +182,27 @@ public final class DefaultReplayFormatters {
         if (itemId == null) {
             return null;
         }
+        // 优先查找物品专属格式化器
         ReplayEventFormatter formatter = ReplayRegistry.getPlatterTakeFormatter(itemId);
-        if (formatter == null) {
-            return null; // 未注册的餐盘拿取事件，忽略
+        if (formatter != null) {
+            return formatter.format(event, match, world);
         }
-        return formatter.format(event, match, world);
+        // 默认处理：仅显示拿走被下毒物品的情况
+        if (!data.containsUuid("poisoner")) {
+            return null;
+        }
+        if (currentPlayerInfoCache == null) {
+            currentPlayerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+        }
+        UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+        UUID poisonerUuid = data.getUuid("poisoner");
+        if (actorUuid == null) {
+            return null;
+        }
+        Text actorText = ReplayGenerator.formatPlayerName(actorUuid, currentPlayerInfoCache);
+        Text poisonerText = ReplayGenerator.formatPlayerName(poisonerUuid, currentPlayerInfoCache);
+        Text itemName = ReplayGenerator.formatItemName(data, world);
+        return Text.translatable("replay.platter_take.poisoned", actorText, itemName, poisonerText);
     }
 
     /**

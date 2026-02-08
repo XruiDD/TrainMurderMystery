@@ -525,6 +525,7 @@ public class GameFunctions {
         if (victim instanceof ServerPlayerEntity serverPlayerEntity && isPlayerPlayingAndAlive(serverPlayerEntity)) {
             serverPlayerEntity.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
             GameWorldComponent.KEY.get(victim.getWorld()).markPlayerDead(victim.getUuid());
+            PlayerPoisonComponent.KEY.get(victim).reset();
         } else {
             return;
         }

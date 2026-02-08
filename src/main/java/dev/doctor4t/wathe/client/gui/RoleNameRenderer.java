@@ -9,11 +9,13 @@ import dev.doctor4t.wathe.entity.NoteEntity;
 import dev.doctor4t.wathe.entity.PlayerBodyEntity;
 import dev.doctor4t.wathe.api.event.CanSeeBodyRole;
 import dev.doctor4t.wathe.api.event.ShouldShowCohort;
+import dev.doctor4t.wathe.client.WatheClient;
 import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
@@ -133,14 +135,20 @@ public class RoleNameRenderer {
             context.getMatrices().translate(context.getScaledWindowWidth() / 2f, context.getScaledWindowHeight() / 2f + 6, 0);
             context.getMatrices().scale(0.6f, 0.6f, 1f);
             if (canSeeFullBodyInfo && bodyRole != null) {
+                // 渲染尸体玩家名字
+                PlayerListEntry bodyEntry = WatheClient.PLAYER_ENTRIES_CACHE.get(targetBody.getPlayerUuid());
+                if (bodyEntry != null) {
+                    Text bodyName = Text.literal(bodyEntry.getProfile().getName());
+                    context.drawTextWithShadow(renderer, bodyName, -renderer.getWidth(bodyName) / 2, 0, MathHelper.packRgb(1f, 1f, 1f) | ((int) (bodyRoleAlpha * 255) << 24));
+                }
                 // 渲染角色名称（仅当有权限查看完整信息时）
                 Text roleName = Text.translatable("announcement.role." + bodyRole.identifier().getPath());
-                context.drawTextWithShadow(renderer, roleName, -renderer.getWidth(roleName) / 2, 0, bodyRole.color() | (int) (bodyRoleAlpha * 255.0F) << 24);
+                context.drawTextWithShadow(renderer, roleName, -renderer.getWidth(roleName) / 2, 16, bodyRole.color() | (int) (bodyRoleAlpha * 255.0F) << 24);
                 // 渲染死亡信息（死亡时间和死因）
                 Identifier deathReason = targetBody.getDeathReason();
                 Text deathInfo = Text.translatable("hud.body.death_info", targetBody.age / 20)
                         .append(Text.translatable("death_reason." + deathReason.getNamespace() + "." + deathReason.getPath()));
-                context.drawTextWithShadow(renderer, deathInfo, -renderer.getWidth(deathInfo) / 2, 16, Colors.RED | (int) (bodyRoleAlpha * 255.0F) << 24);
+                context.drawTextWithShadow(renderer, deathInfo, -renderer.getWidth(deathInfo) / 2, 32, Colors.RED | (int) (bodyRoleAlpha * 255.0F) << 24);
             } else if (canSeeEscapedDeathReason) {
                 // 仅渲染"退出游戏"死因（不显示角色和死亡时间）
                 Identifier deathReason = targetBody.getDeathReason();

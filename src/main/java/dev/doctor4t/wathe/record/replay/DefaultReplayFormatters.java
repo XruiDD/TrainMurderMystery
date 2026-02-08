@@ -288,10 +288,21 @@ public final class DefaultReplayFormatters {
         }
 
         NbtCompound data = event.data();
-        UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
         String eventId = data.getString("event");
 
-        // 构建全局事件翻译键
+        // 优先查找专属格式化器
+        if (eventId != null && !eventId.isEmpty()) {
+            Identifier id = Identifier.tryParse(eventId);
+            if (id != null) {
+                ReplayEventFormatter specialFormatter = ReplayRegistry.getGlobalEventFormatter(id);
+                if (specialFormatter != null) {
+                    return specialFormatter.format(event, match, world);
+                }
+            }
+        }
+
+        // 默认格式化
+        UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
         String translationKey = buildGlobalEventTranslationKey(eventId);
 
         if (actorUuid != null) {

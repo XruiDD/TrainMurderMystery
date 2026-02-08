@@ -18,6 +18,7 @@ public final class ReplayRegistry {
     private static final Map<Identifier, ReplayEventFormatter> SKILL_FORMATTERS = new HashMap<>();
     private static final Map<Identifier, ReplayEventFormatter> ITEM_USE_FORMATTERS = new HashMap<>();
     private static final Map<Identifier, ReplayEventFormatter> PLATTER_TAKE_FORMATTERS = new HashMap<>();
+    private static final Map<Identifier, ReplayEventFormatter> GLOBAL_EVENT_FORMATTERS = new HashMap<>();
 
     /**
      * 注册事件格式化器
@@ -61,6 +62,16 @@ public final class ReplayRegistry {
         PLATTER_TAKE_FORMATTERS.put(itemId, formatter);
     }
 
+    /**
+     * 注册全局事件专属格式化器，优先于默认 globalEvent 格式化器
+     *
+     * @param eventId   全局事件标识符（如 Identifier.of("noellesroles", "jester_moment_start")）
+     * @param formatter 格式化器实现
+     */
+    public static void registerGlobalEventFormatter(Identifier eventId, ReplayEventFormatter formatter) {
+        GLOBAL_EVENT_FORMATTERS.put(eventId, formatter);
+    }
+
     @Nullable
     public static ReplayEventFormatter getSkillFormatter(Identifier skillId) {
         return SKILL_FORMATTERS.get(skillId);
@@ -74,6 +85,11 @@ public final class ReplayRegistry {
     @Nullable
     public static ReplayEventFormatter getPlatterTakeFormatter(Identifier itemId) {
         return PLATTER_TAKE_FORMATTERS.get(itemId);
+    }
+
+    @Nullable
+    public static ReplayEventFormatter getGlobalEventFormatter(Identifier eventId) {
+        return GLOBAL_EVENT_FORMATTERS.get(eventId);
     }
 
     /**

@@ -3,6 +3,7 @@ package dev.doctor4t.wathe.util;
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.block_entity.TrimmedBedBlockEntity;
 import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
+import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.record.GameRecordManager;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -72,19 +73,20 @@ public class PoisonUtils {
             blockEntity.setHasScorpion(false, null);
             int poisonTicks = PlayerPoisonComponent.KEY.get(player).poisonTicks;
             NbtCompound recordExtra = new NbtCompound();
-            recordExtra.putString("source", "bed");
             GameRecordManager.putBlockPos(recordExtra, "pos", blockEntity.getPos());
 
             if (poisonTicks == -1) {
                 PlayerPoisonComponent.KEY.get(player).setPoisonTicks(
                         world.getRandom().nextBetween(PlayerPoisonComponent.clampTime.getLeft(), PlayerPoisonComponent.clampTime.getRight()),
                         poisoner,
+                        GameConstants.PoisonSources.BED,
                         recordExtra
                 );
             } else {
                 PlayerPoisonComponent.KEY.get(player).setPoisonTicks(
                         MathHelper.clamp(poisonTicks - world.getRandom().nextBetween(100, 300), 0, PlayerPoisonComponent.clampTime.getRight()),
                         poisoner,
+                        GameConstants.PoisonSources.BED,
                         recordExtra
                 );
             }

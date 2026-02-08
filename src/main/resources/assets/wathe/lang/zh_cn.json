@@ -481,6 +481,10 @@
   "replay.item_pickup.multiple": "%s 捡起了 %s x%d",
   "replay.poisoned.by": "%s 被 %s §2下毒§r",
   "replay.poisoned": "%s §2中毒§r",
+  "replay.poisoned.wathe.food.by": "%s 食用了 %s §2投毒的饮食§r",
+  "replay.poisoned.wathe.food": "%s 食用了§2被投毒的饮食§r",
+  "replay.poisoned.wathe.bed.by": "%s 被 %s §2放置的蝎子蜇伤§r",
+  "replay.poisoned.wathe.bed": "%s 在睡梦中§2被蝎子蜇伤§r",
 
   "replay.skill.unknown.target": "%s 对 %s 使用了§b技能§r",
   "replay.skill.unknown": "%s 使用了§b技能§r",

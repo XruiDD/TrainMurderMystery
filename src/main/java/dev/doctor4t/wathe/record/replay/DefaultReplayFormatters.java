@@ -61,6 +61,24 @@ public final class DefaultReplayFormatters {
     }
 
     /**
+     * 构建下毒事件的翻译键
+     */
+    private static String buildPoisonedTranslationKey(String source, boolean hasPoisoner) {
+        // source 格式: "wathe:food" 或 "othermod:custom_poison"
+        String suffix = hasPoisoner ? ".by" : "";
+
+        if (source != null && !source.isEmpty()) {
+            Identifier id = Identifier.tryParse(source);
+            if (id != null) {
+                // 转换为: replay.poisoned.wathe.food.by
+                return "replay.poisoned." + id.getNamespace() + "." + id.getPath() + suffix;
+            }
+        }
+
+        return "replay.poisoned" + suffix;
+    }
+
+    /**
      * 构建死亡事件的翻译键
      */
     private static String buildDeathTranslationKey(String deathReason, boolean hasKiller) {
@@ -189,12 +207,14 @@ public final class DefaultReplayFormatters {
         }
 
         Text victimText = ReplayGenerator.formatPlayerName(victimUuid, currentPlayerInfoCache);
+        String source = data.contains("source") ? data.getString("source") : null;
+        String translationKey = buildPoisonedTranslationKey(source, poisonerUuid != null);
 
         if (poisonerUuid != null) {
             Text poisonerText = ReplayGenerator.formatPlayerName(poisonerUuid, currentPlayerInfoCache);
-            return Text.translatable("replay.poisoned.by", victimText, poisonerText);
+            return Text.translatable(translationKey, victimText, poisonerText);
         } else {
-            return Text.translatable("replay.poisoned", victimText);
+            return Text.translatable(translationKey, victimText);
         }
     }
 

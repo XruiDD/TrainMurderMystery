@@ -150,19 +150,20 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         String poisoner = stack.getOrDefault(WatheDataComponentTypes.POISONER, null);
         if (poisoner != null) {
             NbtCompound recordExtra = new NbtCompound();
-            recordExtra.putString("source", "food");
             recordExtra.putString("item", Registries.ITEM.getId(stack.getItem()).toString());
             int poisonTicks = PlayerPoisonComponent.KEY.get(this).poisonTicks;
             if (poisonTicks == -1) {
                 PlayerPoisonComponent.KEY.get(this).setPoisonTicks(
                         world.getRandom().nextBetween(PlayerPoisonComponent.clampTime.getLeft(), PlayerPoisonComponent.clampTime.getRight()),
                         UUID.fromString(poisoner),
+                        GameConstants.PoisonSources.FOOD,
                         recordExtra
                 );
             } else {
                 PlayerPoisonComponent.KEY.get(this).setPoisonTicks(
                         MathHelper.clamp(poisonTicks - world.getRandom().nextBetween(100, 300), 0, PlayerPoisonComponent.clampTime.getRight()),
                         UUID.fromString(poisoner),
+                        GameConstants.PoisonSources.FOOD,
                         recordExtra
                 );
             }

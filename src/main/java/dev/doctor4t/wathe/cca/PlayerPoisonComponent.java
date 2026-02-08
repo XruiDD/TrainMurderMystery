@@ -20,6 +20,7 @@ import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
 
 import java.util.UUID;
 
@@ -116,11 +117,11 @@ public class PlayerPoisonComponent implements AutoSyncedComponent, ServerTicking
         }
     }
 
-    public void setPoisonTicks(int ticks, UUID poisoner) {
-        setPoisonTicks(ticks, poisoner, null);
+    public void setPoisonTicks(int ticks, UUID poisoner, Identifier source) {
+        setPoisonTicks(ticks, poisoner, source, null);
     }
 
-    public void setPoisonTicks(int ticks, UUID poisoner, @Nullable NbtCompound recordExtra) {
+    public void setPoisonTicks(int ticks, UUID poisoner, Identifier source, @Nullable NbtCompound recordExtra) {
         // Call before event - allow cancellation
         PlayerPoisoned.PoisonResult result = PlayerPoisoned.BEFORE.invoker().beforePlayerPoisoned(this.player, ticks, poisoner);
         if (result != null && result.cancelled()) {
@@ -136,7 +137,7 @@ public class PlayerPoisonComponent implements AutoSyncedComponent, ServerTicking
         // Call after event
         PlayerPoisoned.AFTER.invoker().afterPlayerPoisoned(this.player, ticks, poisoner);
         if (this.player instanceof ServerPlayerEntity serverPlayer) {
-            GameRecordManager.recordPoisoned(serverPlayer, poisoner, ticks, recordExtra);
+            GameRecordManager.recordPoisoned(serverPlayer, poisoner, ticks, source, recordExtra);
         }
     }
 

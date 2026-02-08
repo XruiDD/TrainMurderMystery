@@ -232,7 +232,7 @@ public final class GameRecordManager {
         addEvent(player.getServerWorld(), GameRecordTypes.TASK_COMPLETE, player, null, data);
     }
 
-    public static void recordPoisoned(ServerPlayerEntity victim, @Nullable UUID poisonerId, int ticks, @Nullable NbtCompound extra) {
+    public static void recordPoisoned(ServerPlayerEntity victim, @Nullable UUID poisonerId, int ticks, Identifier source, @Nullable NbtCompound extra) {
         if (!hasActiveMatch()) {
             return;
         }
@@ -242,6 +242,7 @@ public final class GameRecordManager {
         }
         NbtCompound data = extra == null ? new NbtCompound() : extra.copy();
         data.putInt("ticks", ticks);
+        data.putString("source", source.toString());
         if (poisonerId != null) {
             data.putUuid("poisoner_uuid", poisonerId);
         }

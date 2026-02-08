@@ -278,6 +278,10 @@ public class WatheLangGen extends FabricLanguageProvider {
         builder.add("replay.item_pickup.multiple", "%s picked up %s x%d");
         builder.add("replay.poisoned.by", "%s was poisoned by %s");
         builder.add("replay.poisoned", "%s was poisoned");
+        builder.add("replay.poisoned.wathe.food.by", "%s ate food poisoned by %s");
+        builder.add("replay.poisoned.wathe.food", "%s ate poisoned food");
+        builder.add("replay.poisoned.wathe.bed.by", "%s was stung by a scorpion planted by %s");
+        builder.add("replay.poisoned.wathe.bed", "%s was stung by a scorpion in bed");
         builder.add("replay.skill.unknown.target", "%s used a skill on %s");
         builder.add("replay.skill.unknown", "%s used a skill");
         builder.add("replay.global.unknown", "A global event occurred");

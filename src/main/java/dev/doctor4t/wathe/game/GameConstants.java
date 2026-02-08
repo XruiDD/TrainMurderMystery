@@ -81,6 +81,11 @@ public interface GameConstants {
         return (minutes * 60 + seconds) * 20;
     }
 
+    interface PoisonSources {
+        Identifier FOOD = Wathe.id("food");
+        Identifier BED = Wathe.id("bed");
+    }
+
     interface DeathReasons {
         Identifier GENERIC = Wathe.id("generic");
         Identifier KNIFE = Wathe.id("knife_stab");

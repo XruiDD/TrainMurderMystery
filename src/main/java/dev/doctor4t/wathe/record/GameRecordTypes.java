@@ -20,4 +20,5 @@ public final class GameRecordTypes {
     public static final String PLAYER_LEAVE = "player_leave";
     public static final String PLAYER_POISONED = "player_poisoned";
     public static final String DOOR_INTERACTION = "door_interaction";
+    public static final String SHIELD_BLOCKED = "shield_blocked";
 }

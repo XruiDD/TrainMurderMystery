@@ -11,6 +11,7 @@ import dev.doctor4t.wathe.api.event.ResetPlayer;
 import dev.doctor4t.wathe.cca.*;
 import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import dev.doctor4t.wathe.config.datapack.MapRegistry;
+import dev.doctor4t.wathe.record.GameRecordTypes;
 import dev.doctor4t.wathe.util.ShopEntry;
 import dev.doctor4t.wathe.util.ShopUtils;
 import dev.doctor4t.wathe.config.datapack.RoomConfig;
@@ -513,6 +514,16 @@ public class GameFunctions {
                 component.setArmour(component.getArmour() - 1);
                 component.sync();
                 victim.playSoundToPlayer(WatheSounds.ITEM_PSYCHO_ARMOUR, SoundCategory.MASTER, 5F, 1F);
+                // 记录护盾抵挡事件
+                var shieldEvent = GameRecordManager.event(GameRecordTypes.SHIELD_BLOCKED)
+                    .actor(victim)
+                    .put("source", "wathe:psycho_mode")
+                    .put("death_reason", deathReason.toString())
+                    .putInt("armour_remaining", component.getArmour());
+                if (killer != null) {
+                    shieldEvent.target(killer);
+                }
+                shieldEvent.record();
                 return;
             } else {
                 component.stopPsycho();

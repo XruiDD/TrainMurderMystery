@@ -494,5 +494,10 @@
 
   "replay.skill.unknown.target": "%s 对 %s 使用了§b技能§r",
   "replay.skill.unknown": "%s 使用了§b技能§r",
-  "replay.global.unknown": "发生了§d全局事件§r"
+  "replay.global.unknown": "发生了§d全局事件§r",
+
+  "replay.shield_blocked.wathe.psycho_mode.by": "%s 的§d疯魔护盾§r抵挡了 %s 的攻击",
+  "replay.shield_blocked.wathe.psycho_mode": "%s 的§d疯魔护盾§r抵挡了致命伤害",
+  "replay.shield_blocked.by": "%s 的§e护盾§r抵挡了 %s 的攻击",
+  "replay.shield_blocked": "%s 的§e护盾§r抵挡了致命伤害"
 }

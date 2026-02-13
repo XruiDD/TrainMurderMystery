@@ -161,6 +161,7 @@ public class Wathe implements ModInitializer {
         ReplayRegistry.registerFormatter(GameRecordTypes.PLAYER_POISONED, DefaultReplayFormatters::formatPoisoned);
         ReplayRegistry.registerFormatter(GameRecordTypes.SKILL_USE, DefaultReplayFormatters::formatSkillUse);
         ReplayRegistry.registerFormatter(GameRecordTypes.GLOBAL_EVENT, DefaultReplayFormatters::formatGlobalEvent);
+        ReplayRegistry.registerFormatter(GameRecordTypes.SHIELD_BLOCKED, DefaultReplayFormatters::formatShieldBlocked);
 
         // 监听记录结束事件，生成并发送回放
         RecordEvents.ON_RECORD_END.register((world, match) -> {

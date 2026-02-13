@@ -3,7 +3,9 @@ package dev.doctor4t.wathe.cca;
 import com.mojang.authlib.GameProfile;
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.api.Faction;
+import dev.doctor4t.wathe.api.GameMode;
 import dev.doctor4t.wathe.api.Role;
+import dev.doctor4t.wathe.api.WatheGameModes;
 import dev.doctor4t.wathe.api.WatheRoles;
 import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.nbt.NbtCompound;
@@ -32,6 +34,7 @@ public class GameRoundEndComponent implements AutoSyncedComponent {
     private final MinecraftServer server;
     private final List<RoundEndData> players = new ArrayList<>();
     private GameFunctions.WinStatus winStatus = GameFunctions.WinStatus.NONE;
+    private @Nullable Identifier gameMode = null;
 
     public enum PlayerEndStatus {
         ALIVE,      // 存活且在线
@@ -53,6 +56,7 @@ public class GameRoundEndComponent implements AutoSyncedComponent {
     public void setRoundEndData(ServerWorld serverWorld, GameFunctions.WinStatus winStatus) {
         this.players.clear();
         GameWorldComponent game = GameWorldComponent.KEY.get(serverWorld);
+        this.gameMode = game.getGameMode() != null ? game.getGameMode().identifier : null;
 
         for (Map.Entry<UUID, Role> entry : game.getRoles().entrySet()) {
             UUID uuid = entry.getKey();
@@ -92,6 +96,7 @@ public class GameRoundEndComponent implements AutoSyncedComponent {
     public void setRoundEndData(ServerWorld serverWorld, UUID winnerUuid) {
         this.players.clear();
         GameWorldComponent game = GameWorldComponent.KEY.get(serverWorld);
+        this.gameMode = game.getGameMode() != null ? game.getGameMode().identifier : null;
 
         for (Map.Entry<UUID, Role> entry : game.getRoles().entrySet()) {
             UUID uuid = entry.getKey();
@@ -141,12 +146,19 @@ public class GameRoundEndComponent implements AutoSyncedComponent {
         return this.winStatus;
     }
 
+    public @Nullable GameMode getRoundGameMode() {
+        return this.gameMode != null ? WatheGameModes.GAME_MODES.get(this.gameMode) : null;
+    }
+
     @Override
     public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         NbtList list = new NbtList();
         for (RoundEndData detail : this.players) list.add(detail.writeToNbt());
         tag.put("players", list);
         tag.putInt("winstatus", this.winStatus.ordinal());
+        if (this.gameMode != null) {
+            tag.putString("gameMode", this.gameMode.toString());
+        }
     }
 
     @Override
@@ -154,6 +166,7 @@ public class GameRoundEndComponent implements AutoSyncedComponent {
         this.players.clear();
         for (NbtElement element : tag.getList("players", 10)) this.players.add(new RoundEndData((NbtCompound) element));
         this.winStatus = GameFunctions.WinStatus.values()[tag.getInt("winstatus")];
+        this.gameMode = tag.contains("gameMode") ? Identifier.of(tag.getString("gameMode")) : null;
     }
 
     public record RoundEndData(GameProfile player, Identifier role, PlayerEndStatus endStatus, boolean isWinner) {

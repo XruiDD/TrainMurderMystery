@@ -2,6 +2,7 @@ package dev.doctor4t.wathe.client.gui;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.systems.RenderSystem;
+import dev.doctor4t.wathe.api.GameMode;
 import dev.doctor4t.wathe.api.WatheGameModes;
 import dev.doctor4t.wathe.cca.GameRoundEndComponent;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
@@ -79,9 +80,12 @@ public class RoundTextRenderer {
             context.getMatrices().pop();
         }
         GameWorldComponent game = GameWorldComponent.KEY.get(player.getWorld());
-        if (endTime > 0 && endTime < END_DURATION - (GameConstants.FADE_TIME * 2) && !game.isRunning() && game.getGameMode() != WatheGameModes.DISCOVERY) {
+        if (endTime > 0 && endTime < END_DURATION - (GameConstants.FADE_TIME * 2) && !game.isRunning()) {
             GameRoundEndComponent roundEnd = GameRoundEndComponent.KEY.get(player.getScoreboard());
+            GameMode roundGameMode = roundEnd.getRoundGameMode();
             if (roundEnd.getWinStatus() == GameFunctions.WinStatus.NONE) return;
+            if (roundGameMode == WatheGameModes.DISCOVERY) return;
+            boolean isRoundLooseEnds = roundGameMode == WatheGameModes.LOOSE_ENDS;
             Text endText = null;
             String winRolePath = null;
 
@@ -112,7 +116,7 @@ public class RoundTextRenderer {
             int winMessageWidth = renderer.getWidth(winMessage);
             context.drawTextWithShadow(renderer, winMessage, -winMessageWidth / 2, -4, 0xFFFFFF);
             context.getMatrices().pop();
-            if (isLooseEnds) {
+            if (isRoundLooseEnds) {
                 context.drawTextWithShadow(renderer, RoleAnnouncementTexts.LOOSE_END.titleText, -renderer.getWidth(RoleAnnouncementTexts.LOOSE_END.titleText) / 2, 14, 0xFFFFFF);
                 int looseEnds = 0;
                 for (GameRoundEndComponent.RoundEndData entry : roundEnd.getPlayers()) {
@@ -215,9 +219,9 @@ public class RoundTextRenderer {
     }
 
     public static void tick() {
-        if (MinecraftClient.getInstance().world != null && GameWorldComponent.KEY.get(MinecraftClient.getInstance().world).getGameMode() != WatheGameModes.DISCOVERY) {
+        if (MinecraftClient.getInstance().world != null) {
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
-            if (welcomeTime > 0) {
+            if (welcomeTime > 0 && GameWorldComponent.KEY.get(MinecraftClient.getInstance().world).getGameMode() != WatheGameModes.DISCOVERY) {
                 switch (welcomeTime) {
                     case 200 -> {
                         if (player != null)

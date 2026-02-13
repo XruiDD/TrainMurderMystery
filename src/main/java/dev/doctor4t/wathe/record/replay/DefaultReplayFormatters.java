@@ -295,6 +295,52 @@ public final class DefaultReplayFormatters {
     }
 
     /**
+     * 格式化护盾抵挡事件
+     */
+    @Nullable
+    public static Text formatShieldBlocked(GameRecordEvent event, GameRecordManager.MatchRecord match, ServerWorld world) {
+        if (currentPlayerInfoCache == null) {
+            currentPlayerInfoCache = ReplayGenerator.getPlayerInfoCache(match);
+        }
+
+        NbtCompound data = event.data();
+        UUID actorUuid = data.containsUuid("actor") ? data.getUuid("actor") : null;
+        UUID targetUuid = data.containsUuid("target") ? data.getUuid("target") : null;
+
+        if (actorUuid == null) {
+            return null;
+        }
+
+        Text actorText = ReplayGenerator.formatPlayerName(actorUuid, currentPlayerInfoCache);
+        String source = data.contains("source") ? data.getString("source") : null;
+        String translationKey = buildShieldBlockedTranslationKey(source, targetUuid != null);
+
+        if (targetUuid != null) {
+            Text targetText = ReplayGenerator.formatPlayerName(targetUuid, currentPlayerInfoCache);
+            return Text.translatable(translationKey, actorText, targetText);
+        } else {
+            return Text.translatable(translationKey, actorText);
+        }
+    }
+
+    /**
+     * 构建护盾抵挡事件的翻译键
+     */
+    private static String buildShieldBlockedTranslationKey(String source, boolean hasAttacker) {
+        String suffix = hasAttacker ? ".by" : "";
+
+        if (source != null && !source.isEmpty()) {
+            Identifier id = Identifier.tryParse(source);
+            if (id != null) {
+                // 转换为: replay.shield_blocked.wathe.psycho_mode.by
+                return "replay.shield_blocked." + id.getNamespace() + "." + id.getPath() + suffix;
+            }
+        }
+
+        return "replay.shield_blocked" + suffix;
+    }
+
+    /**
      * 格式化全局事件
      */
     @Nullable

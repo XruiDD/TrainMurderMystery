@@ -103,7 +103,13 @@ public abstract class DefaultChunkRendererMixin {
                                          CallbackInfo ci,
                                          @Local(ordinal = 0) ChunkShaderInterface shader,
                                          @Local(ordinal = 0) RenderRegion region) {
+        if (wathe_buffer == null) {
+            wathe_buffer = MemoryUtil.memAlloc(RenderRegion.REGION_SIZE * 16);
+        }
         glBuffer = commandList.createMutableBuffer();
+        if (glBuffer == null) {
+            return;
+        }
         commandList.uploadData(glBuffer, wathe_buffer, GlBufferUsage.STREAM_DRAW);
 
         ((SodiumShaderInterface) shader).wathe$set(glBuffer);
@@ -119,9 +125,14 @@ public abstract class DefaultChunkRendererMixin {
                                         TerrainRenderPass renderPass,
                                         CameraTransform camera,
                                         CallbackInfo ci) {
-        MemoryUtil.memFree(wathe_buffer);
-        commandList.deleteBuffer(glBuffer);
-        wathe_buffer = null;
+        if (wathe_buffer != null) {
+            MemoryUtil.memFree(wathe_buffer);
+            wathe_buffer = null;
+        }
+        if (glBuffer != null) {
+            commandList.deleteBuffer(glBuffer);
+            glBuffer = null;
+        }
     }
 
 }

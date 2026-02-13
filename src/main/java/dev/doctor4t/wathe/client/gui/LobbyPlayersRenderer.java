@@ -1,6 +1,7 @@
 package dev.doctor4t.wathe.client.gui;
 
 import dev.doctor4t.ratatouille.util.TextUtils;
+import dev.doctor4t.wathe.api.GameMode;
 import dev.doctor4t.wathe.cca.AutoStartComponent;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.MapVotingComponent;
@@ -93,6 +94,7 @@ public class LobbyPlayersRenderer {
 
                 AutoStartComponent autoStartComponent = AutoStartComponent.KEY.get(world);
                 GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(world);
+                int nextLineY = 10;
                 if (autoStartComponent.isAutoStartActive()) {
                     MutableText autoStartText;
                     int color = 0xFFAAAAAA;
@@ -104,8 +106,15 @@ public class LobbyPlayersRenderer {
                     } else {
                         autoStartText = Text.translatable("lobby.autostart.active", minPlayerCount);
                     }
-                    context.drawTextWithShadow(renderer, autoStartText, -renderer.getWidth(autoStartText) / 2, 10, color);
+                    context.drawTextWithShadow(renderer, autoStartText, -renderer.getWidth(autoStartText) / 2, nextLineY, color);
+                    nextLineY += 10;
                 }
+
+                // 显示当前游戏模式
+                GameMode gameMode = gameWorldComponent.getGameMode();
+                String gameModeKey = "gamemode." + gameMode.identifier.getNamespace() + "." + gameMode.identifier.getPath();
+                MutableText gameModeText = Text.translatable("lobby.autostart.gamemode", Text.translatable(gameModeKey));
+                context.drawTextWithShadow(renderer, gameModeText, -renderer.getWidth(gameModeText) / 2, nextLineY, 0xFFC5A244);
 
                 context.getMatrices().pop();
             }

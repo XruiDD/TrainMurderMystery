@@ -53,6 +53,7 @@ public class InGameHudMixin {
                 StoreRenderer.renderHud(renderer, player, context, tickCounter.getTickDelta(true));
             TimeRenderer.renderHud(renderer, player, context, tickCounter.getTickDelta(true));
             LobbyPlayersRenderer.renderHud(renderer, player, context);
+            CooldownRenderer.renderHud(renderer, player, context, tickCounter);
         }
     }
 

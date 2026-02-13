@@ -544,6 +544,19 @@ public class GameFunctions {
         if (killer != null) {
             if (GameWorldComponent.KEY.get(killer.getWorld()).canUseKillerFeatures(killer)) {
                 PlayerShopComponent.KEY.get(killer).addToBalance(GameConstants.MONEY_PER_KILL);
+
+                // 给杀手团队中除击杀者以外的存活队友每人加钱
+                GameWorldComponent killerGameWorld = GameWorldComponent.KEY.get(killer.getWorld());
+                List<UUID> teammates = killerGameWorld.getAllKillerTeamPlayers();
+                MinecraftServer server = killer.getServer();
+                for (UUID teammateUuid : teammates) {
+                    if (teammateUuid.equals(killer.getUuid())) continue;
+                    if (killerGameWorld.isPlayerDead(teammateUuid)) continue;
+                    ServerPlayerEntity teammate = server.getPlayerManager().getPlayer(teammateUuid);
+                    if (teammate != null) {
+                        PlayerShopComponent.KEY.get(teammate).addToBalance(GameConstants.MONEY_PER_KILL_TEAMMATE);
+                    }
+                }
             }
 
             // replenish derringer

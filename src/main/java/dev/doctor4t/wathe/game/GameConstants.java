@@ -67,6 +67,7 @@ public interface GameConstants {
         return 0;
     };
     int MONEY_PER_KILL = 100;
+    int MONEY_PER_KILL_TEAMMATE = 15; // 杀手击杀时队友获得的金币
     int KILLER_PASSIVE_MONEY_CAP = 200; // 杀手被动收入的余额上限
     int PSYCHO_MODE_ARMOUR = 1;
 

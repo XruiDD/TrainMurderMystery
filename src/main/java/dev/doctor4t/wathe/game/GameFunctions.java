@@ -498,6 +498,14 @@ public class GameFunctions {
     }
 
     public static void killPlayer(ServerPlayerEntity victim, boolean spawnBody, @Nullable ServerPlayerEntity killer, Identifier deathReason, boolean force) {
+        // If no direct killer, credit the poisoner if the victim is poisoned
+        if (killer == null) {
+            PlayerPoisonComponent poisonComponent = PlayerPoisonComponent.KEY.get(victim);
+            if (poisonComponent.poisoner != null) {
+                killer = victim.getServer().getPlayerManager().getPlayer(poisonComponent.poisoner);
+            }
+        }
+
         PlayerPsychoComponent component = PlayerPsychoComponent.KEY.get(victim);
 
         // Fire BEFORE event

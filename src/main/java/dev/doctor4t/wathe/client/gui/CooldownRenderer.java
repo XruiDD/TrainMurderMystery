@@ -1,6 +1,5 @@
 package dev.doctor4t.wathe.client.gui;
 
-import dev.doctor4t.wathe.game.GameConstants;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.font.TextRenderer;
@@ -27,15 +26,13 @@ public class CooldownRenderer {
 
         if (!manager.isCoolingDown(heldItem)) return;
 
-        // Get the total cooldown duration for this item
-        Integer totalDuration = GameConstants.ITEM_COOLDOWNS.get(heldItem);
-        if (totalDuration == null || totalDuration <= 0) return;
+        // Get the actual remaining ticks directly from the cooldown entry
+        ItemCooldownManager.Entry entry = manager.entries.get(heldItem);
+        if (entry == null) return;
 
-        // getCooldownProgress returns 1.0 at start, 0.0 when done
-        float progress = manager.getCooldownProgress(heldItem, tickCounter.getTickDelta(true));
-        if (progress <= 0f) return;
+        float remainingTicks = entry.endTick - (manager.tick + tickCounter.getTickDelta(true));
+        if (remainingTicks <= 0f) return;
 
-        float remainingTicks = progress * totalDuration;
         float remainingSeconds = remainingTicks / 20f;
 
         // Format the time string

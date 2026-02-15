@@ -141,6 +141,7 @@ public class WatheLangGen extends FabricLanguageProvider {
         builder.add("task.drink", "getting a drink.");
         builder.add("task.eat", "getting a snack.");
         builder.add("game.player.stung", "You feel something stinging you in your sleep.");
+        builder.add("game.blackout.countdown", "§c⚡ Someone sabotaged the power system!§r Restoring power: %ss");
         builder.add("game.psycho_mode.time", "Psycho Mode: %s");
         builder.add("game.psycho_mode.text", "Kill them all!");
         builder.add("game.psycho_mode.over", "Psycho Mode Over!");

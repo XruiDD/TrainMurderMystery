@@ -289,6 +289,7 @@
   "entity.wathe.player_body": "Player Body",
   "entity.wathe.seat": "Seat",
   "game.player.stung": "You feel something stinging you in your sleep.",
+  "game.blackout.countdown": "§c⚡ Someone sabotaged the power system!§r Restoring power: %ss",
   "game.psycho_mode.over": "Psycho Mode Over!",
   "game.psycho_mode.text": "Kill them all!",
   "game.psycho_mode.time": "Psycho Mode: %s",

@@ -278,6 +278,7 @@
   "entity.wathe.seat": "座位",
 
   "game.player.stung": "你在睡梦中感到什么东西在蜇你。",
+  "game.blackout.countdown": "§c⚡ 有人破坏了列车的供电系统！§r 恢复供电剩余时间：%ss",
   "game.psycho_mode.over": "疯魔模式结束！",
   "game.psycho_mode.text": "杀光他们！",
   "game.psycho_mode.time": "疯魔模式：%s",

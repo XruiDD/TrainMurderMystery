@@ -16,6 +16,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.state.property.Properties;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
@@ -68,6 +70,7 @@ public class WorldBlackoutComponent implements ServerTickingComponent {
             this.ticks--;
             if (this.world instanceof ServerWorld serverWorld) {
                 applyBlackoutEffects(serverWorld);
+                sendBlackoutCountdown(serverWorld);
             }
         } else if (this.ticks == 0 && this.wasBlackoutActive) {
             // 关灯刚结束
@@ -164,6 +167,14 @@ public class WorldBlackoutComponent implements ServerTickingComponent {
                 );
                 player.addStatusEffect(darkness);
             }
+        }
+    }
+
+    private void sendBlackoutCountdown(ServerWorld serverWorld) {
+        int seconds = (this.ticks + 19) / 20; // 向上取整
+        Text message = Text.translatable("game.blackout.countdown", seconds).formatted(Formatting.RED);
+        for (ServerPlayerEntity player : serverWorld.getPlayers()) {
+            player.sendMessage(message, true);
         }
     }
 

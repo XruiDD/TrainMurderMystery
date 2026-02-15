@@ -27,6 +27,7 @@ import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -68,7 +69,19 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         GameWorldComponent gameComponent = GameWorldComponent.KEY.get(this.getWorld());
         if (gameComponent.isRunning() && !this.isCreative()) {
             MovementConfig movement = MapEnhancementsWorldComponent.KEY.get(this.getWorld()).getMovementConfig();
-            return this.isSprinting() ? 0.1f * movement.sprintSpeedMultiplier() : 0.07f * movement.walkSpeedMultiplier();
+
+            // 从原版属性值中提取状态效果的乘数（速度/缓慢等）
+            // original = baseAttribute * sprintModifier(1.3) * effectModifiers
+            // 去掉 base 和疾跑部分，只保留效果乘数
+            float baseAttributeValue = (float) this.getAttributeBaseValue(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+            float vanillaExpectedSpeed = baseAttributeValue;
+            if (this.isSprinting()) {
+                vanillaExpectedSpeed *= 1.3f; // 原版疾跑属性修改器
+            }
+            float effectMultiplier = vanillaExpectedSpeed > 0 ? original / vanillaExpectedSpeed : 1.0f;
+
+            float modBaseSpeed = this.isSprinting() ? 0.1f * movement.sprintSpeedMultiplier() : 0.07f * movement.walkSpeedMultiplier();
+            return modBaseSpeed * effectMultiplier;
         } else {
             return original;
         }

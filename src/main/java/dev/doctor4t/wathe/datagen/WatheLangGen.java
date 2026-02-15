@@ -4,6 +4,7 @@ import dev.doctor4t.ratatouille.util.TextUtils;
 import dev.doctor4t.wathe.index.WatheBlocks;
 import dev.doctor4t.wathe.index.WatheEntities;
 import dev.doctor4t.wathe.index.WatheItems;
+import dev.doctor4t.wathe.util.WalkieTalkieChannelPayload;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
 import net.minecraft.registry.RegistryWrapper;
@@ -117,6 +118,13 @@ public class WatheLangGen extends FabricLanguageProvider {
         builder.add(TextUtils.getItemTranslationKey(WatheItems.BODY_BAG) + ".tooltip", "Use on a dead body to bag it up and remove it\nSingle use, 5 minute cooldown");
         builder.add(TextUtils.getItemTranslationKey(WatheItems.BLACKOUT) + ".tooltip", "Turn off all lights aboard for 15 to 20 seconds\nUse your instinct [left-alt] to see your targets in the dark\nActivated instantly on purchase, 5 minute cooldown");
         builder.add(TextUtils.getItemTranslationKey(WatheItems.NOTE) + ".tooltip", "Write a message and pin it for others to see\nSneak-use to write a message, then use on a wall or floor to place\nInvisible in hand");
+
+        // Walkie-talkie
+        builder.add("screen.wathe.walkie_talkie.title", "Walkie-Talkie");
+        builder.add("screen.wathe.walkie_talkie.channel", "Channel");
+        builder.add("tooltip.wathe.walkie_talkie.channel", "Channel: %s");
+        builder.add("tooltip.wathe.walkie_talkie.hold", "Hold in hand to transmit");
+        builder.add("tooltip.wathe.walkie_talkie.right_click", "Right-click to switch channel");
 
         builder.add("game.win.killers", "The killers reached their kill count, they win!");
         builder.add("game.win.passengers", "All killers were eliminated: the passengers win!");

@@ -3,6 +3,7 @@ package dev.doctor4t.wathe.index;
 import dev.doctor4t.ratatouille.util.registrar.ItemRegistrar;
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.item.*;
+import dev.doctor4t.wathe.item.component.WalkieTalkieComponent;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.component.type.FoodComponents;
 import net.minecraft.item.*;
@@ -42,6 +43,7 @@ public @SuppressWarnings("unchecked") interface WatheItems {
     Item COSMOPOLITAN = registrar.create("cosmopolitan", new CocktailItem(new Item.Settings().maxCount(1).food(FoodComponents.HONEY_BOTTLE)), EQUIPMENT_GROUP);
     Item CHAMPAGNE = registrar.create("champagne", new CocktailItem(new Item.Settings().maxCount(1).food(FoodComponents.HONEY_BOTTLE)), EQUIPMENT_GROUP);
     Item NOTE = registrar.create("note", new NoteItem(new Item.Settings().maxCount(4)), EQUIPMENT_GROUP);
+    Item WALKIE_TALKIE = registrar.create("walkie_talkie", new WalkieTalkieItem(new Item.Settings().maxCount(1).component(WatheDataComponentTypes.WALKIE_TALKIE, WalkieTalkieComponent.DEFAULT)), EQUIPMENT_GROUP);
 
     static void initialize() {
         registrar.registerEntries();

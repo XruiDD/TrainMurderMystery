@@ -142,11 +142,13 @@ public class Wathe implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(StoreBuyPayload.ID, StoreBuyPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(NoteEditPayload.ID, NoteEditPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(MapVotePayload.ID, MapVotePayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(WalkieTalkieChannelPayload.ID, WalkieTalkieChannelPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(KnifeStabPayload.ID, new KnifeStabPayload.Receiver());
         ServerPlayNetworking.registerGlobalReceiver(GunShootPayload.ID, new GunShootPayload.Receiver());
         ServerPlayNetworking.registerGlobalReceiver(StoreBuyPayload.ID, new StoreBuyPayload.Receiver());
         ServerPlayNetworking.registerGlobalReceiver(NoteEditPayload.ID, new NoteEditPayload.Receiver());
         ServerPlayNetworking.registerGlobalReceiver(MapVotePayload.ID, new MapVotePayload.Receiver());
+        ServerPlayNetworking.registerGlobalReceiver(WalkieTalkieChannelPayload.ID, new WalkieTalkieChannelPayload.Receiver());
 
         // Register event handlers
         WatheEventHandlers.register();

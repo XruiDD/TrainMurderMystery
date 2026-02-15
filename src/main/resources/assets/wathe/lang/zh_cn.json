@@ -337,6 +337,7 @@
   "item.wathe.scorpion": "蝎子",
   "item.wathe.scorpion.tooltip": "悄悄放入床中，使下一个来休息的人中毒而亡",
   "item.wathe.thrown_grenade": "已投掷手雷",
+  "item.wathe.walkie_talkie": "对讲机",
   "itemGroup.wathe.building": "Wathe：建筑方块",
   "itemGroup.wathe.decoration": "Wathe：装饰与功能",
   "itemGroup.wathe.equipment": "Wathe：装备",
@@ -445,6 +446,12 @@
   "tip.letter.veteran.tooltip2": "你有一把使用次数有限的刀。请珍惜每一次出刀机会。",
   "hud.body.death_info": "死于 %s 秒前，死因：",
   "hud.mood.breakdown_warning": "精神即将崩溃！",
+
+  "screen.wathe.walkie_talkie.title": "对讲机",
+  "screen.wathe.walkie_talkie.channel": "频道",
+  "tooltip.wathe.walkie_talkie.channel": "频道: %s",
+  "tooltip.wathe.walkie_talkie.hold": "手持即可发射语音",
+  "tooltip.wathe.walkie_talkie.right_click": "右键切换频道",
 
   "gui.wathe.map_voting.title": "选择下一张地图",
   "gui.wathe.map_voting.selecting": "正在选择地图...",

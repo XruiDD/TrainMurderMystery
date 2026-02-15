@@ -78,19 +78,31 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
     }
 
     public boolean startPsycho() {
+        return startPsycho(true);
+    }
+
+    public boolean startPsycho(boolean trackActive) {
         if (ShopEntry.insertStackInFreeSlot(this.player, new ItemStack(WatheItems.BAT))) {
             this.setPsychoTicks(GameConstants.PSYCHO_TIMER);
             this.setArmour(GameConstants.PSYCHO_MODE_ARMOUR);
-            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.player.getWorld());
-            gameWorldComponent.setPsychosActive(gameWorldComponent.getPsychosActive() + 1);
+            if (trackActive) {
+                GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.player.getWorld());
+                gameWorldComponent.setPsychosActive(gameWorldComponent.getPsychosActive() + 1);
+            }
             return true;
         }
         return false;
     }
 
     public void stopPsycho() {
-        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.player.getWorld());
-        gameWorldComponent.setPsychosActive(gameWorldComponent.getPsychosActive() - 1);
+        stopPsycho(true);
+    }
+
+    public void stopPsycho(boolean trackActive) {
+        if (trackActive) {
+            GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.player.getWorld());
+            gameWorldComponent.setPsychosActive(gameWorldComponent.getPsychosActive() - 1);
+        }
         this.psychoTicks = 0;
         this.player.getInventory().remove(itemStack -> itemStack.isOf(WatheItems.BAT), Integer.MAX_VALUE, this.player.playerScreenHandler.getCraftingInput());
     }

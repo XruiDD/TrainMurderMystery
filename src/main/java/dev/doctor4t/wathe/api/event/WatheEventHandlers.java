@@ -65,7 +65,7 @@ public class WatheEventHandlers {
                 player.giveItemStack(new ItemStack(WatheItems.KNIFE));
             }
 
-            // Give killer faction starting money
+            // Give killer faction starting money and walkie-talkie
             if (role.getFaction() == Faction.KILLER && player.getWorld() instanceof ServerWorld serverWorld) {
                 GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverWorld);
                 int totalPlayers = serverWorld.getPlayers().size();
@@ -75,6 +75,7 @@ public class WatheEventHandlers {
                 int additionalMoneyPerExcess = 15;
                 int dynamicStartingMoney = GameConstants.MONEY_START + (excessPlayers * additionalMoneyPerExcess);
                 PlayerShopComponent.KEY.get(player).setBalance(dynamicStartingMoney);
+                player.giveItemStack(new ItemStack(WatheItems.WALKIE_TALKIE));
             }
         });
     }

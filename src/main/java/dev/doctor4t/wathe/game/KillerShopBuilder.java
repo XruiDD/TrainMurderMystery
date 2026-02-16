@@ -84,11 +84,6 @@ public class KillerShopBuilder {
             .stock(1)
             .build());
 
-        // 对讲机: 50, 库存1
-        context.addEntry(new ShopEntry.Builder("walkie_talkie", WatheItems.WALKIE_TALKIE.getDefaultStack(), 50, ShopEntry.Type.TOOL)
-            .stock(1)
-            .build());
-
         // 裹尸袋: 100, 无限制
         context.addEntry(new ShopEntry.Builder("body_bag", WatheItems.BODY_BAG.getDefaultStack(), 100, ShopEntry.Type.TOOL)
             .build());

@@ -498,14 +498,6 @@ public class GameFunctions {
     }
 
     public static void killPlayer(ServerPlayerEntity victim, boolean spawnBody, @Nullable ServerPlayerEntity killer, Identifier deathReason, boolean force) {
-        // If no direct killer, credit the poisoner if the victim is poisoned
-        if (killer == null) {
-            PlayerPoisonComponent poisonComponent = PlayerPoisonComponent.KEY.get(victim);
-            if (poisonComponent.poisoner != null) {
-                killer = victim.getServer().getPlayerManager().getPlayer(poisonComponent.poisoner);
-            }
-        }
-
         PlayerPsychoComponent component = PlayerPsychoComponent.KEY.get(victim);
 
         // Fire BEFORE event
@@ -549,16 +541,25 @@ public class GameFunctions {
             return;
         }
 
-        if (killer != null) {
-            if (GameWorldComponent.KEY.get(killer.getWorld()).canUseKillerFeatures(killer)) {
-                PlayerShopComponent.KEY.get(killer).addToBalance(GameConstants.MONEY_PER_KILL);
+        // 奖励金币：优先给直接击杀者，否则给下毒者
+        ServerPlayerEntity moneyRecipient = killer;
+        if (moneyRecipient == null) {
+            PlayerPoisonComponent poisonComponent = PlayerPoisonComponent.KEY.get(victim);
+            if (poisonComponent.poisoner != null) {
+                moneyRecipient = victim.getServer().getPlayerManager().getPlayer(poisonComponent.poisoner);
+            }
+        }
 
-                // 给杀手团队中除击杀者以外的存活队友每人加钱
-                GameWorldComponent killerGameWorld = GameWorldComponent.KEY.get(killer.getWorld());
+        if (moneyRecipient != null) {
+            if (GameWorldComponent.KEY.get(moneyRecipient.getWorld()).canUseKillerFeatures(moneyRecipient)) {
+                PlayerShopComponent.KEY.get(moneyRecipient).addToBalance(GameConstants.MONEY_PER_KILL);
+
+                // 给杀手团队中除奖励对象以外的存活队友每人加钱
+                GameWorldComponent killerGameWorld = GameWorldComponent.KEY.get(moneyRecipient.getWorld());
                 List<UUID> teammates = killerGameWorld.getAllKillerTeamPlayers();
-                MinecraftServer server = killer.getServer();
+                MinecraftServer server = moneyRecipient.getServer();
                 for (UUID teammateUuid : teammates) {
-                    if (teammateUuid.equals(killer.getUuid())) continue;
+                    if (teammateUuid.equals(moneyRecipient.getUuid())) continue;
                     if (killerGameWorld.isPlayerDead(teammateUuid)) continue;
                     ServerPlayerEntity teammate = server.getPlayerManager().getPlayer(teammateUuid);
                     if (teammate != null) {
@@ -566,8 +567,10 @@ public class GameFunctions {
                     }
                 }
             }
+        }
 
-            // replenish derringer
+        // replenish derringer (only for direct killer)
+        if (killer != null) {
             for (List<ItemStack> list : killer.getInventory().combinedInventory) {
                 for (ItemStack stack : list) {
                     Boolean used = stack.get(WatheDataComponentTypes.USED);

@@ -31,7 +31,17 @@ public class ScreenHandlerMixin {
         if (player instanceof ServerPlayerEntity serverPlayer) {
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverPlayer.getWorld());
             if (gameComponent.isRunning()) {
-                serverPlayer.getInventory().insertStack(stack);
+                // insertStack 受快捷栏限制，如果快捷栏已满则物品仍留在 stack 中
+                // 此时强制放入任意可用槽位，避免物品丢失
+                if (!serverPlayer.getInventory().insertStack(stack)) {
+                    for (int i = 0; i < serverPlayer.getInventory().main.size(); i++) {
+                        if (serverPlayer.getInventory().main.get(i).isEmpty()) {
+                            serverPlayer.getInventory().main.set(i, stack.copy());
+                            stack.setCount(0);
+                            break;
+                        }
+                    }
+                }
                 return null;
             }
         }

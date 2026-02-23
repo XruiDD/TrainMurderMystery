@@ -146,7 +146,8 @@ public class RoleNameRenderer {
                 context.drawTextWithShadow(renderer, roleName, -renderer.getWidth(roleName) / 2, 16, bodyRole.color() | (int) (bodyRoleAlpha * 255.0F) << 24);
                 // 渲染死亡信息（死亡时间和死因）
                 Identifier deathReason = targetBody.getDeathReason();
-                Text deathInfo = Text.translatable("hud.body.death_info", targetBody.age / 20)
+                int elapsedTicks = Math.max(0, (int) targetBody.getWorld().getTime() - targetBody.getDeathGameTime());
+                Text deathInfo = Text.translatable("hud.body.death_info", elapsedTicks / 20)
                         .append(Text.translatable("death_reason." + deathReason.getNamespace() + "." + deathReason.getPath()));
                 context.drawTextWithShadow(renderer, deathInfo, -renderer.getWidth(deathInfo) / 2, 32, Colors.RED | (int) (bodyRoleAlpha * 255.0F) << 24);
             } else if (canSeeEscapedDeathReason) {

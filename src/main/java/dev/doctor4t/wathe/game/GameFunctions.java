@@ -586,6 +586,7 @@ public class GameFunctions {
             if (body != null) {
                 body.setPlayerUuid(victim.getUuid());
                 body.setDeathReason(deathReason);
+                body.setDeathGameTime(victim.getWorld().getTime());
                 Vec3d spawnPos = victim.getPos().add(victim.getRotationVector().normalize().multiply(1));
                 body.refreshPositionAndAngles(spawnPos.getX(), victim.getY(), spawnPos.getZ(), victim.getHeadYaw(), 0f);
                 body.setYaw(victim.getHeadYaw());

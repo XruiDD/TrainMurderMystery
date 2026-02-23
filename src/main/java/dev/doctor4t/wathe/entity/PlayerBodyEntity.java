@@ -26,6 +26,7 @@ import java.util.UUID;
 public class PlayerBodyEntity extends LivingEntity {
     private static final TrackedData<Optional<UUID>> PLAYER = DataTracker.registerData(PlayerBodyEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
     private static final TrackedData<String> DEATH_REASON = DataTracker.registerData(PlayerBodyEntity.class, TrackedDataHandlerRegistry.STRING);
+    private static final TrackedData<Integer> DEATH_GAME_TIME = DataTracker.registerData(PlayerBodyEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
     public PlayerBodyEntity(EntityType<? extends LivingEntity> entityType, World world) {
         super(entityType, world);
@@ -36,6 +37,7 @@ public class PlayerBodyEntity extends LivingEntity {
         super.initDataTracker(builder);
         builder.add(PLAYER, Optional.empty());
         builder.add(DEATH_REASON, GameConstants.DeathReasons.GENERIC.toString());
+        builder.add(DEATH_GAME_TIME, 0);
     }
 
     @Override
@@ -75,6 +77,14 @@ public class PlayerBodyEntity extends LivingEntity {
         return Identifier.of(this.dataTracker.get(DEATH_REASON));
     }
 
+    public void setDeathGameTime(long gameTime) {
+        this.dataTracker.set(DEATH_GAME_TIME, (int) gameTime);
+    }
+
+    public int getDeathGameTime() {
+        return this.dataTracker.get(DEATH_GAME_TIME);
+    }
+
     @Override
     public boolean isInvulnerable() {
         return true;
@@ -104,6 +114,7 @@ public class PlayerBodyEntity extends LivingEntity {
             nbt.putUuid("Player", this.getPlayerUuid());
         }
         nbt.putString("DeathReason", this.getDeathReason().toString());
+        nbt.putInt("DeathGameTime", this.getDeathGameTime());
     }
 
     @Override
@@ -123,6 +134,10 @@ public class PlayerBodyEntity extends LivingEntity {
 
         if (nbt.contains("DeathReason")) {
             this.setDeathReason(Identifier.of(nbt.getString("DeathReason")));
+        }
+
+        if (nbt.contains("DeathGameTime")) {
+            this.dataTracker.set(DEATH_GAME_TIME, nbt.getInt("DeathGameTime"));
         }
     }
 

@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.Mixin;
 public class KeyboardMixin {
     @WrapMethod(method = "processF3")
     private boolean wathe$disableF3Keybinds(int key, Operation<Boolean> original) {
-        if (WatheClient.isPlayerPlayingAndAlive() && !WatheClient.isPlayerCreative() && WatheClient.trainComponent.hasHud()) {
+        if (WatheClient.isPlayerPlayingAndAlive() && !WatheClient.isPlayerCreative() && WatheClient.trainComponent != null && WatheClient.trainComponent.hasHud()) {
             return key == 293 ? original.call(key) : false;
         } else {
             // F3+K (75) 切换方块黑名单 debug

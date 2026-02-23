@@ -20,10 +20,10 @@ public abstract class MinecraftClientMixin {
 
     @WrapOperation(method = "handleInputEvents", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/MinecraftClient;setScreen(Lnet/minecraft/client/gui/screen/Screen;)V", ordinal = 1))
     private void wathe$replaceInventoryScreenWithLimitedInventoryScreen(MinecraftClient instance, Screen screen, Operation<Void> original) {
-        if (WatheClient.gameComponent.getFade() > 0) {
+        if (WatheClient.gameComponent != null && WatheClient.gameComponent.getFade() > 0) {
             return;
         }
 
-        original.call(instance, WatheClient.isPlayerAliveAndInSurvival() && WatheClient.trainComponent.hasHud() ? new LimitedInventoryScreen(this.player) : screen);
+        original.call(instance, WatheClient.isPlayerAliveAndInSurvival() && WatheClient.trainComponent != null && WatheClient.trainComponent.hasHud() ? new LimitedInventoryScreen(this.player) : screen);
     }
 }

@@ -575,7 +575,7 @@ public abstract class LimitedHandledScreen<T extends ScreenHandler> extends Scre
     public final void tick() {
         super.tick();
 
-        if (WatheClient.gameComponent.getFade() > 0) {
+        if (WatheClient.gameComponent != null && WatheClient.gameComponent.getFade() > 0) {
             this.client.player.closeHandledScreen();
         }
 

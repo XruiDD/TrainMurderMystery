@@ -30,16 +30,22 @@ public class ScreenHandlerMixin {
     ) {
         if (player instanceof ServerPlayerEntity serverPlayer) {
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(serverPlayer.getWorld());
-            if (gameComponent.isRunning()) {
+            if (gameComponent != null && gameComponent.isRunning()) {
                 // insertStack 受快捷栏限制，如果快捷栏已满则物品仍留在 stack 中
                 // 此时强制放入任意可用槽位，避免物品丢失
                 if (!serverPlayer.getInventory().insertStack(stack)) {
-                    for (int i = 0; i < serverPlayer.getInventory().main.size(); i++) {
+                    // 仅尝试快捷栏槽位 (0-8)，避免物品进入玩家无法访问的背包区域 (9-35)
+                    for (int i = 0; i < 9; i++) {
                         if (serverPlayer.getInventory().main.get(i).isEmpty()) {
                             serverPlayer.getInventory().main.set(i, stack.copy());
                             stack.setCount(0);
                             break;
                         }
+                    }
+                    // 快捷栏已满，物品丢落到地面
+                    if (!stack.isEmpty()) {
+                        serverPlayer.dropItem(stack, false);
+                        stack.setCount(0);
                     }
                 }
                 return null;

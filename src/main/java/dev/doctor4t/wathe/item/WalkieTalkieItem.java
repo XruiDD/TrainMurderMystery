@@ -22,6 +22,10 @@ public class WalkieTalkieItem extends Item implements AdventureUsable {
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+        if (user.isSpectator()) {
+            return TypedActionResult.pass(user.getStackInHand(hand));
+        }
+
         ItemStack stack = user.getStackInHand(hand);
 
         if (world.isClient) {

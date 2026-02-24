@@ -33,6 +33,8 @@ public record WalkieTalkieChannelPayload(int channel, boolean mainHand) implemen
         @Override
         public void receive(@NotNull WalkieTalkieChannelPayload payload, ServerPlayNetworking.@NotNull Context context) {
             ServerPlayerEntity player = context.player();
+            if (player.isSpectator()) return;
+
             Hand hand = payload.mainHand() ? Hand.MAIN_HAND : Hand.OFF_HAND;
             ItemStack stack = player.getStackInHand(hand);
 

@@ -74,6 +74,7 @@ public class TrainVoicePlugin implements VoicechatPlugin {
 
         ServerPlayerEntity sourcePlayer = (ServerPlayerEntity) connection.getPlayer().getPlayer();
         if (sourcePlayer == null) return;
+        if (sourcePlayer.isSpectator()) return;
 
         // 检查说话者是否手持对讲机（主手或副手）
         ItemStack mainHandStack = sourcePlayer.getMainHandStack();
@@ -93,6 +94,7 @@ public class TrainVoicePlugin implements VoicechatPlugin {
 
         for (ServerPlayerEntity receiver : sourcePlayer.getServer().getPlayerManager().getPlayerList()) {
             if (receiver == sourcePlayer) continue;
+            if (receiver.isSpectator()) continue;
             if (!isReceivingChannel(receiver, senderChannel)) continue;
 
             VoicechatConnection receiverConnection = serverApi.getConnectionOf(receiver.getUuid());

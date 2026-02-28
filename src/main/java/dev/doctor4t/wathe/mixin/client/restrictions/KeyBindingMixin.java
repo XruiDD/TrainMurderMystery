@@ -53,7 +53,8 @@ public abstract class KeyBindingMixin {
             result = this.equals(MinecraftClient.getInstance().options.swapHandsKey) ||
                     this.equals(MinecraftClient.getInstance().options.togglePerspectiveKey) ||
                     this.equals(MinecraftClient.getInstance().options.dropKey) ||
-                    this.equals(MinecraftClient.getInstance().options.advancementsKey);
+                    this.equals(MinecraftClient.getInstance().options.advancementsKey) ||
+                    this.equals(MinecraftClient.getInstance().options.spectatorOutlinesKey);
         }
         return result;
     }

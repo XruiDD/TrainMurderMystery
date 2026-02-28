@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 plugins {
 	id 'fabric-loom' version '1.13-SNAPSHOT'
 	id "io.github.ladysnake.chenille" version "0.14.0"
@@ -95,6 +97,11 @@ processResources {
 
 	filesMatching("fabric.mod.json") {
 		expand "version": project.version
+	}
+
+	filesMatching(["assets/wathe/lang/en_us.json", "assets/wathe/lang/zh_cn.json", "assets/wathe/lang/zh_tw.json"]) {
+		def displayVersion = project.mod_version.split('-')[0]
+		filter(ReplaceTokens, tokens: [mod_version: displayVersion])
 	}
 }
 

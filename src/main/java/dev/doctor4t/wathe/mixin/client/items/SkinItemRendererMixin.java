@@ -41,6 +41,11 @@ public class SkinItemRendererMixin {
         CosmeticComponent skin = stack.get(WatheDataComponentTypes.SKIN);
         if (skin == null || "default".equals(skin.cosmeticId())) return;
 
+        // Pre-load variant textures (e.g. thrown grenade) so they're cached before use
+        for (String url : skin.getResourceTextureUrls()) {
+            ItemSkinTextureManager.getInstance().ensureLoaded(url);
+        }
+
         Identifier texId = ItemSkinTextureManager.getInstance().getTextureId(skin.textureUrl());
         if (texId == null) {
             ItemSkinTextureManager.getInstance().ensureLoaded(skin.textureUrl());

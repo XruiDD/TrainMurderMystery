@@ -2,8 +2,11 @@ package dev.doctor4t.wathe.item;
 
 import dev.doctor4t.wathe.entity.GrenadeEntity;
 import dev.doctor4t.wathe.game.GameConstants;
+import dev.doctor4t.wathe.index.WatheDataComponentTypes;
 import dev.doctor4t.wathe.index.WatheEntities;
+import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.index.WatheSounds;
+import dev.doctor4t.wathe.item.component.CosmeticComponent;
 import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -17,7 +20,7 @@ import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
-public class GrenadeItem extends Item {
+public class GrenadeItem extends Item implements ItemWithSkin {
     public GrenadeItem(Item.Settings settings) {
         super(settings);
     }
@@ -31,6 +34,16 @@ public class GrenadeItem extends Item {
             grenade.setOwner(user);
             grenade.setPos(user.getX(), user.getEyeY() - 0.1, user.getZ());
             grenade.setVelocity(user, user.getPitch(), user.getYaw(), 0.0F, 0.5F, 1.0F);
+
+            // Propagate skin to thrown entity
+            CosmeticComponent skin = itemStack.get(WatheDataComponentTypes.SKIN);
+            if (skin != null && !"default".equals(skin.cosmeticId())) {
+                String thrownUrl = skin.getTexture("thrown");
+                ItemStack thrownStack = WatheItems.THROWN_GRENADE.getDefaultStack();
+                thrownStack.set(WatheDataComponentTypes.SKIN, skin.withTextureUrl(thrownUrl));
+                grenade.setItem(thrownStack);
+            }
+
             world.spawnEntity(grenade);
             if (user instanceof ServerPlayerEntity serverPlayer) {
                 GameRecordManager.recordItemUse(serverPlayer, Registries.ITEM.getId(this), null, null);

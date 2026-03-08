@@ -76,7 +76,10 @@ public class CosmeticApiClient {
                         obj.get("cosmeticId").getAsString(),
                         obj.get("displayName").getAsString(),
                         obj.get("rarity").getAsString(),
-                        obj.get("textureUrl").getAsString()
+                        obj.get("textureUrl").getAsString(),
+                        obj.has("resources") && !obj.get("resources").isJsonNull()
+                                ? obj.get("resources").toString()
+                                : ""
                 );
                 result.put(itemId, component);
             }

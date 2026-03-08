@@ -2,7 +2,7 @@ package dev.doctor4t.wathe.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
-import dev.doctor4t.wathe.index.WatheItems;
+import dev.doctor4t.wathe.cca.PlayerVeteranComponent;
 import dev.doctor4t.wathe.index.tag.WatheItemTags;
 import dev.doctor4t.wathe.record.GameRecordManager;
 import net.minecraft.entity.Entity;
@@ -48,10 +48,16 @@ public abstract class ItemEntityMixin {
         }
 
         // 无辜玩家只能在没有枪和刀的情况下拾取非自己掉落的枪
+        // 刀的判断基于 PlayerVeteranComponent 状态而非物品位置，防止丢弃/光标/合成栏等绕过
+        // 枪的判断同时检查背包和光标，防止背包界面绕过
+        ItemStack cursorStack = player.currentScreenHandler.getCursorStack();
+        boolean hasKnife = PlayerVeteranComponent.KEY.get(player).hasStabUsesLeft();
+        boolean hasGun = player.getInventory().contains(itemStack -> itemStack.isIn(WatheItemTags.GUNS))
+                || cursorStack.isIn(WatheItemTags.GUNS);
         boolean allowedGunPickup = game.isInnocent(player)
                 && !player.equals(this.getOwner())
-                && !player.getInventory().contains(itemStack -> itemStack.isIn(WatheItemTags.GUNS))
-                && !player.getInventory().contains(itemStack -> itemStack.isOf(WatheItems.KNIFE));
+                && !hasGun
+                && !hasKnife;
         if (!allowedGunPickup) {
             ci.cancel();
         }

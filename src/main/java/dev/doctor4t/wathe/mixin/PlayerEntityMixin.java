@@ -121,6 +121,13 @@ public abstract class PlayerEntityMixin extends LivingEntity {
                     : role.getMaxSprintTime();
                 float sprintingTicks = staminaComponent.getSprintingTicks();
                 boolean exhausted = staminaComponent.isExhausted();
+
+                // 体力上限因属性修改器减少时，将当前体力限制在新上限内
+                int prevMax = staminaComponent.getMaxSprintTime();
+                if (prevMax > 0 && maxSprintTime < prevMax) {
+                    sprintingTicks = Math.min(sprintingTicks, maxSprintTime);
+                }
+
                 // 疲惫机制
                 if (sprintingTicks <= 0) {
                     this.setSprinting(false);

@@ -3,7 +3,9 @@ package dev.doctor4t.wathe.mixin;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -13,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayerEntity.class)
@@ -39,5 +42,26 @@ public class ServerPlayerEntityMixin {
     @ModifyExpressionValue(method = "trySleep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;isDay()Z"))
     public boolean wathe$allowSleepingAtAnyTime(boolean original) {
         return false;
+    }
+
+    // Layer 1: 游戏进行中跳过 applyDamage（扣血），但让 damage() 正常返回 true
+    // 这样击退、受伤动画、hurtTime 等副作用都保留，只是不实际扣血
+    @Inject(method = "applyDamage", at = @At("HEAD"), cancellable = true)
+    private void wathe$cancelApplyDamage(DamageSource source, float amount, CallbackInfo ci) {
+        ServerPlayerEntity self = (ServerPlayerEntity) (Object) this;
+        if (GameFunctions.isPlayerPlayingAndAlive(self)) {
+            ci.cancel();
+        }
+    }
+
+    // Layer 2: 安全网 — 万一原版死亡被触发，将其路由到模组死亡系统
+    @Inject(method = "onDeath", at = @At("HEAD"), cancellable = true)
+    private void wathe$interceptVanillaDeath(DamageSource damageSource, CallbackInfo ci) {
+        ServerPlayerEntity self = (ServerPlayerEntity) (Object) this;
+        if (GameFunctions.isPlayerPlayingAndAlive(self)) {
+            GameFunctions.killPlayer(self, true, null, GameConstants.DeathReasons.VANILLA_DEATH, true);
+            self.setHealth(self.getMaxHealth());
+            ci.cancel();
+        }
     }
 }

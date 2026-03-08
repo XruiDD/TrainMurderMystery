@@ -406,6 +406,7 @@
   "death_reason.wathe.escaped": "退出游戏",
   "death_reason.wathe.shot_innocent": "小脑",
   "death_reason.wathe.mental_breakdown": "精神崩溃",
+  "death_reason.wathe.vanilla_death": "意外事故",
   "disconnect.wathe.version_mismatch": "模组版本不匹配！服务器: %s, 客户端: %s",
   "disconnect.wathe.not_in_ready_area": "游戏已开始，但由于你没有进入准备区域内，所以无法加入游戏！",
   "announcement.result.losers": "失败者",
@@ -491,6 +492,7 @@
   "replay.death.wathe.shot_innocent.killed": "%s 被 %s §c误杀§r",
   "replay.death.wathe.shot_innocent.died": "%s 因§c误杀无辜§r而死",
   "replay.death.wathe.mental_breakdown.died": "%s §c精神崩溃§r",
+  "replay.death.wathe.vanilla_death.died": "%s 死于§c意外事故§r",
   "replay.death.unknown.killed": "%s 被 %s 杀死",
   "replay.death.unknown.died": "%s 死亡",
 

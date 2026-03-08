@@ -22,6 +22,7 @@ public interface GameConstants {
 
     // Items
     Map<Item, Integer> ITEM_COOLDOWNS = new HashMap<>();
+    int INNOCENT_GUN_COOLDOWN = getInTicks(0, 20); // 非义警乘客阵营枪械冷却20秒
 
     static void init() {
         ITEM_COOLDOWNS.put(WatheItems.KNIFE, getInTicks(1, 0));

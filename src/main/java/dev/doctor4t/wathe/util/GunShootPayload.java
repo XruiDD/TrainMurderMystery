@@ -68,8 +68,9 @@ public record GunShootPayload(int target) implements CustomPayload {
             ServerPlayerEntity recordTarget = target instanceof ServerPlayerEntity serverTarget ? serverTarget : null;
             GameRecordManager.recordItemUse(player, Registries.ITEM.getId(mainHandStack.getItem()), recordTarget, null);
 
+            GameWorldComponent game = GameWorldComponent.KEY.get(player.getWorld());
+
             if (target != null) {
-                GameWorldComponent game = GameWorldComponent.KEY.get(player.getWorld());
                 Item revolver = WatheItems.REVOLVER;
 
                 boolean backfire = false;
@@ -126,8 +127,15 @@ public record GunShootPayload(int target) implements CustomPayload {
             for (ServerPlayerEntity tracking : PlayerLookup.tracking(player))
                 ServerPlayNetworking.send(tracking, new ShootMuzzleS2CPayload(player.getUuidAsString()));
             ServerPlayNetworking.send(player, new ShootMuzzleS2CPayload(player.getUuidAsString()));
-            if (!player.isCreative())
-                player.getItemCooldownManager().set(mainHandStack.getItem(), GameConstants.ITEM_COOLDOWNS.getOrDefault(mainHandStack.getItem(), 0));
+            if (!player.isCreative()) {
+                int cooldown = GameConstants.ITEM_COOLDOWNS.getOrDefault(mainHandStack.getItem(), 0);
+                // 非义警、非老兵的乘客阵营角色枪cd为20秒
+                if (mainHandStack.isIn(WatheItemTags.GUNS) && game.isInnocent(player)
+                        && !game.isRole(player, WatheRoles.VIGILANTE) && !game.isRole(player, WatheRoles.VETERAN)) {
+                    cooldown = GameConstants.INNOCENT_GUN_COOLDOWN;
+                }
+                player.getItemCooldownManager().set(mainHandStack.getItem(), cooldown);
+            }
         }
     }
 }

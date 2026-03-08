@@ -41,6 +41,7 @@
     "client.restrictions.ChatHudMixin",
     "client.restrictions.CreativeInventoryScreenMixin",
     "client.restrictions.DebugHudMixin",
+    "client.restrictions.EntityInvisibilityMixin",
     "client.restrictions.EntityRendererMixin",
     "client.restrictions.GameOptionsMixin",
     "client.restrictions.KeyBindingMixin",

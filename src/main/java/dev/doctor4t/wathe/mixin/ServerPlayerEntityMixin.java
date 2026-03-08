@@ -3,6 +3,7 @@ package dev.doctor4t.wathe.mixin;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -11,9 +12,21 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayerEntity.class)
 public class ServerPlayerEntityMixin {
+
+    @Inject(method = "canBeSpectated", at = @At("HEAD"), cancellable = true)
+    private void wathe$hideInvisibleFromDeadSpectators(ServerPlayerEntity spectator, CallbackInfoReturnable<Boolean> cir) {
+        ServerPlayerEntity self = (ServerPlayerEntity) (Object) this;
+        if (self.isInvisible()
+                && spectator.isSpectator()
+                && GameFunctions.isPlayerPlayingAndAlive(spectator)) {
+            cir.setReturnValue(false);
+        }
+    }
 
     @WrapOperation(method = "trySleep", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;sendMessage(Lnet/minecraft/text/Text;Z)V"))
     public void wathe$disableSleepMessage(ServerPlayerEntity instance, Text message, boolean overlay, Operation<Void> original) {

@@ -51,7 +51,7 @@ public class TrainDoorBlock extends SmallDoorBlock {
                 if (interactionType == DoorInteraction.DoorInteractionType.USE_LOCKPICK) {
                     world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, WatheSounds.ITEM_LOCKPICK_DOOR, SoundCategory.BLOCKS, 1f, 1f);
                 }
-                return open(state, world, entity, lowerPos);
+                return open(state, world, entity, lowerPos, player);
             } else if (eventResult == DoorInteraction.DoorInteractionResult.DENY) {
                 return ActionResult.FAIL;
             } else if (eventResult == DoorInteraction.DoorInteractionResult.HANDLED) {
@@ -66,16 +66,16 @@ public class TrainDoorBlock extends SmallDoorBlock {
             }
 
             if (player.isCreative() || GameWorldComponent.KEY.get(world).getGameStatus() == GameWorldComponent.GameStatus.INACTIVE) {
-                return open(state, world, entity, lowerPos);
+                return open(state, world, entity, lowerPos, player);
             } else {
                 boolean hasLockpick = player.getMainHandStack().isOf(WatheItems.LOCKPICK);
 
                 if (entity.isOpen()) {
-                    return open(state, world, entity, lowerPos);
+                    return open(state, world, entity, lowerPos, player);
                 } else {
                     if (hasLockpick) {
                         world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, WatheSounds.ITEM_LOCKPICK_DOOR, SoundCategory.BLOCKS, 1f, 1f);
-                        return open(state, world, entity, lowerPos);
+                        return open(state, world, entity, lowerPos, player);
                     } else {
                         if (!world.isClient) {
                             world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, WatheSounds.BLOCK_DOOR_LOCKED, SoundCategory.BLOCKS, 1f, 1f);

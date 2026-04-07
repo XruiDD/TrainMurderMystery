@@ -28,6 +28,7 @@ public abstract class DoorBlockEntity extends SyncingBlockEntity {
     private int closeCountdown = 0;
     private int jammedTime = 0;
     private boolean blasted = false;
+    private boolean forcedOpen = false;
 
     public DoorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -44,6 +45,7 @@ public abstract class DoorBlockEntity extends SyncingBlockEntity {
         if (state.get(DoorPartBlock.OPEN) && !entity.isBlasted()) {
             entity.setCloseCountdown(entity.getCloseCountdown() - 1);
             if (entity.getCloseCountdown() <= 0) {
+                entity.setForcedOpen(false);
                 SmallDoorBlock.toggleDoor(state, world, (SmallDoorBlockEntity) entity, pos);
             }
         } else {
@@ -58,6 +60,9 @@ public abstract class DoorBlockEntity extends SyncingBlockEntity {
     public void toggle(boolean silent) {
         if (this.world == null || this.world.getTime() == this.lastUpdate || this.isBlasted()) {
             return;
+        }
+        if (this.forcedOpen && this.open) {
+            return; // 门被强制打开期间无法手动关闭
         }
         this.toggleOpen();
         if (!silent) {
@@ -188,5 +193,13 @@ public abstract class DoorBlockEntity extends SyncingBlockEntity {
 
     public void setBlasted(boolean blasted) {
         this.blasted = blasted;
+    }
+
+    public boolean isForcedOpen() {
+        return forcedOpen;
+    }
+
+    public void setForcedOpen(boolean forcedOpen) {
+        this.forcedOpen = forcedOpen;
     }
 }

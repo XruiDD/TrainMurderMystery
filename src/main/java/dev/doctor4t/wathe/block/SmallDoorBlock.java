@@ -3,6 +3,8 @@ package dev.doctor4t.wathe.block;
 import dev.doctor4t.wathe.api.event.DoorInteraction;
 import dev.doctor4t.wathe.block_entity.DoorBlockEntity;
 import dev.doctor4t.wathe.block_entity.SmallDoorBlockEntity;
+import dev.doctor4t.wathe.cca.PlayerPsychoComponent;
+import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.index.WatheSounds;
 import net.minecraft.block.Block;
@@ -166,7 +168,7 @@ public class SmallDoorBlock extends DoorPartBlock {
                 } else if (interactionType == DoorInteraction.DoorInteractionType.USE_LOCKPICK) {
                     world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, WatheSounds.ITEM_LOCKPICK_DOOR, SoundCategory.BLOCKS, 1f, 1f);
                 }
-                return open(state, world, entity, lowerPos);
+                return open(state, world, entity, lowerPos, player);
             } else if (eventResult == DoorInteraction.DoorInteractionResult.DENY) {
                 return ActionResult.FAIL;
             } else if (eventResult == DoorInteraction.DoorInteractionResult.HANDLED) {
@@ -181,14 +183,14 @@ public class SmallDoorBlock extends DoorPartBlock {
             }
 
             if (player.isCreative()) {
-                return open(state, world, entity, lowerPos);
+                return open(state, world, entity, lowerPos, player);
             } else {
                 boolean requiresKey = !entity.getKeyName().isEmpty();
                 boolean hasLockpick = player.getMainHandStack().isOf(WatheItems.LOCKPICK);
                 boolean jammed = entity.isJammed();
 
                 if (entity.isOpen()) {
-                    return open(state, world, entity, lowerPos);
+                    return open(state, world, entity, lowerPos, player);
                 } else if (requiresKey && !jammed) {
                     if (player.getMainHandStack().isOf(WatheItems.CROWBAR)) return ActionResult.FAIL;
                     if (player.getMainHandStack().isOf(WatheItems.KEY) || hasLockpick) {
@@ -199,7 +201,7 @@ public class SmallDoorBlock extends DoorPartBlock {
                                 world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, WatheSounds.ITEM_KEY_DOOR, SoundCategory.BLOCKS, 1f, 1f);
                             if (hasLockpick)
                                 world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, WatheSounds.ITEM_LOCKPICK_DOOR, SoundCategory.BLOCKS, 1f, 1f);
-                            return open(state, world, entity, lowerPos);
+                            return open(state, world, entity, lowerPos, player);
                         } else {
                             if (!world.isClient) {
                                 world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, WatheSounds.BLOCK_DOOR_LOCKED, SoundCategory.BLOCKS, 1f, 1f);
@@ -222,7 +224,7 @@ public class SmallDoorBlock extends DoorPartBlock {
                         }
                     } else {
                         // open the door freely
-                        return open(state, world, entity, lowerPos);
+                        return open(state, world, entity, lowerPos, player);
                     }
                 }
             }
@@ -273,9 +275,23 @@ public class SmallDoorBlock extends DoorPartBlock {
         return DoorInteraction.DoorInteractionType.OPEN;
     }
 
-    static @NotNull ActionResult open(BlockState state, World world, SmallDoorBlockEntity entity, BlockPos lowerPos) {
+    static @NotNull ActionResult open(BlockState state, World world, SmallDoorBlockEntity entity, BlockPos lowerPos, @Nullable PlayerEntity player) {
         if (world.isClient) return ActionResult.SUCCESS;
+        boolean wasClosed = !entity.isOpen();
         toggleDoor(state, world, entity, lowerPos);
+        // Psycho Mode + bat: 强制门保持打开 5 秒
+        if (wasClosed && player != null) {
+            PlayerPsychoComponent psycho = PlayerPsychoComponent.KEY.get(player);
+            if (psycho.getPsychoTicks() > 0 && player.getMainHandStack().isOf(WatheItems.BAT)) {
+                entity.setForcedOpen(true);
+                entity.setCloseCountdown(GameConstants.DOOR_AUTOCLOSE_TIME);
+                // 邻居门也强制打开
+                SmallDoorBlockEntity neighbor = getNeighborDoorEntity(state, world, lowerPos);
+                if (neighbor != null) {
+                    neighbor.setForcedOpen(true);
+                }
+            }
+        }
         return ActionResult.CONSUME;
     }
 

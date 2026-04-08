@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.cca.GameTimeComponent;
 import dev.doctor4t.wathe.game.GameConstants;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 
@@ -12,7 +13,7 @@ public class SetTimerCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(
                 CommandManager.literal("wathe:setTimer")
-                        .requires(source -> source.hasPermissionLevel(2))
+                        .requires(source -> source.hasPermissionLevel(2) || Permissions.check(source, "wathe.command.settimer"))
                         .then(
                                 CommandManager.argument("minutes", IntegerArgumentType.integer(0, 240))
                                         .then(

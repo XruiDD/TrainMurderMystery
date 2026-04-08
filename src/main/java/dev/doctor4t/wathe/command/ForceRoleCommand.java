@@ -9,6 +9,7 @@ import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.api.WatheRoles;
 import dev.doctor4t.wathe.cca.ScoreboardRoleSelectorComponent;
 import dev.doctor4t.wathe.command.argument.RoleSuggestionProvider;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -22,7 +23,7 @@ public class ForceRoleCommand {
     public static final SimpleCommandExceptionType INVALID_ROLE_EXCEPTION = new SimpleCommandExceptionType(Text.translatable("commands.wathe.forcerole.invalid"));
 
     public static void register(@NotNull CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("wathe:forceRole").requires(source -> source.hasPermissionLevel(2))
+        dispatcher.register(CommandManager.literal("wathe:forceRole").requires(source -> source.hasPermissionLevel(2) || Permissions.check(source, "wathe.command.forcerole"))
                 .then(CommandManager.argument("players", EntityArgumentType.players())
                         .executes(context -> query(context.getSource(), EntityArgumentType.getPlayers(context, "players")))
                         .then(CommandManager.argument("role", StringArgumentType.string())

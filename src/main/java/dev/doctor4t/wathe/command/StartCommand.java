@@ -12,6 +12,7 @@ import dev.doctor4t.wathe.command.argument.GameModeArgumentType;
 import dev.doctor4t.wathe.command.argument.MapEffectArgumentType;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -20,7 +21,7 @@ public class StartCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(
                 CommandManager.literal("wathe:start")
-                        .requires(source -> source.hasPermissionLevel(2))
+                        .requires(source -> source.hasPermissionLevel(2) || Permissions.check(source, "wathe.command.start"))
                         .then(CommandManager.argument("gameMode", GameModeArgumentType.gameMode())
                                 .then(CommandManager.argument("mapEffect", MapEffectArgumentType.mapEffect())
                                         .then(CommandManager.argument("startTimeInMinutes", IntegerArgumentType.integer(1))

@@ -13,6 +13,7 @@ import dev.doctor4t.wathe.cca.AutoStartComponent;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.command.argument.RoleSuggestionProvider;
 import dev.doctor4t.wathe.game.GameConstants;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.ClickEvent;
@@ -33,7 +34,7 @@ public class GameSettingsCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(
                 CommandManager.literal("wathe:gameSettings")
-                        .requires(source -> source.hasPermissionLevel(2))
+                        .requires(source -> source.hasPermissionLevel(2) || Permissions.check(source, "wathe.command.gamesettings"))
                         .then(CommandManager.literal("help")
                                 .executes(context -> sendHelp(context.getSource()))
                         )

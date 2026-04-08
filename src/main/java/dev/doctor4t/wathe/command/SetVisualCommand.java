@@ -7,6 +7,7 @@ import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.TrainWorldComponent;
 import dev.doctor4t.wathe.command.argument.TimeOfDayArgumentType;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 
@@ -15,7 +16,7 @@ import java.util.function.BiConsumer;
 public class SetVisualCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("wathe:setVisual")
-                .requires(source -> source.hasPermissionLevel(2))
+                .requires(source -> source.hasPermissionLevel(2) || Permissions.check(source, "wathe.command.setvisual"))
                 .then(CommandManager.literal("snow")
                         .then(CommandManager.argument("enabled", BoolArgumentType.bool())
                                 .executes(context -> execute(context.getSource(), TrainWorldComponent::setSnow, BoolArgumentType.getBool(context, "enabled")))))

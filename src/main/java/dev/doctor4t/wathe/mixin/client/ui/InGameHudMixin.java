@@ -15,6 +15,7 @@ import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +47,7 @@ public class InGameHudMixin {
             TextRenderer renderer = MinecraftClient.getInstance().textRenderer;
             MoodRenderer.renderHud(player, renderer, context, tickCounter);
             StaminaRenderer.renderHud(player, context, tickCounter);
+            AirRenderer.renderHud(player, context, tickCounter);
             ArmorRenderer.renderHud(player, context, tickCounter);
             RoleNameRenderer.renderHud(renderer, player, context, tickCounter);
             RoundTextRenderer.renderHud(renderer, player, context);
@@ -54,6 +56,19 @@ public class InGameHudMixin {
             TimeRenderer.renderHud(renderer, player, context, tickCounter.getTickDelta(true));
             LobbyPlayersRenderer.renderHud(renderer, player, context);
             CooldownRenderer.renderHud(renderer, player, context, tickCounter);
+            // Drowning overlay
+            int maxAir = player.getMaxAir();
+            int currentAir = Math.min(player.getAir(), maxAir);
+            boolean inWater = player.isSubmergedIn(FluidTags.WATER);
+            if (inWater || currentAir < maxAir) {
+                float ratio = (float) currentAir / maxAir;
+                if (ratio < 0.50f) {
+                    float opacity = MathHelper.lerp(1.0f - (ratio / 0.50f), 0f, 0.40f);
+                    Color color = new Color(0f, 0.25f, 1.0f, opacity);
+                    context.fill(RenderLayer.getGuiOverlay(), 0, 0,
+                        context.getScaledWindowWidth(), context.getScaledWindowHeight(), color.getRGB());
+                }
+            }
         }
     }
 

@@ -13,6 +13,9 @@ import net.minecraft.nbt.*;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.registry.tag.FluidTags;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
@@ -726,6 +729,31 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
                     // kill players who fell off the train
                     if (playArea != null && player.getY() < playArea.minY) {
                         GameFunctions.killPlayer(player, false, player.getLastAttacker() instanceof ServerPlayerEntity killerPlayer ? killerPlayer : null, GameConstants.DeathReasons.FELL_OUT_OF_TRAIN);
+                    }
+
+                    // drowning mechanic: air <= 0 means bubbles are fully depleted
+                    // vanilla resets air from -20 to 0 before our tick runs, so we check <= 0
+                    if (player.getAir() <= 0) {
+                        player.setAir(player.getMaxAir());
+                        GameFunctions.killPlayer(player, true, null, GameConstants.DeathReasons.DROWNED);
+                    } else if (player.isSubmergedIn(FluidTags.WATER)) {
+                        int air = player.getAir();
+                        int maxAir = player.getMaxAir();
+                        float ratio = (float) air / maxAir;
+
+                        if (ratio < 0.10f) {
+                            player.sendMessage(
+                                Text.translatable("warning.wathe.drowning.critical")
+                                    .formatted(Formatting.DARK_RED, Formatting.BOLD), true);
+                        } else if (ratio < 0.25f) {
+                            player.sendMessage(
+                                Text.translatable("warning.wathe.drowning.severe")
+                                    .formatted(Formatting.RED), true);
+                        } else if (ratio < 0.50f) {
+                            player.sendMessage(
+                                Text.translatable("warning.wathe.drowning.mild")
+                                    .formatted(Formatting.YELLOW), true);
+                        }
                     }
                 } else {
                     if(!GameFunctions.isPlayerSpectatingOrCreative(player)) {

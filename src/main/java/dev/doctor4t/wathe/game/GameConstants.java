@@ -101,5 +101,6 @@ public interface GameConstants {
         Identifier SHOT_INNOCENT = Wathe.id("shot_innocent");
         Identifier MENTAL_BREAKDOWN = Wathe.id("mental_breakdown");
         Identifier VANILLA_DEATH = Wathe.id("vanilla_death");
+        Identifier DROWNED = Wathe.id("drowned");
     }
 }

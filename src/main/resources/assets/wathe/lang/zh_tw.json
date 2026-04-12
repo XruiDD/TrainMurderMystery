@@ -431,6 +431,11 @@
   "commands.wathe.listroles.click_to_enable": "點擊啟用",
   "commands.wathe.listroles.click_to_disable": "點擊禁用",
 
+  "commands.wathe.config.query": "%s 當前為：%s",
+  "commands.wathe.config.reload.success": "配置已重載",
+  "commands.wathe.config.set.disabled": "關閉",
+  "commands.wathe.config.set.enabled": "開啟",
+  "commands.wathe.config.set.success": "已將 %s 設置為：%s",
   "commands.wathe.gamesettings.shootinnocentpunishment.success": "已將誤殺懲罰設置為：%s",
   "commands.wathe.gamesettings.shootinnocentpunishment.preventgunpickup": "掉落並阻止拾取槍",
   "commands.wathe.gamesettings.shootinnocentpunishment.killshooter": "擊殺開槍者並阻止拾取槍",

@@ -100,6 +100,7 @@ public class Wathe implements ModInitializer {
         CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
             MapVariablesCommand.register(dispatcher);
             GameSettingsCommand.register(dispatcher);
+            ConfigCommand.register(dispatcher);
             GiveRoomKeyCommand.register(dispatcher);
             StartCommand.register(dispatcher);
             StopCommand.register(dispatcher);

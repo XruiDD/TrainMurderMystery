@@ -23,6 +23,7 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
     private final PlayerEntity player;
     public int psychoTicks = 0;
     public int armour = 1;
+    private boolean noBgm = false;
 
     public PlayerPsychoComponent(PlayerEntity player) {
         this.player = player;
@@ -83,6 +84,7 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
 
     public boolean startPsycho(boolean trackActive) {
         if (ShopEntry.insertStackInFreeSlot(this.player, new ItemStack(WatheItems.BAT))) {
+            this.noBgm = !trackActive;
             this.setPsychoTicks(GameConstants.PSYCHO_TIMER);
             this.setArmour(GameConstants.PSYCHO_MODE_ARMOUR);
             if (trackActive) {
@@ -95,7 +97,7 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
     }
 
     public void stopPsycho() {
-        stopPsycho(true);
+        stopPsycho(!this.noBgm);
     }
 
     public void stopPsycho(boolean trackActive) {
@@ -104,6 +106,7 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
             gameWorldComponent.setPsychosActive(gameWorldComponent.getPsychosActive() - 1);
         }
         this.psychoTicks = 0;
+        this.noBgm = false;
         this.player.getInventory().remove(itemStack -> itemStack.isOf(WatheItems.BAT), Integer.MAX_VALUE, this.player.playerScreenHandler.getCraftingInput());
     }
 
@@ -129,11 +132,13 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
     public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.@NotNull WrapperLookup registryLookup) {
         tag.putInt("psychoTicks", this.psychoTicks);
         tag.putInt("armour", this.armour);
+        tag.putBoolean("noBgm", this.noBgm);
     }
 
     @Override
     public void readFromNbt(@NotNull NbtCompound tag, RegistryWrapper.@NotNull WrapperLookup registryLookup) {
         this.psychoTicks = tag.contains("psychoTicks") ? tag.getInt("psychoTicks") : 0;
         this.armour = tag.contains("armour") ? tag.getInt("armour") : 1;
+        this.noBgm = tag.contains("noBgm") && tag.getBoolean("noBgm");
     }
 }

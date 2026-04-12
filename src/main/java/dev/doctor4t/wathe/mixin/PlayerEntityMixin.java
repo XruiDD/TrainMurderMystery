@@ -58,6 +58,9 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     public abstract float getAttackCooldownProgress(float baseTime);
 
     @Shadow
+    public abstract void resetLastAttackedTicks();
+
+    @Shadow
     public abstract boolean isCreative();
 
     @Unique
@@ -172,6 +175,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
                     playerTarget.getX(), playerTarget.getEyeY(), playerTarget.getZ(),
                     WatheSounds.ITEM_BAT_HIT, SoundCategory.PLAYERS,
                     3f, 1f);
+            this.resetLastAttackedTicks();
             return;
         }
 

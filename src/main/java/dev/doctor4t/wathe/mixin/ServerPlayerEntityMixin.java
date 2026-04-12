@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
+import dev.doctor4t.wathe.index.WatheItems;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -20,6 +21,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayerEntity.class)
 public class ServerPlayerEntityMixin {
+
+    // 阻止 swingHand 重置攻击冷却 —— 原版 ServerPlayerEntity.swingHand() 会调用
+    // resetLastAttackedTicks()，导致右键交互（开门等）触发的挥手动画也会重置冷却，
+    // 使得球棒等依赖攻击冷却的武器在右键后短暂无法攻击。
+    // 攻击冷却的重置已由 PlayerEntity.attack() 内部处理，此处无需重复。
+    @WrapOperation(method = "swingHand", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;resetLastAttackedTicks()V"))
+    private void wathe$preventSwingCooldownReset(ServerPlayerEntity instance, Operation<Void> original) {
+        if (!instance.getMainHandStack().isOf(WatheItems.BAT)) {
+            original.call(instance);
+        }
+    }
 
     @Inject(method = "canBeSpectated", at = @At("HEAD"), cancellable = true)
     private void wathe$hideInvisibleFromDeadSpectators(ServerPlayerEntity spectator, CallbackInfoReturnable<Boolean> cir) {

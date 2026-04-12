@@ -10,6 +10,8 @@ import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheBlockEntities;
 import dev.doctor4t.wathe.index.WatheSounds;
+import dev.doctor4t.wathe.util.WathePermissions;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -59,17 +61,18 @@ public class HornBlock extends BlockWithEntity {
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         if (world.getBlockEntity(pos) instanceof HornBlockEntity hornBlockEntity) {
             if (world instanceof ServerWorld serverWorld) {
-                boolean isOp = serverWorld.getServer().getPermissionLevel(player.getGameProfile()) >= 2;
+                boolean canBypassCooldown = Permissions.check(player, WathePermissions.ADMIN_HORN_COOLDOWN, WathePermissions.DEFAULT_COMMAND_LEVEL);
+                boolean canStartGame = Permissions.check(player, WathePermissions.ADMIN_HORN_START, WathePermissions.DEFAULT_COMMAND_LEVEL);
 
                 boolean isSoundReady = hornBlockEntity.cooldown <= 0;
                 Vec3d mid = Vec3d.ofCenter(pos);
                 world.playSound(null, mid.getX(), mid.getY(), mid.getZ(), SoundEvents.BLOCK_CHAIN_BREAK, SoundCategory.BLOCKS, 0.5f, .8f + (world.random.nextFloat() - .5f) * .2f);
-                if (isSoundReady || isOp)
+                if (isSoundReady || canBypassCooldown)
                     world.playSound(null, mid.getX(), mid.getY() + 3, mid.getZ(), WatheSounds.AMBIENT_TRAIN_HORN, SoundCategory.AMBIENT, 100.0f, 1.0f);
 
                 // start game
                 GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(serverWorld);
-                if (isOp && !gameWorldComponent.isRunning()) {
+                if (canStartGame && !gameWorldComponent.isRunning()) {
                     GameMode gameMode = gameWorldComponent.getGameMode();
                     GameFunctions.startGame(serverWorld, gameMode, gameWorldComponent.getMapEffect(), GameConstants.getInTicks(gameMode.defaultStartTime, 0));
                 }

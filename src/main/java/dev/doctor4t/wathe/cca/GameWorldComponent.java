@@ -2,10 +2,12 @@ package dev.doctor4t.wathe.cca;
 
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.api.*;
+import dev.doctor4t.wathe.util.WathePermissions;
 import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import com.mojang.authlib.GameProfile;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.*;
 import net.minecraft.registry.RegistryWrapper;
@@ -701,7 +703,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         // if not running and spectators or not in lobby reset them
         if (serverWorld.getTime() % 20 == 0) {
             for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-                if (!isRunning() && (player.isSpectator() && serverWorld.getServer().getPermissionLevel(player.getGameProfile()) < 2 || (!player.isCreative() && playArea != null && playArea.contains(player.getPos())))) {
+                if (!isRunning() && (player.isSpectator() && !Permissions.check(player, WathePermissions.ADMIN_SPECTATOR_BYPASS, WathePermissions.DEFAULT_COMMAND_LEVEL) || (!player.isCreative() && playArea != null && playArea.contains(player.getPos())))) {
                     GameFunctions.resetPlayer(player);
                 }
             }

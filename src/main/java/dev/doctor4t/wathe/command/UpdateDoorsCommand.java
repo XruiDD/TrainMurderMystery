@@ -3,6 +3,8 @@ package dev.doctor4t.wathe.command;
 import com.mojang.brigadier.CommandDispatcher;
 import dev.doctor4t.wathe.block.SmallDoorBlock;
 import dev.doctor4t.wathe.block_entity.SmallDoorBlockEntity;
+import dev.doctor4t.wathe.util.WathePermissions;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.server.command.CommandManager;
@@ -13,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class UpdateDoorsCommand {
     public static void register(@NotNull CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("wathe:updateDoors").requires(source -> source.hasPermissionLevel(2)).executes(context -> {
+        dispatcher.register(CommandManager.literal("wathe:updateDoors").requires(Permissions.require(WathePermissions.COMMAND_UPDATE_DOORS, WathePermissions.DEFAULT_COMMAND_LEVEL)).executes(context -> {
             ServerCommandSource source = context.getSource();
 
             BlockPos playerPos = source.getPlayer().getBlockPos();

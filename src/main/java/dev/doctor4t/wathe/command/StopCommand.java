@@ -2,6 +2,8 @@ package dev.doctor4t.wathe.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import dev.doctor4t.wathe.game.GameFunctions;
+import dev.doctor4t.wathe.util.WathePermissions;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 public class StopCommand {
     public static void register(@NotNull CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("wathe:stop")
-                .requires(source -> source.hasPermissionLevel(2))
+                .requires(Permissions.require(WathePermissions.COMMAND_STOP, WathePermissions.DEFAULT_COMMAND_LEVEL))
                 .then(CommandManager.literal("force").executes(context -> {
                             GameFunctions.finalizeGame(context.getSource().getWorld());
                             return 1;

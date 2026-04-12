@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import dev.doctor4t.wathe.index.WatheItems;
+import dev.doctor4t.wathe.util.WathePermissions;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
@@ -20,7 +22,7 @@ public class GiveRoomKeyCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(
                 CommandManager.literal("wathe:giveRoomKey")
-                        .requires(source -> source.hasPermissionLevel(2))
+                        .requires(Permissions.require(WathePermissions.COMMAND_GIVE_ROOM_KEY, WathePermissions.DEFAULT_COMMAND_LEVEL))
                         .then(
                                 CommandManager.argument("roomName", StringArgumentType.string())
                                         .executes(context -> giveRoomKey(

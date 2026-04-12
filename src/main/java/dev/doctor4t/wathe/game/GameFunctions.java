@@ -26,6 +26,8 @@ import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.index.WatheSounds;
 import dev.doctor4t.wathe.util.AnnounceEndingPayload;
 import dev.doctor4t.wathe.record.GameRecordManager;
+import dev.doctor4t.wathe.util.WathePermissions;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -183,7 +185,7 @@ public class GameFunctions {
 
         // kick non playing players
         for (ServerPlayerEntity player : serverWorld.getPlayers(serverPlayerEntity -> !players.contains(serverPlayerEntity))) {
-            if(player.hasPermissionLevel(1)){
+            if(Permissions.check(player, WathePermissions.SPECTATE, 1)){
                 player.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
                 TrainVoicePlugin.addPlayer(player.getUuid());
                 MapVariablesWorldComponent.PosWithOrientation spectatorSpawnPos = areas.getSpectatorSpawnPos();

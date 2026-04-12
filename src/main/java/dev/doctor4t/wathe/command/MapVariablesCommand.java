@@ -11,6 +11,8 @@ import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.MapVariablesWorldComponent;
 import dev.doctor4t.wathe.command.argument.GameModeArgumentType;
 import dev.doctor4t.wathe.command.argument.MapEffectArgumentType;
+import dev.doctor4t.wathe.util.WathePermissions;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.command.argument.PosArgument;
 import net.minecraft.command.argument.RotationArgumentType;
 import net.minecraft.command.argument.Vec3ArgumentType;
@@ -29,7 +31,7 @@ public class MapVariablesCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(
                 CommandManager.literal("wathe:mapVariables")
-                        .requires(source -> source.hasPermissionLevel(2))
+                        .requires(Permissions.require(WathePermissions.COMMAND_MAP_VARIABLES, WathePermissions.DEFAULT_COMMAND_LEVEL))
                         .then(CommandManager.literal("help")
                                 .executes(
                                         context -> sendHelp(

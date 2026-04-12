@@ -5,6 +5,8 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.cca.PlayerShopComponent;
+import dev.doctor4t.wathe.util.WathePermissions;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.command.CommandManager;
@@ -16,7 +18,7 @@ public class SetMoneyCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(
                 CommandManager.literal("wathe:setMoney")
-                        .requires(source -> source.hasPermissionLevel(2))
+                        .requires(Permissions.require(WathePermissions.COMMAND_SET_MONEY, WathePermissions.DEFAULT_COMMAND_LEVEL))
                         .then(
                                 CommandManager.argument("amount", IntegerArgumentType.integer(0))
                                         .executes(context -> execute(context.getSource(), ImmutableList.of(context.getSource().getEntityOrThrow()), IntegerArgumentType.getInteger(context, "amount")))

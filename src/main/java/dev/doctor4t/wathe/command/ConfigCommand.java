@@ -4,7 +4,9 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.WatheConfig;
+import dev.doctor4t.wathe.util.WathePermissions;
 import eu.midnightdust.lib.config.MidnightConfig;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -13,7 +15,7 @@ public class ConfigCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(
                 CommandManager.literal("wathe:config")
-                        .requires(source -> source.hasPermissionLevel(2))
+                        .requires(Permissions.require(WathePermissions.COMMAND_CONFIG, WathePermissions.DEFAULT_COMMAND_LEVEL))
                         .then(CommandManager.literal("reload")
                                 .executes(context -> reloadConfig(context.getSource()))
                         )

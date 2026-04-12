@@ -1,10 +1,7 @@
 package dev.doctor4t.wathe.mixin.client.restrictions;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import dev.doctor4t.wathe.cca.MapEnhancementsWorldComponent;
-import dev.doctor4t.wathe.cca.PlayerStaminaComponent;
 import dev.doctor4t.wathe.client.WatheClient;
-import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.JumpConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import org.spongepowered.asm.mixin.Mixin;
@@ -26,28 +23,7 @@ public abstract class KeyBindingMixin {
                     this.equals(MinecraftClient.getInstance().options.commandKey);
         }
         if(result) return result;
-        //游戏开始之后根据地图配置决定是否屏蔽跳跃键
-        if (WatheClient.gameComponent != null && WatheClient.gameComponent.isRunning() && WatheClient.isPlayerPlayingAndAlive()){
-            if (WatheClient.mapEnhancementsWorldComponent != null) {
-                JumpConfig jumpConfig = WatheClient.mapEnhancementsWorldComponent.getJumpConfig();
-                if (!jumpConfig.allowed()) {
-                    // 不允许跳跃
-                    result = this.equals(MinecraftClient.getInstance().options.jumpKey);
-                } else if (jumpConfig.staminaCost() > 0 && this.equals(MinecraftClient.getInstance().options.jumpKey)) {
-                    // 允许跳跃但需要体力，体力不足时屏蔽
-                    var player = MinecraftClient.getInstance().player;
-                    if (player != null) {
-                        PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(player);
-                        // 非无限体力时，体力不足则屏蔽跳跃键
-                        if (!stamina.isInfiniteStamina()) {
-                            result = stamina.getSprintingTicks() < jumpConfig.staminaCost();
-                        }
-                    }
-                }
-            } else {
-                result = this.equals(MinecraftClient.getInstance().options.jumpKey);
-            }
-        }
+        // 跳跃限制由服务端 LivingEntityMixin.wathe$restrictJump 处理，客户端不再屏蔽跳跃键
         //其他键位始终不允许，防止出现bug
         if (!result && WatheClient.isPlayerPlayingAndAlive() && WatheClient.trainComponent != null && WatheClient.trainComponent.hasHud()) {
             result = this.equals(MinecraftClient.getInstance().options.swapHandsKey) ||

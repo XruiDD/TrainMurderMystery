@@ -275,6 +275,12 @@ public class WatheLangGen extends FabricLanguageProvider {
         builder.add("death_reason.wathe.escaped", "Escaped");
         builder.add("death_reason.wathe.shot_innocent", "Accidental Kill");
         builder.add("death_reason.wathe.mental_breakdown", "Mental Breakdown");
+        builder.add("death_reason.wathe.drowned", "Drowned");
+
+        // Drowning warnings
+        builder.add("warning.wathe.drowning.mild", "You're struggling to breathe...");
+        builder.add("warning.wathe.drowning.severe", "You're about to suffocate!");
+        builder.add("warning.wathe.drowning.critical", "You're drowning!!");
 
         // Disconnect messages
         builder.add("disconnect.wathe.version_mismatch", "Mod version mismatch! Server: %s, Client: %s");

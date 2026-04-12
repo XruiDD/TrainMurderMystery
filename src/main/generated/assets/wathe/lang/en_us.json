@@ -288,6 +288,7 @@
   "container.cargo_box": "Cargo Box",
   "credits.wathe.thank_you": "Thank you for playing The Last Voyage of the Harpy Express!\nMe and my team spent a lot of time working\non this mod and we hope you enjoy it.\nIf you do and wish to make a video or stream\nplease make sure to credit my channel,\nvideo and the mod page!\n - RAT / doctor4t",
   "death_reason.wathe.bat_hit": "Bat Hit",
+  "death_reason.wathe.drowned": "Drowned",
   "death_reason.wathe.escaped": "Escaped",
   "death_reason.wathe.fell_out_of_train": "Fell off the Train",
   "death_reason.wathe.generic": "Unknown",
@@ -493,5 +494,8 @@
   "wathe.midnightconfig.snowflakeChance.tooltip": "Controls the spawn chance of snowflake particles.\n0 = Off, 100 = Maximum.",
   "wathe.midnightconfig.title": "The Harpy Express - Final Voyage - Config",
   "wathe.midnightconfig.ultraPerfMode": "Ultra Performance Mode",
-  "wathe.midnightconfig.ultraPerfMode.tooltip": "Disables scenery for a worse visual experience but maximum performance. Lowers render distance to 2."
+  "wathe.midnightconfig.ultraPerfMode.tooltip": "Disables scenery for a worse visual experience but maximum performance. Lowers render distance to 2.",
+  "warning.wathe.drowning.critical": "You're drowning!!",
+  "warning.wathe.drowning.mild": "You're struggling to breathe...",
+  "warning.wathe.drowning.severe": "You're about to suffocate!"
 }

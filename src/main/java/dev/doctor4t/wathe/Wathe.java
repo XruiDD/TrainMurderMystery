@@ -72,6 +72,9 @@ public class Wathe implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        // Load config (server-side)
+        WatheConfig.init(MOD_ID, WatheConfig.class);
+
         // Init constants
         GameConstants.init();
 

@@ -3,6 +3,11 @@ package dev.doctor4t.wathe;
 import eu.midnightdust.lib.config.MidnightConfig;
 
 public class WatheConfig extends MidnightConfig {
+    // Server-side settings
+    @Entry
+    public static boolean ignoreMapPlayerLimit = true;
+
+    // Client-side settings
     @Entry
     public static boolean disableScreenShake = false;
 

@@ -477,6 +477,8 @@
   "wathe.map_variables.help": "    gameModeAndMapEffect: The default game mode and map effect the map will use (with auto-start or when using the train horn).\n    spawnPos: The spawn position and orientation players will be reset to once the game ends.\n    spectatorSpawnPos: The spawn position and orientation players will be set to when set as spectators at the start of a game.\n    readyArea: The lobby area which players need to be in to be selected for a game.\n    snowflakeCollider: A box that removes snow particles for players playing on 'Snow particles mode: Box Collider'.\n    playAreaOffset: The offset players will be teleported by from the ready area into the play area.\n    playArea: The play area outside which players will be eliminated.\n    resetTemplateArea: The template that will be copied over the play area in order to reset the map.\n    resetPasteOffset: The offset at which the template should be pasted.\n",
   "wathe.map_variables.set": "Map variable %s successfully set to %s",
   "wathe.midnightconfig.disableScreenShake": "Disable Screen Shake",
+  "wathe.midnightconfig.ignoreMapPlayerLimit": "Ignore Map Player Limit",
+  "wathe.midnightconfig.ignoreMapPlayerLimit.tooltip": "When enabled, map player count limits are treated as recommendations only. All maps will be available for voting regardless of player count.",
   "wathe.midnightconfig.enum.SnowModeConfig.BOX_COLLIDER": "Box Collider",
   "wathe.midnightconfig.enum.SnowModeConfig.NO_OPTIMIZATION": "Default",
   "wathe.midnightconfig.enum.SnowModeConfig.TURN_OFF": "No particles",

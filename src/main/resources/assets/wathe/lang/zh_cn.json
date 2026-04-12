@@ -385,6 +385,8 @@
   "wathe.map_variables.help": "    gameModeAndMapEffect：地图默认使用的游戏模式与地图效果（自动开始或使用列车汽笛时生效）。\n    spawnPos：游戏结束后，玩家被重置到的出生位置与朝向。\n    spectatorSpawnPos：游戏开始时，被设为旁观者的玩家所处的出生位置与朝向。\n    readyArea：准备大厅区域，玩家需要位于该区域内才会被选入游戏。\n    playAreaOffset：玩家从准备大厅传送至游玩区域时所应用的传送偏移量。\n    playArea：游玩区域，离开该区域的玩家将被淘汰。\n    resetTemplateArea：用于重置地图的模板区域，会被复制覆盖至游玩区域。\n    resetPasteOffset：重置模板粘贴时所使用的偏移量。\n",
   "wathe.map_variables.set": "已将地图变量 %s 设置为 %s。",
   "wathe.midnightconfig.disableScreenShake": "禁用屏幕震动",
+  "wathe.midnightconfig.ignoreMapPlayerLimit": "无视地图人数限制",
+  "wathe.midnightconfig.ignoreMapPlayerLimit.tooltip": "开启后，地图的人数限制仅作为推荐，所有地图在投票时均可选择。",
   "wathe.midnightconfig.title": "哈比特快号的最后航程 - 配置",
   "wathe.midnightconfig.enum.SnowModeConfig.BOX_COLLIDER": "碰撞优化",
   "wathe.midnightconfig.enum.SnowModeConfig.NO_OPTIMIZATION": "默认",

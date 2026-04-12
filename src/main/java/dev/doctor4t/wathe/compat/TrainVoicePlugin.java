@@ -10,6 +10,7 @@ import de.maxhenkel.voicechat.api.events.EventRegistration;
 import de.maxhenkel.voicechat.api.events.MicrophonePacketEvent;
 import de.maxhenkel.voicechat.api.events.VoicechatServerStartedEvent;
 import dev.doctor4t.wathe.Wathe;
+import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheDataComponentTypes;
 import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.item.WalkieTalkieItem;
@@ -94,7 +95,7 @@ public class TrainVoicePlugin implements VoicechatPlugin {
 
         for (ServerPlayerEntity receiver : sourcePlayer.getServer().getPlayerManager().getPlayerList()) {
             if (receiver == sourcePlayer) continue;
-            if (receiver.isSpectator()) continue;
+            if (!GameFunctions.isPlayerPlayingAndAlive(receiver)) continue;
             if (!isReceivingChannel(receiver, senderChannel)) continue;
 
             VoicechatConnection receiverConnection = serverApi.getConnectionOf(receiver.getUuid());

@@ -1,6 +1,7 @@
 package dev.doctor4t.wathe.cca;
 
 import dev.doctor4t.wathe.Wathe;
+import dev.doctor4t.wathe.WatheConfig;
 import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import dev.doctor4t.wathe.config.datapack.MapRegistry;
 import dev.doctor4t.wathe.config.datapack.MapRegistryEntry;
@@ -275,7 +276,7 @@ public class MapVotingComponent implements AutoSyncedComponent, ServerTickingCom
             onlinePlayers += world.getPlayers().size();
         }
 
-        if (onlinePlayers < MIN_PLAYERS_FOR_GAME) {
+        if (!WatheConfig.ignoreMapPlayerLimit && onlinePlayers < MIN_PLAYERS_FOR_GAME) {
             // Not enough players, reset timer and wait
             this.votingTicksRemaining = VOTING_DURATION_TICKS;
             Wathe.LOGGER.info("Not enough players ({}/{}) for voting result, resetting timer",
@@ -404,7 +405,7 @@ public class MapVotingComponent implements AutoSyncedComponent, ServerTickingCom
             for (ServerWorld world : server.getWorlds()) {
                 onlinePlayers += world.getPlayers().size();
             }
-            if (onlinePlayers >= MIN_PLAYERS_FOR_GAME && votingTicksRemaining <= 0) {
+            if ((WatheConfig.ignoreMapPlayerLimit || onlinePlayers >= MIN_PLAYERS_FOR_GAME) && votingTicksRemaining <= 0) {
                 votingTicksRemaining = VOTING_DURATION_TICKS;
                 this.sync();
             }

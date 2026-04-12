@@ -13,6 +13,7 @@ import dev.doctor4t.wathe.cca.MapEnhancementsWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
 import dev.doctor4t.wathe.cca.PlayerStaminaComponent;
+import dev.doctor4t.wathe.cca.TrainWorldComponent;
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.MovementConfig;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
@@ -219,6 +220,15 @@ public abstract class PlayerEntityMixin extends LivingEntity {
         if (this.poisonSleepTask != null) {
             this.poisonSleepTask.cancel();
             this.poisonSleepTask = null;
+        }
+    }
+
+    @Inject(method = "trySleep", at = @At("HEAD"), cancellable = true)
+    private void wathe$preventSleepWhenHudActive(BlockPos pos, CallbackInfoReturnable<Either<PlayerEntity.SleepFailureReason, Unit>> cir) {
+        GameWorldComponent gameComponent = GameWorldComponent.KEY.get(this.getWorld());
+        TrainWorldComponent trainComponent = TrainWorldComponent.KEY.get(this.getWorld());
+        if (!gameComponent.isRunning() && trainComponent.hasHud()) {
+            cir.setReturnValue(Either.left(PlayerEntity.SleepFailureReason.OTHER_PROBLEM));
         }
     }
 

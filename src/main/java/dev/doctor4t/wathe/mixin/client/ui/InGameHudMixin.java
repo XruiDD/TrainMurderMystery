@@ -84,7 +84,7 @@ public class InGameHudMixin {
 
     @WrapMethod(method = "renderPlayerList")
     private void wathe$removePlayerList(DrawContext context, RenderTickCounter tickCounter, Operation<Void> original) {
-        if (!WatheClient.isPlayerAliveAndInSurvival() || WatheClient.trainComponent == null || !WatheClient.trainComponent.hasHud()) original.call(context, tickCounter);
+        if ((!WatheClient.isPlayerAliveAndInSurvival() && !WatheClient.isPlayerPlayingAndAlive()) || WatheClient.trainComponent == null || !WatheClient.trainComponent.hasHud()) original.call(context, tickCounter);
     }
 
     @WrapMethod(method = "renderExperienceLevel")

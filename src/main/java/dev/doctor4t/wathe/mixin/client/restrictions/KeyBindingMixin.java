@@ -1,6 +1,7 @@
 package dev.doctor4t.wathe.mixin.client.restrictions;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import dev.doctor4t.wathe.api.event.ShouldAllowSuppressedKey;
 import dev.doctor4t.wathe.client.WatheClient;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
@@ -23,14 +24,18 @@ public abstract class KeyBindingMixin {
                     this.equals(MinecraftClient.getInstance().options.commandKey);
         }
         if(result) return result;
-        // 跳跃限制由服务端 LivingEntityMixin.wathe$restrictJump 处理，客户端不再屏蔽跳跃键
-        //其他键位始终不允许，防止出现bug
+        //游戏进行中屏蔽部分键位，防止出现bug
         if (!result && WatheClient.isPlayerPlayingAndAlive() && WatheClient.trainComponent != null && WatheClient.trainComponent.hasHud()) {
-            result = this.equals(MinecraftClient.getInstance().options.swapHandsKey) ||
+            result = this.equals(MinecraftClient.getInstance().options.jumpKey) ||
+                    this.equals(MinecraftClient.getInstance().options.swapHandsKey) ||
                     this.equals(MinecraftClient.getInstance().options.togglePerspectiveKey) ||
                     this.equals(MinecraftClient.getInstance().options.dropKey) ||
                     this.equals(MinecraftClient.getInstance().options.advancementsKey) ||
                     this.equals(MinecraftClient.getInstance().options.spectatorOutlinesKey);
+        }
+        // 允许附属模组豁免被屏蔽的按键（如灵界使者灵魂状态需要跳跃键）
+        if (result && ShouldAllowSuppressedKey.EVENT.invoker().shouldAllow((KeyBinding) (Object) this)) {
+            return false;
         }
         return result;
     }

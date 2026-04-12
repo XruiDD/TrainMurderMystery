@@ -36,6 +36,7 @@ public interface GameConstants {
         ITEM_COOLDOWNS.put(WatheItems.BLACKOUT, getInTicks(3, 0));
     }
 
+    int DOOR_TOGGLE_COOLDOWN = 20; // 1秒开关冷却，防止快速点击卡bug
     int JAMMED_DOOR_TIME = getInTicks(1, 0);
 
     // Corpses

@@ -154,6 +154,12 @@ public class GameFunctions {
 
         GameEvents.ON_FINISH_INITIALIZE.invoker().onFinishInitialize(serverWorld, gameComponent);
         gameComponent.setGameStatus(GameWorldComponent.GameStatus.ACTIVE);
+
+        // 游戏变为 ACTIVE 后 getMaxAir() 返回 1200，此时将所有玩家空气值设满
+        for (ServerPlayerEntity player : readyPlayerList) {
+            player.setAir(player.getMaxAir());
+        }
+
         gameComponent.sync();
     }
 
@@ -485,7 +491,6 @@ public class GameFunctions {
         PlayerVeteranComponent.KEY.get(player).reset();
         TrainVoicePlugin.resetPlayer(player.getUuid());
         player.changeGameMode(net.minecraft.world.GameMode.ADVENTURE);
-        player.setAir(player.getMaxAir());
         player.wakeUp();
         MapVariablesWorldComponent.PosWithOrientation spawnPos = MapVariablesWorldComponent.KEY.get(player.getWorld()).getSpawnPos();
         TeleportTarget teleportTarget = new TeleportTarget(player.getServerWorld(), spawnPos.pos, Vec3d.ZERO, spawnPos.yaw, spawnPos.pitch, TeleportTarget.NO_OP);

@@ -81,7 +81,7 @@ dependencies {
 	// Midnightlib
 	modIncludeImplementation "maven.modrinth:midnightlib:${project.midnightlib_version}"
 	// Fabric Permissions API
-	modImplementation(include("me.lucko:fabric-permissions-api:0.3.3"))
+	modImplementation(include("me.lucko:fabric-permissions-api:0.3.1"))
 
 	// Runtime mods
 	modLocalImplementation "com.terraformersmc:modmenu:${mod_menu_version}"

@@ -56,14 +56,7 @@ public abstract class DoorBlockEntity extends SyncingBlockEntity {
     }
 
     public void toggle(boolean silent) {
-        toggle(silent, false);
-    }
-
-    public void toggle(boolean silent, boolean force) {
-        if (this.world == null || this.isBlasted()) {
-            return;
-        }
-        if (!force && this.world.getTime() - this.lastUpdate < GameConstants.DOOR_TOGGLE_COOLDOWN) {
+        if (this.world == null || this.world.getTime() == this.lastUpdate || this.isBlasted()) {
             return;
         }
         this.toggleOpen();
@@ -164,7 +157,7 @@ public abstract class DoorBlockEntity extends SyncingBlockEntity {
     public void jam() {
         this.setJammed(GameConstants.JAMMED_DOOR_TIME);
         if (this.open) {
-            this.toggle(false, true);
+            this.toggle(false);
         }
         if (this.world != null && !this.world.isClient()) {
             DoorStateChanged.JAM.invoker().onStateChanged(this.world, this.pos, this);
@@ -173,7 +166,7 @@ public abstract class DoorBlockEntity extends SyncingBlockEntity {
 
     public void blast() {
         if (!this.open) {
-            this.toggle(false, true);
+            this.toggle(false);
         }
         this.setBlasted(true);
         if (this.world != null && !this.world.isClient()) {

@@ -560,8 +560,10 @@ public class GameFunctions {
             }
         }
 
+        boolean killerFactionRewarded = false;
         if (moneyRecipient != null) {
             if (GameWorldComponent.KEY.get(moneyRecipient.getWorld()).canUseKillerFeatures(moneyRecipient)) {
+                killerFactionRewarded = true;
                 PlayerShopComponent.KEY.get(moneyRecipient).addToBalance(GameConstants.MONEY_PER_KILL);
 
                 // 给杀手团队中除奖励对象以外的存活队友每人加钱
@@ -574,6 +576,29 @@ public class GameFunctions {
                     ServerPlayerEntity teammate = server.getPlayerManager().getPlayer(teammateUuid);
                     if (teammate != null) {
                         PlayerShopComponent.KEY.get(teammate).addToBalance(GameConstants.MONEY_PER_KILL_TEAMMATE);
+                    }
+                }
+            }
+        }
+
+        // 非杀手击杀且未被下毒：杀手阵营存活者平分金币池
+        if (!killerFactionRewarded) {
+            GameWorldComponent gameWorld = GameWorldComponent.KEY.get(victim.getWorld());
+            List<UUID> killerTeam = gameWorld.getAllKillerTeamPlayers();
+            MinecraftServer server = victim.getServer();
+            List<ServerPlayerEntity> aliveKillers = new java.util.ArrayList<>();
+            for (UUID killerUuid : killerTeam) {
+                if (gameWorld.isPlayerDead(killerUuid)) continue;
+                ServerPlayerEntity killerPlayer = server.getPlayerManager().getPlayer(killerUuid);
+                if (killerPlayer != null) {
+                    aliveKillers.add(killerPlayer);
+                }
+            }
+            if (!aliveKillers.isEmpty()) {
+                int share = GameConstants.MONEY_NON_KILLER_KILL_POOL / aliveKillers.size();
+                if (share > 0) {
+                    for (ServerPlayerEntity aliveKiller : aliveKillers) {
+                        PlayerShopComponent.KEY.get(aliveKiller).addToBalance(share);
                     }
                 }
             }

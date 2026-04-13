@@ -407,6 +407,7 @@
   "replay.death.wathe.shot_innocent.died": "%s died from §ckilling an innocent§r",
   "replay.death.wathe.shot_innocent.killed": "%s was §ckilled by mistake§r by %s",
   "replay.death.wathe.vanilla_death.died": "%s died in an §caccident§r",
+  "replay.death.wathe.drowned.died": "%s §1drowned§r",
   "replay.footer": "--- Replay End ---",
   "replay.global.unknown": "A §dglobal event§r occurred",
   "replay.item_pickup": "%s picked up %s",

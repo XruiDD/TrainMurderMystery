@@ -498,6 +498,7 @@
   "replay.death.wathe.shot_innocent.died": "%s 因§c誤殺無辜§r而死",
   "replay.death.wathe.mental_breakdown.died": "%s §c精神崩潰§r",
   "replay.death.wathe.vanilla_death.died": "%s 死於§c意外事故§r",
+  "replay.death.wathe.drowned.died": "%s §1溺亡§r",
   "replay.death.unknown.killed": "%s 被 %s 殺死",
   "replay.death.unknown.died": "%s 死亡",
 

@@ -306,6 +306,8 @@ public class WatheLangGen extends FabricLanguageProvider {
         builder.add("replay.death.wathe.shot_innocent.killed", "%s was §ckilled by mistake§r by %s");
         builder.add("replay.death.wathe.shot_innocent.died", "%s died from §ckilling an innocent§r");
         builder.add("replay.death.wathe.mental_breakdown.died", "%s suffered a §cmental breakdown§r");
+        builder.add("replay.death.wathe.vanilla_death.died", "%s died in an §caccident§r");
+        builder.add("replay.death.wathe.drowned.died", "%s §1drowned§r");
         builder.add("replay.death.unknown.killed", "%s was killed by %s");
         builder.add("replay.death.unknown.died", "%s died");
         builder.add("replay.shop_purchase", "%s purchased %s for §6%d§r coin");

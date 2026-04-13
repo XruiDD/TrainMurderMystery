@@ -191,28 +191,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
 
     @Inject(method = "eatFood", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/HungerManager;eat(Lnet/minecraft/component/type/FoodComponent;)V", shift = At.Shift.AFTER))
     private void wathe$poisonedFoodEffect(@NotNull World world, ItemStack stack, FoodComponent foodComponent, CallbackInfoReturnable<ItemStack> cir) {
-        if (world.isClient) return;
-        String poisoner = stack.getOrDefault(WatheDataComponentTypes.POISONER, null);
-        if (poisoner != null) {
-            NbtCompound recordExtra = new NbtCompound();
-            recordExtra.putString("item", Registries.ITEM.getId(stack.getItem()).toString());
-            int poisonTicks = PlayerPoisonComponent.KEY.get(this).poisonTicks;
-            if (poisonTicks == -1) {
-                PlayerPoisonComponent.KEY.get(this).setPoisonTicks(
-                        world.getRandom().nextBetween(PlayerPoisonComponent.clampTime.getLeft(), PlayerPoisonComponent.clampTime.getRight()),
-                        UUID.fromString(poisoner),
-                        GameConstants.PoisonSources.FOOD,
-                        recordExtra
-                );
-            } else {
-                PlayerPoisonComponent.KEY.get(this).setPoisonTicks(
-                        MathHelper.clamp(poisonTicks - world.getRandom().nextBetween(100, 300), 0, PlayerPoisonComponent.clampTime.getRight()),
-                        UUID.fromString(poisoner),
-                        GameConstants.PoisonSources.FOOD,
-                        recordExtra
-                );
-            }
-        }
+        PoisonUtils.applyFoodPoison((PlayerEntity) (Object) this, stack);
     }
 
     @Inject(method = "wakeUp(ZZ)V", at = @At("HEAD"))

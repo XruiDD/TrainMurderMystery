@@ -4,6 +4,7 @@ import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.block_entity.TrimmedBedBlockEntity;
 import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
 import dev.doctor4t.wathe.game.GameConstants;
+import dev.doctor4t.wathe.index.WatheDataComponentTypes;
 import dev.doctor4t.wathe.record.GameRecordManager;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -16,6 +17,9 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
@@ -27,6 +31,39 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 public class PoisonUtils {
+
+    /**
+     * 检查食物/饮品是否带毒，如果带毒则对目标施加中毒效果。
+     * 适用于玩家自己食用和乘务员喂食等场景。
+     *
+     * @param target 被施加中毒的玩家
+     * @param stack  被消耗的食物/饮品 ItemStack
+     */
+    public static void applyFoodPoison(PlayerEntity target, ItemStack stack) {
+        if (target.getWorld().isClient()) return;
+        String poisoner = stack.getOrDefault(WatheDataComponentTypes.POISONER, null);
+        if (poisoner == null) return;
+
+        NbtCompound recordExtra = new NbtCompound();
+        recordExtra.putString("item", Registries.ITEM.getId(stack.getItem()).toString());
+        World world = target.getWorld();
+        int poisonTicks = PlayerPoisonComponent.KEY.get(target).poisonTicks;
+        if (poisonTicks == -1) {
+            PlayerPoisonComponent.KEY.get(target).setPoisonTicks(
+                    world.getRandom().nextBetween(PlayerPoisonComponent.clampTime.getLeft(), PlayerPoisonComponent.clampTime.getRight()),
+                    UUID.fromString(poisoner),
+                    GameConstants.PoisonSources.FOOD,
+                    recordExtra
+            );
+        } else {
+            PlayerPoisonComponent.KEY.get(target).setPoisonTicks(
+                    MathHelper.clamp(poisonTicks - world.getRandom().nextBetween(100, 300), 0, PlayerPoisonComponent.clampTime.getRight()),
+                    UUID.fromString(poisoner),
+                    GameConstants.PoisonSources.FOOD,
+                    recordExtra
+            );
+        }
+    }
     public static float getFovMultiplier(float tickDelta, PlayerPoisonComponent poisonComponent) {
         if (!poisonComponent.pulsing) return 1f;
 

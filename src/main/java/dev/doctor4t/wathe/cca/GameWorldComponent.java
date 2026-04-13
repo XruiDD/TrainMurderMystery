@@ -473,7 +473,12 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
 
     // Role enabled/disabled management
     public boolean isRoleEnabled(Role role) {
-        return !disabledRoles.contains(role.identifier());
+        if (disabledRoles.contains(role.identifier())) return false;
+        if (role.isMapSpecific()) {
+            MapEnhancementsWorldComponent mapComp = MapEnhancementsWorldComponent.KEY.get(world);
+            return mapComp.getEnabledSpecialRoles().contains(role.identifier().toString());
+        }
+        return true;
     }
 
     public void setRoleEnabled(Role role, boolean enabled) {

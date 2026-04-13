@@ -12,6 +12,7 @@ import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.GravityCo
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.MovementConfig;
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.JumpConfig;
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.AmbienceConfig;
+import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.SpecialRolesConfig;
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfigurationManager;
 import dev.doctor4t.wathe.config.datapack.RoomConfig;
 import net.minecraft.nbt.NbtCompound;
@@ -144,6 +145,17 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
         }
         MapEnhancementsConfiguration config = getConfigForCurrentWorld();
         return config != null ? config.getAmbienceOrDefault() : AmbienceConfig.DEFAULT;
+    }
+
+    /**
+     * 获取该地图启用的特殊角色ID列表
+     */
+    public java.util.List<String> getEnabledSpecialRoles() {
+        MapEnhancementsConfiguration config = getConfigForCurrentWorld();
+        if (config != null) {
+            return config.getSpecialRolesOrDefault().enabledRoles();
+        }
+        return java.util.List.of();
     }
 
     // ========== 房间配置相关方法（仅服务端）==========

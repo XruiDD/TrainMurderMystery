@@ -3,6 +3,7 @@ package dev.doctor4t.wathe.mixin;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import dev.doctor4t.wathe.api.event.MaxAir;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.entity.Entity;
@@ -30,7 +31,7 @@ public class EntityMixin {
     @ModifyReturnValue(method = "getMaxAir", at = @At("RETURN"))
     private int wathe$modifyMaxAir(int original) {
         if ((Object) this instanceof PlayerEntity self && GameFunctions.isPlayerPlayingAndAlive(self)) {
-            return 1200;
+            return MaxAir.EVENT.invoker().modifyMaxAir(self, 1200);
         }
         return original;
     }

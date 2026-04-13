@@ -6,6 +6,8 @@
   "_comment_ambience": "ambience: inside_sound/outside_sound 配置室内/室外环境音（默认为列车音效），设为空字符串 '' 可关闭",
   "_comment_gravity": "gravity: 重力倍率，1.0 为默认重力（0.08），0.5 为半重力（月球），2.0 为双倍重力",
   "_comment_ambience2": "require_train_moving: 默认 true（列车地图），非列车地图需设为 false 才能播放环境音",
+  "_comment_special_roles": "special_roles: 启用地图专属角色（标记为 mapSpecific 的角色默认关闭，需在此处显式启用）",
+  "_comment_special_roles2": "enabled_roles: 角色ID列表，例如 'noellesroles:mermaid' 在有水的地图中启用鲛人角色",
 
   "dimension": "wathe:mansion",
   "display_name": "庄园",
@@ -34,6 +36,10 @@
       "require_train_moving": false,
       "inside_sound": "",
       "outside_sound": "wathe:ambient.ship.outside"
+    },
+
+    "special_roles": {
+      "enabled_roles": ["noellesroles:mermaid"]
     }
   }
 }

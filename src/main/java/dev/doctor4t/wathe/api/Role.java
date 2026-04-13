@@ -11,6 +11,7 @@ public final class Role {
     private final int maxSprintTime;
     private final boolean canSeeTime;
     private RoleAppearanceCondition appearanceCondition = RoleAppearanceCondition.ALWAYS;
+    private boolean mapSpecific = false;
 
     public enum MoodType {
         NONE, REAL, FAKE
@@ -83,6 +84,24 @@ public final class Role {
      */
     public Faction getFaction() {
         return Faction.fromRole(this);
+    }
+
+    /**
+     * 标记此角色为地图专属角色。
+     * 地图专属角色默认关闭，仅当地图配置中 special_roles.enabled_roles 包含此角色ID时才会启用。
+     *
+     * @return this role for method chaining
+     */
+    public Role setMapSpecific(boolean mapSpecific) {
+        this.mapSpecific = mapSpecific;
+        return this;
+    }
+
+    /**
+     * @return 此角色是否为地图专属角色
+     */
+    public boolean isMapSpecific() {
+        return mapSpecific;
     }
 
     /**

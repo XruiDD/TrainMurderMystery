@@ -36,7 +36,9 @@ public record MapEnhancementsConfiguration(
     Optional<GravityConfig> gravity,
     Optional<MovementConfig> movement,
     Optional<JumpConfig> jump,
-    Optional<AmbienceConfig> ambience
+    Optional<AmbienceConfig> ambience,
+    // 特殊角色开关
+    Optional<SpecialRolesConfig> specialRoles
 ) {
 
     /**
@@ -260,6 +262,19 @@ public record MapEnhancementsConfiguration(
         }
     }
 
+    /**
+     * 特殊角色配置
+     * 列出该地图启用的特殊角色ID（默认关闭的角色可通过此配置启用）
+     * 例如: { "enabled_roles": ["noellesroles:mermaid"] }
+     */
+    public record SpecialRolesConfig(List<String> enabledRoles) {
+        public static final SpecialRolesConfig DEFAULT = new SpecialRolesConfig(List.of());
+
+        public static final Codec<SpecialRolesConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.STRING.listOf().optionalFieldOf("enabled_roles", List.of()).forGetter(SpecialRolesConfig::enabledRoles)
+        ).apply(instance, SpecialRolesConfig::new));
+    }
+
     public static final Codec<MapEnhancementsConfiguration> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         RoomConfig.CODEC.listOf().optionalFieldOf("rooms", List.of()).forGetter(MapEnhancementsConfiguration::rooms),
         // 可选的渲染配置
@@ -273,7 +288,9 @@ public record MapEnhancementsConfiguration(
         GravityConfig.CODEC.optionalFieldOf("gravity").forGetter(MapEnhancementsConfiguration::gravity),
         MovementConfig.CODEC.optionalFieldOf("movement").forGetter(MapEnhancementsConfiguration::movement),
         JumpConfig.CODEC.optionalFieldOf("jump").forGetter(MapEnhancementsConfiguration::jump),
-        AmbienceConfig.CODEC.optionalFieldOf("ambience").forGetter(MapEnhancementsConfiguration::ambience)
+        AmbienceConfig.CODEC.optionalFieldOf("ambience").forGetter(MapEnhancementsConfiguration::ambience),
+        // 特殊角色开关
+        SpecialRolesConfig.CODEC.optionalFieldOf("special_roles").forGetter(MapEnhancementsConfiguration::specialRoles)
     ).apply(instance, MapEnhancementsConfiguration::new));
 
     // ========== 便捷获取方法（带默认值）==========
@@ -312,6 +329,10 @@ public record MapEnhancementsConfiguration(
 
     public AmbienceConfig getAmbienceOrDefault() {
         return ambience.orElse(AmbienceConfig.DEFAULT);
+    }
+
+    public SpecialRolesConfig getSpecialRolesOrDefault() {
+        return specialRoles.orElse(SpecialRolesConfig.DEFAULT);
     }
 
     // ========== 房间配置相关方法 ==========

@@ -8,8 +8,8 @@ import dev.doctor4t.wathe.client.WatheClient;
 import dev.doctor4t.wathe.entity.NoteEntity;
 import dev.doctor4t.wathe.entity.PlayerBodyEntity;
 import dev.doctor4t.wathe.api.event.CanSeeBodyRole;
+import dev.doctor4t.wathe.api.event.CanTargetBody;
 import dev.doctor4t.wathe.api.event.ShouldShowCohort;
-import dev.doctor4t.wathe.client.WatheClient;
 import dev.doctor4t.wathe.game.GameFunctions;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -107,7 +107,7 @@ public class RoleNameRenderer {
         // 尸体角色显示逻辑：检测玩家是否在看尸体
         boolean canSeeFullBodyInfo = false;
         boolean canSeeEscapedDeathReason = false;
-        if (ProjectileUtil.getCollision(player, entity -> entity instanceof PlayerBodyEntity, range) instanceof EntityHitResult ehr && ehr.getEntity() instanceof PlayerBodyEntity body) {
+        if (ProjectileUtil.getCollision(player, entity -> entity instanceof PlayerBodyEntity b && CanTargetBody.EVENT.invoker().canTarget(player, b), range) instanceof EntityHitResult ehr && ehr.getEntity() instanceof PlayerBodyEntity body) {
             UUID deadPlayerUuid = body.getPlayerUuid();
             Identifier currentDeathReason = body.getDeathReason();
             // 检查死因是否是"退出游戏"（escaped），所有人都能看到

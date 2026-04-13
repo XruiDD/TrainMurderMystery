@@ -20,6 +20,12 @@ public abstract class KeyBindingMixin {
 
     @Unique
     private boolean shouldSuppressKey() {
+        // 允许附属模组豁免被屏蔽的按键（如灵界使者灵魂状态需要跳跃键）
+        // 事件优先级最高，返回 true 则直接放行
+        if (ShouldAllowSuppressedKey.EVENT.invoker().shouldAllow((KeyBinding) (Object) this)) {
+            return false;
+        }
+
         boolean result = false;
         //在大厅聊天，在游戏内不可以，旁观和创造始终可以
         if (WatheClient.shouldDisableChat()) {
@@ -39,7 +45,10 @@ public abstract class KeyBindingMixin {
                     var player = MinecraftClient.getInstance().player;
                     if (player != null) {
                         PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(player);
-                        result = stamina.getSprintingTicks() < jumpConfig.staminaCost();
+                        // 非无限体力时，体力不足则屏蔽跳跃键
+                        if (!stamina.isInfiniteStamina()) {
+                            result = stamina.getSprintingTicks() < jumpConfig.staminaCost();
+                        }
                     }
                 }
             } else {
@@ -53,10 +62,6 @@ public abstract class KeyBindingMixin {
                     this.equals(MinecraftClient.getInstance().options.dropKey) ||
                     this.equals(MinecraftClient.getInstance().options.advancementsKey) ||
                     this.equals(MinecraftClient.getInstance().options.spectatorOutlinesKey);
-        }
-        // 允许附属模组豁免被屏蔽的按键（如灵界使者灵魂状态需要跳跃键）
-        if (result && ShouldAllowSuppressedKey.EVENT.invoker().shouldAllow((KeyBinding) (Object) this)) {
-            return false;
         }
         return result;
     }

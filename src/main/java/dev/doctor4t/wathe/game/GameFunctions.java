@@ -2,6 +2,7 @@ package dev.doctor4t.wathe.game;
 
 import com.google.common.collect.Lists;
 import dev.doctor4t.wathe.Wathe;
+import dev.doctor4t.wathe.api.Faction;
 import dev.doctor4t.wathe.api.GameMode;
 import dev.doctor4t.wathe.api.MapEffect;
 import dev.doctor4t.wathe.api.event.GameEvents;
@@ -581,8 +582,10 @@ public class GameFunctions {
             }
         }
 
-        // 非杀手击杀且未被下毒：杀手阵营存活者平分金币池
-        if (!killerFactionRewarded) {
+        // 非杀手/非中立击杀且未被下毒：杀手阵营存活者平分金币池
+        boolean neutralKill = moneyRecipient != null && GameWorldComponent.KEY.get(moneyRecipient.getWorld()).getRole(moneyRecipient) != null
+                && GameWorldComponent.KEY.get(moneyRecipient.getWorld()).getRole(moneyRecipient).getFaction() == Faction.NEUTRAL;
+        if (!killerFactionRewarded && !neutralKill) {
             GameWorldComponent gameWorld = GameWorldComponent.KEY.get(victim.getWorld());
             List<UUID> killerTeam = gameWorld.getAllKillerTeamPlayers();
             MinecraftServer server = victim.getServer();

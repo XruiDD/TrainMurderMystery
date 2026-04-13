@@ -1,6 +1,7 @@
 package dev.doctor4t.wathe.cca;
 
 import dev.doctor4t.wathe.Wathe;
+import dev.doctor4t.wathe.api.event.PsychoModeEvents;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheItems;
@@ -91,6 +92,9 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
                 GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.player.getWorld());
                 gameWorldComponent.setPsychosActive(gameWorldComponent.getPsychosActive() + 1);
             }
+            if (this.player instanceof ServerPlayerEntity serverPlayer) {
+                PsychoModeEvents.ON_PSYCHO_START.invoker().onPsychoStart(serverPlayer, trackActive);
+            }
             return true;
         }
         return false;
@@ -108,6 +112,9 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
         this.psychoTicks = 0;
         this.noBgm = false;
         this.player.getInventory().remove(itemStack -> itemStack.isOf(WatheItems.BAT), Integer.MAX_VALUE, this.player.playerScreenHandler.getCraftingInput());
+        if (this.player instanceof ServerPlayerEntity serverPlayer) {
+            PsychoModeEvents.ON_PSYCHO_END.invoker().onPsychoEnd(serverPlayer, trackActive);
+        }
     }
 
     public int getArmour() {

@@ -172,7 +172,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
 
         if (getMainHandStack().isOf(WatheItems.BAT) && target instanceof ServerPlayerEntity playerTarget && self instanceof ServerPlayerEntity serverPlayer&& this.getAttackCooldownProgress(0.5F) >= 1f) {
             GameFunctions.killPlayer(playerTarget, true, serverPlayer, GameConstants.DeathReasons.BAT);
-            serverPlayer.getServerWorld().playSound(self,
+            serverPlayer.getServerWorld().playSound(null,
                     playerTarget.getX(), playerTarget.getEyeY(), playerTarget.getZ(),
                     WatheSounds.ITEM_BAT_HIT, SoundCategory.PLAYERS,
                     3f, 1f);

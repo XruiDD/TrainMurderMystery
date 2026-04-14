@@ -35,6 +35,9 @@ public class LockpickItem extends Item implements AdventureUsable {
             BlockPos lowerPos = state.get(SmallDoorBlock.HALF) == DoubleBlockHalf.LOWER ? pos : pos.down();
             if (world.getBlockEntity(lowerPos) instanceof SmallDoorBlockEntity entity) {
                 if (player.isSneaking()) {
+                    if (entity.isBlasted()) {
+                        return ActionResult.PASS;
+                    }
                     entity.jam();
                     SmallDoorBlockEntity neighborDoorEntity = SmallDoorBlock.getNeighborDoorEntity(state, world, lowerPos);
                     if (neighborDoorEntity != null) {

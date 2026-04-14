@@ -2,6 +2,7 @@ package dev.doctor4t.wathe.cca;
 
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.api.event.PsychoModeEvents;
+import dev.doctor4t.wathe.api.event.PsychoType;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheItems;
@@ -24,7 +25,7 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
     private final PlayerEntity player;
     public int psychoTicks = 0;
     public int armour = 1;
-    private boolean noBgm = false;
+    private PsychoType psychoType = PsychoType.PUBLIC;
 
     public PlayerPsychoComponent(PlayerEntity player) {
         this.player = player;
@@ -80,20 +81,20 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
     }
 
     public boolean startPsycho() {
-        return startPsycho(true);
+        return startPsycho(PsychoType.PUBLIC);
     }
 
-    public boolean startPsycho(boolean trackActive) {
+    public boolean startPsycho(PsychoType type) {
         if (ShopEntry.insertStackInFreeSlot(this.player, new ItemStack(WatheItems.BAT))) {
-            this.noBgm = !trackActive;
+            this.psychoType = type;
             this.setPsychoTicks(GameConstants.PSYCHO_TIMER);
             this.setArmour(GameConstants.PSYCHO_MODE_ARMOUR);
-            if (trackActive) {
+            if (type.tracksCounter) {
                 GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.player.getWorld());
                 gameWorldComponent.setPsychosActive(gameWorldComponent.getPsychosActive() + 1);
             }
             if (this.player instanceof ServerPlayerEntity serverPlayer) {
-                PsychoModeEvents.ON_PSYCHO_START.invoker().onPsychoStart(serverPlayer, trackActive);
+                PsychoModeEvents.ON_PSYCHO_START.invoker().onPsychoStart(serverPlayer, type);
             }
             return true;
         }
@@ -101,19 +102,16 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
     }
 
     public void stopPsycho() {
-        stopPsycho(!this.noBgm);
-    }
-
-    public void stopPsycho(boolean trackActive) {
-        if (trackActive) {
+        PsychoType type = this.psychoType;
+        if (type.tracksCounter) {
             GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.player.getWorld());
             gameWorldComponent.setPsychosActive(gameWorldComponent.getPsychosActive() - 1);
         }
         this.psychoTicks = 0;
-        this.noBgm = false;
+        this.psychoType = PsychoType.PUBLIC;
         this.player.getInventory().remove(itemStack -> itemStack.isOf(WatheItems.BAT), Integer.MAX_VALUE, this.player.playerScreenHandler.getCraftingInput());
         if (this.player instanceof ServerPlayerEntity serverPlayer) {
-            PsychoModeEvents.ON_PSYCHO_END.invoker().onPsychoEnd(serverPlayer, trackActive);
+            PsychoModeEvents.ON_PSYCHO_END.invoker().onPsychoEnd(serverPlayer, type);
         }
     }
 
@@ -139,13 +137,24 @@ public class PlayerPsychoComponent implements AutoSyncedComponent, ServerTicking
     public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.@NotNull WrapperLookup registryLookup) {
         tag.putInt("psychoTicks", this.psychoTicks);
         tag.putInt("armour", this.armour);
-        tag.putBoolean("noBgm", this.noBgm);
+        tag.putString("psychoType", this.psychoType.name());
     }
 
     @Override
     public void readFromNbt(@NotNull NbtCompound tag, RegistryWrapper.@NotNull WrapperLookup registryLookup) {
         this.psychoTicks = tag.contains("psychoTicks") ? tag.getInt("psychoTicks") : 0;
         this.armour = tag.contains("armour") ? tag.getInt("armour") : 1;
-        this.noBgm = tag.contains("noBgm") && tag.getBoolean("noBgm");
+        if (tag.contains("psychoType")) {
+            try {
+                this.psychoType = PsychoType.valueOf(tag.getString("psychoType"));
+            } catch (IllegalArgumentException e) {
+                this.psychoType = PsychoType.PUBLIC;
+            }
+        } else if (tag.contains("noBgm") && tag.getBoolean("noBgm")) {
+            // 旧存档迁移：noBgm=true 对应旧的 trackActive=false，语义最接近 SILENT
+            this.psychoType = PsychoType.SILENT;
+        } else {
+            this.psychoType = PsychoType.PUBLIC;
+        }
     }
 }

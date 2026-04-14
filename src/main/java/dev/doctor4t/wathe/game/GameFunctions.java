@@ -582,11 +582,18 @@ public class GameFunctions {
             }
         }
 
-        // 非杀手/非中立击杀且未被下毒：杀手阵营存活者平分金币池
-        boolean neutralKill = moneyRecipient != null && GameWorldComponent.KEY.get(moneyRecipient.getWorld()).getRole(moneyRecipient) != null
-                && GameWorldComponent.KEY.get(moneyRecipient.getWorld()).getRole(moneyRecipient).getFaction() == Faction.NEUTRAL;
-        if (!killerFactionRewarded && !neutralKill) {
-            GameWorldComponent gameWorld = GameWorldComponent.KEY.get(victim.getWorld());
+        // 好人因好人击杀或自然死亡而死：杀手阵营存活者平分激励金
+        GameWorldComponent gameWorld = GameWorldComponent.KEY.get(victim.getWorld());
+        Role victimRole = gameWorld.getRole(victim.getUuid());
+        boolean victimIsCivilian = victimRole != null && victimRole.getFaction() == Faction.CIVILIAN;
+        boolean killerIsCivilianOrNone;
+        if (moneyRecipient == null) {
+            killerIsCivilianOrNone = true;
+        } else {
+            Role recipientRole = gameWorld.getRole(moneyRecipient.getUuid());
+            killerIsCivilianOrNone = recipientRole != null && recipientRole.getFaction() == Faction.CIVILIAN;
+        }
+        if (!killerFactionRewarded && victimIsCivilian && killerIsCivilianOrNone) {
             List<UUID> killerTeam = gameWorld.getAllKillerTeamPlayers();
             MinecraftServer server = victim.getServer();
             List<ServerPlayerEntity> aliveKillers = new java.util.ArrayList<>();

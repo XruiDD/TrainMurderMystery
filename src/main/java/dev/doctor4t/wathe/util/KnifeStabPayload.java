@@ -36,7 +36,9 @@ public record KnifeStabPayload(int target) implements CustomPayload {
         @Override
         public void receive(@NotNull KnifeStabPayload payload, ServerPlayNetworking.@NotNull Context context) {
             ServerPlayerEntity player = context.player();
+            if (player.isSpectator()) return;
             if (!(player.getServerWorld().getEntityById(payload.target()) instanceof ServerPlayerEntity target)) return;
+            if (target.isSpectator()) return;
             if (target.distanceTo(player) > 3.0) return;
 
             GameWorldComponent gameComponent = GameWorldComponent.KEY.get(context.player().getWorld());

@@ -40,6 +40,7 @@ public record GunShootPayload(int target) implements CustomPayload {
         @Override
         public void receive(@NotNull GunShootPayload payload, ServerPlayNetworking.@NotNull Context context) {
             ServerPlayerEntity player = context.player();
+            if (player.isSpectator()) return;
             ItemStack mainHandStack = player.getMainHandStack();
             if (!mainHandStack.isIn(WatheItemTags.GUNS)) return;
             if (player.getItemCooldownManager().isCoolingDown(mainHandStack.getItem())) return;
@@ -61,7 +62,7 @@ public record GunShootPayload(int target) implements CustomPayload {
             }
 
             ServerPlayerEntity target = null;
-            if (player.getServerWorld().getEntityById(payload.target()) instanceof ServerPlayerEntity candidate && candidate.distanceTo(player) < 65.0) {
+            if (player.getServerWorld().getEntityById(payload.target()) instanceof ServerPlayerEntity candidate && !candidate.isSpectator() && candidate.distanceTo(player) < 65.0) {
                 target = candidate;
             }
 

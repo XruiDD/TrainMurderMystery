@@ -31,7 +31,14 @@ public abstract class LivingEntityMixin extends EntityMixin {
     private static final EntityAttributeModifier WEAPON_KNOCKBACK_MODIFIER = new EntityAttributeModifier(Wathe.id("weapon_knockback_modifier"), .5f, EntityAttributeModifier.Operation.ADD_VALUE);
 
     @Unique
+    private static final EntityAttributeModifier DISABLE_JUMP_MODIFIER = new EntityAttributeModifier(
+        Wathe.id("disable_jump_modifier"), -1.0, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+
+    @Unique
     private float wathe$lastGravityMultiplier = Float.NaN;
+
+    @Unique
+    private Boolean wathe$lastJumpDisabled = null;
 
     @Shadow
     protected boolean jumping;
@@ -82,6 +89,41 @@ public abstract class LivingEntityMixin extends EntityMixin {
                     ));
                 }
                 wathe$lastGravityMultiplier = targetMultiplier;
+            }
+        }
+    }
+
+    // 服务端限制跳跃 - 通过 GENERIC_JUMP_STRENGTH 属性归零，覆盖客户端任何跳跃来源（按键、手柄模组等）
+    // 属性是服务端权威并自动同步，客户端 LivingEntity.getJumpVelocity() 会读到 0
+    // 判定逻辑必须与客户端 KeyBindingMixin 屏蔽跳跃键的条件保持一致
+    @Inject(method = "tick", at = @At("HEAD"))
+    public void wathe$applyJumpRestriction(CallbackInfo ci) {
+        if ((Object) this instanceof PlayerEntity player) {
+            EntityAttributeInstance jumpAttr = player.getAttributeInstance(EntityAttributes.GENERIC_JUMP_STRENGTH);
+            if (jumpAttr == null) return;
+
+            boolean shouldDisable = false;
+            // GameFunctions.isPlayerPlayingAndAlive 已包含 isRunning + hasAnyRole + !isPlayerDead
+            if (GameFunctions.isPlayerPlayingAndAlive(player)) {
+                JumpConfig jumpConfig = MapEnhancementsWorldComponent.KEY.get(player.getWorld()).getJumpConfig();
+                if (!jumpConfig.allowed()) {
+                    shouldDisable = true;
+                } else if (jumpConfig.staminaCost() > 0) {
+                    PlayerStaminaComponent stamina = PlayerStaminaComponent.KEY.get(player);
+                    if (!stamina.isInfiniteStamina() && stamina.getSprintingTicks() < jumpConfig.staminaCost()) {
+                        shouldDisable = true;
+                    }
+                }
+            }
+
+            if (wathe$lastJumpDisabled == null || wathe$lastJumpDisabled != shouldDisable) {
+                if (jumpAttr.hasModifier(Wathe.id("disable_jump_modifier"))) {
+                    jumpAttr.removeModifier(Wathe.id("disable_jump_modifier"));
+                }
+                if (shouldDisable) {
+                    jumpAttr.addTemporaryModifier(DISABLE_JUMP_MODIFIER);
+                }
+                wathe$lastJumpDisabled = shouldDisable;
             }
         }
     }

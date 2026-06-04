@@ -16,6 +16,7 @@ import dev.doctor4t.wathe.client.gui.screen.MapVotingScreen;
 import dev.doctor4t.wathe.client.model.WatheModelLayers;
 import dev.doctor4t.wathe.client.model.item.KnifeModelLoadingPlugin;
 import dev.doctor4t.wathe.client.skin.ItemSkinTextureManager;
+import dev.doctor4t.wathe.client.skin.PlayerSkinTextureManager;
 import dev.doctor4t.wathe.client.render.block_entity.PlateBlockEntityRenderer;
 import dev.doctor4t.wathe.client.render.block_entity.SmallDoorBlockEntityRenderer;
 import dev.doctor4t.wathe.client.render.block_entity.WheelBlockEntityRenderer;
@@ -119,10 +120,12 @@ public class WatheClient implements ClientModInitializer {
 
         // Skin system initialization
         ItemSkinTextureManager.getInstance().initialize();
+        PlayerSkinTextureManager.getInstance().initialize();
 
         // Clear skin textures on disconnect (release GPU resources)
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             ItemSkinTextureManager.getInstance().clearAll();
+            PlayerSkinTextureManager.getInstance().clearAll();
         });
 
         // Block render layers

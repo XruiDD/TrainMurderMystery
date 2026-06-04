@@ -23,11 +23,15 @@ import dev.doctor4t.wathe.record.GameRecordTypes;
 import dev.doctor4t.wathe.record.replay.DefaultReplayFormatters;
 import dev.doctor4t.wathe.record.replay.ReplayGenerator;
 import dev.doctor4t.wathe.record.replay.ReplayRegistry;
+import dev.doctor4t.wathe.api.event.PsychoModeEvents;
 import dev.doctor4t.wathe.api.event.RecordEvents;
+import dev.doctor4t.wathe.cca.PlayerCosmeticsComponent;
+import dev.doctor4t.wathe.cosmetic.CachedFetchedCosmetics;
 import dev.doctor4t.wathe.cosmetic.CosmeticApiClient;
 import dev.doctor4t.wathe.cosmetic.CosmeticDataCache;
 import dev.doctor4t.wathe.util.*;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -175,10 +179,37 @@ public class Wathe implements ModInitializer {
             ReplayGenerator.generateAndSend(world, match);
         });
 
+        // 进入疯魔时重新拉取该玩家的 cosmetic，让 web 端切换皮肤后能即时生效
+        PsychoModeEvents.ON_PSYCHO_START.register((player, type) -> {
+            UUID uuid = player.getUuid();
+            MinecraftServer mcServer = player.getServer();
+            if (mcServer == null) return;
+            CosmeticApiClient.fetchPlayerCosmetics(uuid).thenAccept(fetched -> {
+                mcServer.execute(() -> {
+                    CachedFetchedCosmetics.put(uuid, fetched);
+                    CosmeticDataCache.update(uuid, fetched.itemSkins());
+                    ServerPlayerEntity live = mcServer.getPlayerManager().getPlayer(uuid);
+                    if (live != null) {
+                        PlayerCosmeticsComponent.KEY.get(live).setPlayerSkins(fetched.playerSkins());
+                    }
+                });
+            });
+        });
+
+        // 玩家重生时实体重建，CCA NEVER_COPY 让组件清空 → 用最近一次缓存的 fetched 数据回填
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+            CosmeticApiClient.FetchedCosmetics cached =
+                    CachedFetchedCosmetics.get(newPlayer.getUuid());
+            if (cached == null) return;
+            // ITEM_SKIN cache 是 keyed by uuid, 不需要重建
+            PlayerCosmeticsComponent.KEY.get(newPlayer).setPlayerSkins(cached.playerSkins());
+        });
+
         // 玩家断开连接时,不管是什么阵营都视为死亡
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
             CosmeticDataCache.remove(player.getUuid());
+            CachedFetchedCosmetics.remove(player.getUuid());
             GameRecordManager.recordPlayerLeave(player);
             GameWorldComponent game = GameWorldComponent.KEY.get(player.getWorld());
             if (game.isRunning()
@@ -193,12 +224,18 @@ public class Wathe implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             GameRecordManager.recordPlayerJoin(handler.getPlayer());
 
-            // 异步拉取该玩家的皮肤数据并缓存
+            // 异步拉取该玩家的所有装备 cosmetic（ITEM_SKIN + PLAYER_SKIN）
             UUID skinUuid = handler.getPlayer().getUuid();
-            CosmeticApiClient.fetchPlayerCosmetics(skinUuid).thenAccept(cosmetics -> {
+            CosmeticApiClient.fetchPlayerCosmetics(skinUuid).thenAccept(fetched -> {
                 server.execute(() -> {
-                    if (!cosmetics.isEmpty()) {
-                        CosmeticDataCache.update(skinUuid, cosmetics);
+                    CachedFetchedCosmetics.put(skinUuid, fetched);
+                    if (!fetched.itemSkins().isEmpty()) {
+                        CosmeticDataCache.update(skinUuid, fetched.itemSkins());
+                    }
+                    // 即使 playerSkins 为空也调用，覆盖旧 component 状态
+                    ServerPlayerEntity live = server.getPlayerManager().getPlayer(skinUuid);
+                    if (live != null) {
+                        PlayerCosmeticsComponent.KEY.get(live).setPlayerSkins(fetched.playerSkins());
                     }
                 });
             });

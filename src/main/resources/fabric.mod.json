@@ -40,6 +40,7 @@
 	"custom": {
 		"cardinal-components": [
 			"wathe:train",
+			"wathe:cosmetics",
 			"wathe:game",
 			"wathe:mapvariables",
 			"wathe:blackout",

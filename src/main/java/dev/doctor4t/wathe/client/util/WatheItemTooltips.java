@@ -1,7 +1,6 @@
 package dev.doctor4t.wathe.client.util;
 
 import dev.doctor4t.ratatouille.util.TextUtils;
-import dev.doctor4t.wathe.client.skin.ItemSkinTextureManager;
 import dev.doctor4t.wathe.index.WatheDataComponentTypes;
 import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.item.component.CosmeticComponent;
@@ -68,41 +67,35 @@ public class WatheItemTooltips {
             // Universal skin tooltip for all items with a SKIN component
             CosmeticComponent skin = itemStack.get(WatheDataComponentTypes.SKIN);
             if (skin != null && !"default".equals(skin.cosmeticId())) {
-                ItemSkinTextureManager.TextureState state = ItemSkinTextureManager.getInstance().getState(skin.textureUrl());
-                if (state == ItemSkinTextureManager.TextureState.LOADING) {
-                    tooltipList.add(Text.translatable("tip.skin.loading")
-                            .styled(s -> s.withColor(Colors.GRAY)));
-                } else if (state == ItemSkinTextureManager.TextureState.FAILED) {
-                    tooltipList.add(Text.translatable("tip.skin.failed")
-                            .styled(s -> s.withColor(0xFFFF5555)));
+                int rarityColor = RARITY_COLORS.getOrDefault(skin.rarity(), 0xA8A29E);
+                String rawName = skin.displayName();
+
+                // Only attempt JSON Text parsing if it looks like JSON (object or array);
+                // plain text gets auto-colored with rarity color
+                Text skinName;
+                if (rawName.startsWith("{") || rawName.startsWith("[")) {
+                    var player = MinecraftClient.getInstance().player;
+                    Text parsed = player != null
+                            ? Text.Serialization.fromJson(rawName, player.getRegistryManager())
+                            : null;
+                    skinName = parsed != null ? parsed : Text.literal(rawName).styled(s -> s.withColor(rarityColor));
                 } else {
-                    int rarityColor = RARITY_COLORS.getOrDefault(skin.rarity(), 0xA8A29E);
-                    String rawName = skin.displayName();
-
-                    // Only attempt JSON Text parsing if it looks like JSON (object or array);
-                    // plain text gets auto-colored with rarity color
-                    Text skinName;
-                    if (rawName.startsWith("{") || rawName.startsWith("[")) {
-                        Text parsed = Text.Serialization.fromJson(rawName, MinecraftClient.getInstance().player.getRegistryManager());
-                        skinName = parsed != null ? parsed : Text.literal(rawName).styled(s -> s.withColor(rarityColor));
-                    } else {
-                        skinName = Text.literal(rawName).styled(s -> s.withColor(rarityColor));
-                    }
-
-                    Text line = Text.translatable("tip.skin")
-                            .styled(s -> s.withColor(Colors.GRAY))
-                            .append(skinName);
-
-                    String rarityKey = RARITY_KEYS.get(skin.rarity());
-                    if (rarityKey != null) {
-                        line = line.copy()
-                                .append(Text.literal(" [").styled(s -> s.withColor(rarityColor)))
-                                .append(Text.translatable(rarityKey).styled(s -> s.withColor(rarityColor)))
-                                .append(Text.literal("]").styled(s -> s.withColor(rarityColor)));
-                    }
-
-                    tooltipList.add(line);
+                    skinName = Text.literal(rawName).styled(s -> s.withColor(rarityColor));
                 }
+
+                Text line = Text.translatable("tip.skin")
+                        .styled(s -> s.withColor(Colors.GRAY))
+                        .append(skinName);
+
+                String rarityKey = RARITY_KEYS.get(skin.rarity());
+                if (rarityKey != null) {
+                    line = line.copy()
+                            .append(Text.literal(" [").styled(s -> s.withColor(rarityColor)))
+                            .append(Text.translatable(rarityKey).styled(s -> s.withColor(rarityColor)))
+                            .append(Text.literal("]").styled(s -> s.withColor(rarityColor)));
+                }
+
+                tooltipList.add(line);
             }
         });
     }

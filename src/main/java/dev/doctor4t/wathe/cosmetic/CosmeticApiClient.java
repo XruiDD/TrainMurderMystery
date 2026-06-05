@@ -20,10 +20,16 @@ import java.util.concurrent.CompletableFuture;
 
 public class CosmeticApiClient {
     private static final Gson GSON = new Gson();
-    private static final String COSMETIC_API_URL = "https://express-api.tlspark.cn";
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
             .build();
+
+    /**
+     * 所有 cosmetic API 请求的 base URL。刻意做成一个稳定命名、非 lambda 的访问器
+     */
+    private static String apiBaseUrl() {
+        return "https://express-api.tlspark.cn";
+    }
 
     /**
      * 单次 fetch 的合并结果。
@@ -48,7 +54,7 @@ public class CosmeticApiClient {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(COSMETIC_API_URL + "/cosmetics/equipped/v1/" + uuid))
+                        .uri(URI.create(apiBaseUrl() + "/cosmetics/equipped/v1/" + uuid))
                         .timeout(Duration.ofSeconds(10))
                         .GET()
                         .build();
@@ -64,6 +70,40 @@ public class CosmeticApiClient {
             } catch (Exception e) {
                 Wathe.LOGGER.warn("[CosmeticApi] Failed to fetch cosmetics for {}: {}", uuid, e.getMessage());
                 return FetchedCosmetics.empty();
+            }
+        });
+    }
+
+    public record PackManifest(String version, String url, String sha256) {}
+
+    /** GET /cosmetics/pack -> {version,url,sha256}; null when unavailable. */
+    public static CompletableFuture<PackManifest> fetchPackManifest() {
+        return CompletableFuture.supplyAsync(() -> {
+            String url = apiBaseUrl() + "/cosmetics/pack";
+            try {
+                Wathe.LOGGER.info("[CosmeticApi] fetching pack manifest from {}", url);
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .timeout(Duration.ofSeconds(10))
+                        .GET()
+                        .build();
+                HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() != 200) {
+                    Wathe.LOGGER.warn("[CosmeticApi] pack manifest HTTP {} from {}", response.statusCode(), url);
+                    return null;
+                }
+                JsonObject o = GSON.fromJson(response.body(), JsonObject.class);
+                if (o == null || !o.has("version") || !o.has("url") || !o.has("sha256")) {
+                    Wathe.LOGGER.warn("[CosmeticApi] pack manifest empty / missing fields (body: {})", response.body());
+                    return null;
+                }
+                PackManifest pm = new PackManifest(o.get("version").getAsString(),
+                        o.get("url").getAsString(), o.get("sha256").getAsString());
+                Wathe.LOGGER.info("[CosmeticApi] pack manifest: version={}, url={}", pm.version(), pm.url());
+                return pm;
+            } catch (Exception e) {
+                Wathe.LOGGER.warn("[CosmeticApi] pack manifest fetch from {} failed: {}", url, e.toString());
+                return null;
             }
         });
     }
@@ -101,19 +141,14 @@ public class CosmeticApiClient {
                                       Map<Identifier, CosmeticComponent> out) {
         Identifier itemId = Identifier.tryParse(slotId);
         if (itemId == null) return;
-        if (!obj.has("cosmeticId") || !obj.has("displayName")
-                || !obj.has("rarity") || !obj.has("textureUrl")) {
+        if (!obj.has("cosmeticId") || !obj.has("displayName") || !obj.has("rarity")) {
             Wathe.LOGGER.warn("[CosmeticApi] ITEM_SKIN {} missing required field", slotId);
             return;
         }
         CosmeticComponent component = new CosmeticComponent(
                 obj.get("cosmeticId").getAsString(),
                 obj.get("displayName").getAsString(),
-                obj.get("rarity").getAsString(),
-                obj.get("textureUrl").getAsString(),
-                obj.has("resources") && !obj.get("resources").isJsonNull()
-                        ? obj.get("resources").toString()
-                        : ""
+                obj.get("rarity").getAsString()
         );
         out.put(itemId, component);
     }

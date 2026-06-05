@@ -24,6 +24,7 @@
     "defaultRequire": 1
   },
   "client": [
+    "client.CosmeticPackInjectMixin",
     "client.AbstractClientPlayerEntityMixin",
     "client.EntityRendererDispatchMixin",
     "client.GameRendererMixin",
@@ -37,7 +38,7 @@
     "client.items.ClientPlayerEntityMixin",
     "client.items.HeldItemFeatureRendererMixin",
     "client.items.HeldItemRendererMixin",
-    "client.items.SkinItemRendererMixin",
+    "client.items.ItemRendererCosmeticMixin",
     "client.restrictions.ChatHudMixin",
     "client.restrictions.CreativeInventoryScreenMixin",
     "client.restrictions.DebugHudMixin",

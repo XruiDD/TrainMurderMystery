@@ -14,8 +14,10 @@ import dev.doctor4t.wathe.client.gui.StoreRenderer;
 import dev.doctor4t.wathe.client.gui.TimeRenderer;
 import dev.doctor4t.wathe.client.gui.screen.MapVotingScreen;
 import dev.doctor4t.wathe.client.model.WatheModelLayers;
+import dev.doctor4t.wathe.client.model.cosmetic.CosmeticModelLoadingPlugin;
 import dev.doctor4t.wathe.client.model.item.KnifeModelLoadingPlugin;
-import dev.doctor4t.wathe.client.skin.ItemSkinTextureManager;
+import dev.doctor4t.wathe.client.pack.CosmeticPackStorage;
+import dev.doctor4t.wathe.client.pack.CosmeticPackUpdater;
 import dev.doctor4t.wathe.client.skin.PlayerSkinTextureManager;
 import dev.doctor4t.wathe.client.render.block_entity.PlateBlockEntityRenderer;
 import dev.doctor4t.wathe.client.render.block_entity.SmallDoorBlockEntityRenderer;
@@ -81,6 +83,9 @@ public class WatheClient implements ClientModInitializer {
 
     public static final Map<UUID, PlayerListEntry> PLAYER_ENTRIES_CACHE = Maps.newHashMap();
 
+    public static CosmeticPackStorage cosmeticPackStorage;
+    public static CosmeticPackUpdater cosmeticPackUpdater;
+
     public static KeyBinding instinctKeybind;
     public static KeyBinding mapVoteKeybind;
     public static float prevInstinctLightLevel = -.04f;
@@ -117,14 +122,22 @@ public class WatheClient implements ClientModInitializer {
 
         // Custom Baked Models
         ModelLoadingPlugin.register(new KnifeModelLoadingPlugin());
+        ModelLoadingPlugin.register(new CosmeticModelLoadingPlugin());
 
-        // Skin system initialization
-        ItemSkinTextureManager.getInstance().initialize();
+        // Player entity skin system (item skins now use the runtime resource pack)
         PlayerSkinTextureManager.getInstance().initialize();
 
-        // Clear skin textures on disconnect (release GPU resources)
+        // Runtime cosmetic resource pack (provider injected via mixin into MinecraftClient's ResourcePackManager)
+        cosmeticPackStorage = new CosmeticPackStorage();
+        cosmeticPackUpdater = new CosmeticPackUpdater(cosmeticPackStorage);
+
+        // Download the pack NOW (synchronously, during startup) so it is installed BEFORE
+        // Minecraft's initial resource load — that first load then includes it (no second
+        // reload, no title-screen flicker). onInitializeClient runs before the first resource
+        // load, which is also why the CosmeticModelLoadingPlugin above applies to it.
+        cosmeticPackUpdater.checkAndUpdateBlocking();
+
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-            ItemSkinTextureManager.getInstance().clearAll();
             PlayerSkinTextureManager.getInstance().clearAll();
         });
 

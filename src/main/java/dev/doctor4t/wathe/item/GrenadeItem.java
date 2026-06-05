@@ -38,9 +38,8 @@ public class GrenadeItem extends Item implements ItemWithSkin {
             // Propagate skin to thrown entity
             CosmeticComponent skin = itemStack.get(WatheDataComponentTypes.SKIN);
             if (skin != null && !"default".equals(skin.cosmeticId())) {
-                String thrownUrl = skin.getTexture("thrown");
                 ItemStack thrownStack = WatheItems.THROWN_GRENADE.getDefaultStack();
-                thrownStack.set(WatheDataComponentTypes.SKIN, skin.withTextureUrl(thrownUrl));
+                thrownStack.set(WatheDataComponentTypes.SKIN, skin);
                 grenade.setItem(thrownStack);
             }
 

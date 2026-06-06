@@ -69,6 +69,7 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
     private MovementConfig syncedMovement;
     private JumpConfig syncedJump;
     private AmbienceConfig syncedAmbience;
+    private java.util.List<String> syncedSpecialRoles;
     // ========== 渲染配置 Getter 方法 ==========
 
     public SceneryConfig getSceneryConfig() {
@@ -151,6 +152,10 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
      * 获取该地图启用的特殊角色ID列表
      */
     public java.util.List<String> getEnabledSpecialRoles() {
+        // 服务端从数据包读取，客户端使用同步的数据
+        if (world.isClient() && syncedSpecialRoles != null) {
+            return syncedSpecialRoles;
+        }
         MapEnhancementsConfiguration config = getConfigForCurrentWorld();
         if (config != null) {
             return config.getSpecialRolesOrDefault().enabledRoles();
@@ -275,6 +280,15 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
                 outside.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(outside)
             );
         }
+        // 反序列化地图专属角色配置
+        if (tag.contains("specialRolesCount")) {
+            int count = tag.getInt("specialRolesCount");
+            java.util.List<String> roles = new java.util.ArrayList<>();
+            for (int i = 0; i < count; i++) {
+                roles.add(tag.getString("specialRole_" + i));
+            }
+            this.syncedSpecialRoles = roles;
+        }
     }
 
     @Override
@@ -335,5 +349,12 @@ public class MapEnhancementsWorldComponent implements AutoSyncedComponent {
         tag.putBoolean("ambienceRequireTrainMoving", ambience.requireTrainMoving());
         tag.putString("ambienceInsideSound", ambience.insideSound().orElse(""));
         tag.putString("ambienceOutsideSound", ambience.outsideSound().orElse(""));
+
+        // 序列化地图专属角色配置（同步到客户端，供刺客猜测菜单等客户端逻辑使用）
+        java.util.List<String> specialRoles = getEnabledSpecialRoles();
+        tag.putInt("specialRolesCount", specialRoles.size());
+        for (int i = 0; i < specialRoles.size(); i++) {
+            tag.putString("specialRole_" + i, specialRoles.get(i));
+        }
     }
 }

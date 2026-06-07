@@ -57,7 +57,8 @@
 			"wathe:stamina",
 			"wathe:veteran",
 			"wathe:map_enhancements",
-			"wathe:map_voting"
+			"wathe:map_voting",
+			"wathe:role_history"
 		],
 		"loom:injected_interfaces": {
 			"net/minecraft/class_5483/class_5496" : ["dev/doctor4t/wathe/util/BlockSettingsAdditions"]

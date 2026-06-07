@@ -9,6 +9,7 @@ import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.GravityCo
 import dev.doctor4t.wathe.config.datapack.MapEnhancementsConfiguration.JumpConfig;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheItems;
+import dev.doctor4t.wathe.util.InteractionSwingTracker;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
@@ -17,6 +18,7 @@ import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.sound.SoundEvent;
+import net.minecraft.util.Hand;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -26,9 +28,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin extends EntityMixin {
+public abstract class LivingEntityMixin extends EntityMixin implements InteractionSwingTracker {
     @Unique
     private static final EntityAttributeModifier WEAPON_KNOCKBACK_MODIFIER = new EntityAttributeModifier(Wathe.id("weapon_knockback_modifier"), .5f, EntityAttributeModifier.Operation.ADD_VALUE);
+
+    // 记录最近一次"右键交互（开门等）触发的挥手"所在 tick，用于区分左右键挥手
+    @Unique
+    private long wathe$lastInteractionSwingTick = Long.MIN_VALUE;
 
     @Unique
     private static final EntityAttributeModifier DISABLE_JUMP_MODIFIER = new EntityAttributeModifier(
@@ -48,6 +54,21 @@ public abstract class LivingEntityMixin extends EntityMixin {
 
     @Shadow
     public abstract @Nullable EntityAttributeInstance getAttributeInstance(RegistryEntry<EntityAttribute> attribute);
+
+    // 标记由右键交互触发的服务端挥手：原版交互成功时服务端调用 swingHand(hand, true)（fromServerPlayer=true），
+    // 左键攻击/空挥走 swingHand(hand) → swingHand(hand, false)，永远不传 true。
+    // 据此区分左右键，使 ServerPlayerEntity 的攻击冷却重置只跳过右键交互、保留左键挥击的冷却。
+    @Inject(method = "swingHand(Lnet/minecraft/util/Hand;Z)V", at = @At("HEAD"))
+    private void wathe$trackInteractionSwing(Hand hand, boolean fromServerPlayer, CallbackInfo ci) {
+        if (fromServerPlayer && (Object) this instanceof PlayerEntity player && player.getMainHandStack().isOf(WatheItems.BAT)) {
+            this.wathe$lastInteractionSwingTick = player.getWorld().getTime();
+        }
+    }
+
+    @Override
+    public long wathe$lastInteractionSwingTick() {
+        return this.wathe$lastInteractionSwingTick;
+    }
 
     @Inject(method = "tick", at = @At("HEAD"))
     public void wathe$addKnockbackWithKnife(CallbackInfo ci) {

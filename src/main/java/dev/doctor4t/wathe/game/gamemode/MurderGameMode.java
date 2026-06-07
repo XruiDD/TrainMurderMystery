@@ -69,6 +69,9 @@ public class MurderGameMode extends GameMode {
     public void initializeGame(ServerWorld serverWorld, GameWorldComponent gameWorldComponent, List<ServerPlayerEntity> players) {
         int killerCount = assignRolesAndGetKillerCount(serverWorld, players, gameWorldComponent);
 
+        // 记录开局总杀手阵营人数，作为关灯/疯魔动态定价依据，并同步给客户端（在初始化商店之前设置）
+        gameWorldComponent.setStartingKillerCount(gameWorldComponent.getAllKillerTeamPlayers().size());
+
         for (ServerPlayerEntity player : players) {
             Role role = gameWorldComponent.getRole(player);
             String roleId = role != null ? role.identifier().toString() : WatheRoles.CIVILIAN.identifier().toString();

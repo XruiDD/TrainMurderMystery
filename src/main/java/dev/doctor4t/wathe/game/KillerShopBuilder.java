@@ -30,12 +30,15 @@ public class KillerShopBuilder {
      * @param context the shop context to populate
      */
     public static void buildShop(PlayerEntity player, BuildShopEntries.ShopContext context) {
-        if (!GameWorldComponent.KEY.get(player.getWorld()).canUseKillerFeatures(player)) {
+        GameWorldComponent game = GameWorldComponent.KEY.get(player.getWorld());
+        if (!game.canUseKillerFeatures(player)) {
             return;
         }
+        // 开局总杀手阵营人数（同步字段，客户端与服务端读取同一值）决定关灯/疯魔的动态价格
+        int killerCount = game.getStartingKillerCount();
         addWeapons(context);
         addPoisons(context);
-        addTools(context);
+        addTools(context, killerCount);
     }
 
     private static void addWeapons(BuildShopEntries.ShopContext context) {
@@ -69,7 +72,7 @@ public class KillerShopBuilder {
             .build());
     }
 
-    private static void addTools(BuildShopEntries.ShopContext context) {
+    private static void addTools(BuildShopEntries.ShopContext context, int killerCount) {
         // 便签: 10, 无限制 (4个一组)
         context.addEntry(new ShopEntry.Builder("note", new ItemStack(WatheItems.NOTE, 4), 10, ShopEntry.Type.TOOL)
             .build());
@@ -92,8 +95,8 @@ public class KillerShopBuilder {
         context.addEntry(new ShopEntry.Builder("firecracker", WatheItems.FIRECRACKER.getDefaultStack(), 25, ShopEntry.Type.TOOL)
             .build());
 
-        // 关灯: 300, 共享冷却在onBuy中处理
-        context.addEntry(new ShopEntry.Builder("blackout", WatheItems.BLACKOUT.getDefaultStack(), 400, ShopEntry.Type.TOOL)
+        // 关灯: 动态价格（三狼及以下400，每多一狼+100）, 共享冷却在onBuy中处理
+        context.addEntry(new ShopEntry.Builder("blackout", WatheItems.BLACKOUT.getDefaultStack(), GameConstants.getBlackoutPrice(killerCount), ShopEntry.Type.TOOL)
             .cooldown(getInTicks(5,0))
             .onBuy(PlayerShopComponent::useBlackout)
             .build());

@@ -71,6 +71,12 @@ public interface GameConstants {
     int MONEY_PER_KILL_TEAMMATE = 15; // 杀手击杀时队友获得的金币
     int MONEY_NON_KILLER_KILL_POOL = 50; // 非杀手击杀时杀手阵营平分的金币池
     int KILLER_PASSIVE_MONEY_CAP = 200; // 杀手被动收入的余额上限
+
+    // 关灯 动态价格：以"开局总杀手阵营人数"为准，三狼及以下为基础价，每多一狼递增
+    int DYNAMIC_PRICE_BASE_KILLERS = 3;   // 三狼及以下使用基础价
+    int BLACKOUT_PRICE_BASE = 400;        // 关灯基础价（三狼及以下）
+    int BLACKOUT_PRICE_PER_KILLER = 100;  // 每多一狼 +100（四狼500、五狼600……）
+
     int PSYCHO_MODE_ARMOUR = 1;
 
     // Timers
@@ -82,6 +88,15 @@ public interface GameConstants {
 
     static int getInTicks(int minutes, int seconds) {
         return (minutes * 60 + seconds) * 20;
+    }
+
+    /**
+     * 关灯动态价格：开局杀手阵营人数三狼及以下为基础价(400)，每多一狼 +100。
+     * 客户端显示与服务端扣费均调用此方法，保证两端一致。
+     */
+    static int getBlackoutPrice(int killerCount) {
+        int extraKillers = Math.max(0, killerCount - DYNAMIC_PRICE_BASE_KILLERS);
+        return BLACKOUT_PRICE_BASE + extraKillers * BLACKOUT_PRICE_PER_KILLER;
     }
 
     interface PoisonSources {

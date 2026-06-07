@@ -114,6 +114,9 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     private int vigilanteDividend = 6;
     private int neutralDividend = 6;
 
+    // 开局时的总杀手阵营人数快照（关灯/疯魔动态定价依据），开局时设置并随组件同步到客户端
+    private int startingKillerCount = 0;
+
     // 角色公平轮换配置（spec 2026-06-07）
     private RotationStrength roleRotationStrength = RotationStrength.MID;
     private int roleHistoryWindow = 8;
@@ -266,6 +269,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         this.gameProfiles.clear();
         this.deadPlayers.clear();
         this.rooms.clear();
+        this.startingKillerCount = 0;
         setPsychosActive(0);
     }
 
@@ -468,6 +472,15 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         this.sync();
     }
 
+    public int getStartingKillerCount() {
+        return startingKillerCount;
+    }
+
+    public void setStartingKillerCount(int startingKillerCount) {
+        this.startingKillerCount = startingKillerCount;
+        this.sync();
+    }
+
     public int getVigilanteDividend() {
         return vigilanteDividend;
     }
@@ -551,6 +564,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         this.killerDividend = nbtCompound.getInt("KillerDividend") > 0 ? nbtCompound.getInt("KillerDividend") : 6;
         this.vigilanteDividend = nbtCompound.getInt("VigilanteDividend") > 0 ? nbtCompound.getInt("VigilanteDividend") : 6;
         this.neutralDividend = nbtCompound.getInt("NeutralDividend") > 0 ? nbtCompound.getInt("NeutralDividend") : 6;
+        this.startingKillerCount = nbtCompound.getInt("StartingKillerCount");
 
         // 角色公平轮换配置
         if (nbtCompound.contains("RoleRotationStrength")) {
@@ -659,6 +673,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         nbtCompound.putInt("KillerDividend", killerDividend);
         nbtCompound.putInt("VigilanteDividend", vigilanteDividend);
         nbtCompound.putInt("NeutralDividend", neutralDividend);
+        nbtCompound.putInt("StartingKillerCount", startingKillerCount);
 
         nbtCompound.putString("RoleRotationStrength", roleRotationStrength.name());
         nbtCompound.putInt("RoleHistoryWindow", roleHistoryWindow);

@@ -6,6 +6,7 @@ import dev.doctor4t.wathe.util.WathePermissions;
 import dev.doctor4t.wathe.compat.TrainVoicePlugin;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
+import dev.doctor4t.wathe.game.rotation.RotationStrength;
 import com.mojang.authlib.GameProfile;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.entity.player.PlayerEntity;
@@ -112,6 +113,11 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     private int killerDividend = 6;
     private int vigilanteDividend = 6;
     private int neutralDividend = 6;
+
+    // 角色公平轮换配置（spec 2026-06-07）
+    private RotationStrength roleRotationStrength = RotationStrength.MID;
+    private int roleHistoryWindow = 8;
+    private boolean roleSpecificRoleAvoidance = true;
 
     // Disabled roles (persisted)
     private final HashSet<Identifier> disabledRoles = new HashSet<>();
@@ -471,6 +477,33 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         this.sync();
     }
 
+    public RotationStrength getRoleRotationStrength() {
+        return roleRotationStrength;
+    }
+
+    public void setRoleRotationStrength(RotationStrength strength) {
+        this.roleRotationStrength = strength != null ? strength : RotationStrength.MID;
+        this.sync();
+    }
+
+    public int getRoleHistoryWindow() {
+        return roleHistoryWindow;
+    }
+
+    public void setRoleHistoryWindow(int window) {
+        this.roleHistoryWindow = Math.max(1, window);
+        this.sync();
+    }
+
+    public boolean isRoleSpecificRoleAvoidance() {
+        return roleSpecificRoleAvoidance;
+    }
+
+    public void setRoleSpecificRoleAvoidance(boolean enabled) {
+        this.roleSpecificRoleAvoidance = enabled;
+        this.sync();
+    }
+
     // Role enabled/disabled management
     public boolean isRoleEnabled(Role role) {
         if (disabledRoles.contains(role.identifier())) return false;
@@ -518,6 +551,19 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         this.killerDividend = nbtCompound.getInt("KillerDividend") > 0 ? nbtCompound.getInt("KillerDividend") : 6;
         this.vigilanteDividend = nbtCompound.getInt("VigilanteDividend") > 0 ? nbtCompound.getInt("VigilanteDividend") : 6;
         this.neutralDividend = nbtCompound.getInt("NeutralDividend") > 0 ? nbtCompound.getInt("NeutralDividend") : 6;
+
+        // 角色公平轮换配置
+        if (nbtCompound.contains("RoleRotationStrength")) {
+            try {
+                this.roleRotationStrength = RotationStrength.valueOf(nbtCompound.getString("RoleRotationStrength"));
+            } catch (IllegalArgumentException e) {
+                this.roleRotationStrength = RotationStrength.MID;
+            }
+        } else {
+            this.roleRotationStrength = RotationStrength.MID;
+        }
+        this.roleHistoryWindow = nbtCompound.getInt("RoleHistoryWindow") > 0 ? nbtCompound.getInt("RoleHistoryWindow") : 8;
+        this.roleSpecificRoleAvoidance = !nbtCompound.contains("RoleSpecificRoleAvoidance") || nbtCompound.getBoolean("RoleSpecificRoleAvoidance");
 
         for (Role role : WatheRoles.ROLES) {
             this.setRoles(uuidListFromNbt(nbtCompound, role.identifier().toString()), role);
@@ -613,6 +659,10 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         nbtCompound.putInt("KillerDividend", killerDividend);
         nbtCompound.putInt("VigilanteDividend", vigilanteDividend);
         nbtCompound.putInt("NeutralDividend", neutralDividend);
+
+        nbtCompound.putString("RoleRotationStrength", roleRotationStrength.name());
+        nbtCompound.putInt("RoleHistoryWindow", roleHistoryWindow);
+        nbtCompound.putBoolean("RoleSpecificRoleAvoidance", roleSpecificRoleAvoidance);
 
         for (Role role : WatheRoles.ROLES) {
             nbtCompound.put(role.identifier().toString(), nbtFromUuidList(getAllWithRole(role)));

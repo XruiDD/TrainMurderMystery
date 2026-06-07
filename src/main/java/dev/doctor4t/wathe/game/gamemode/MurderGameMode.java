@@ -9,6 +9,8 @@ import dev.doctor4t.wathe.api.event.GameEvents;
 import dev.doctor4t.wathe.api.event.RoleAssigned;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
+import dev.doctor4t.wathe.game.rotation.GameEntry;
+import dev.doctor4t.wathe.game.rotation.RoleCategory;
 import dev.doctor4t.wathe.index.WatheItems;
 import dev.doctor4t.wathe.util.AnnounceWelcomePayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -40,6 +42,25 @@ public class MurderGameMode extends GameMode {
         roleSelector.assignCivilians(world, gameComponent, players);
         for (ServerPlayerEntity player : players) {
             RoleAssigned.EVENT.invoker().assignRole(player, gameComponent.getRole(player));
+        }
+
+        // Record this game's assignment into per-backend rotation history (spec 2026-06-07)
+        int n = players.size();
+        if (n > 0) {
+            int kCount = (int) Math.floor((double) n / gameComponent.getKillerDividend());
+            int vCount = (int) Math.floor((double) n / gameComponent.getVigilanteDividend());
+            int nCount = (int) Math.floor((double) n / gameComponent.getNeutralDividend());
+            double ks = (double) kCount / n;
+            double vs = (double) vCount / n;
+            double ns = (double) nCount / n;
+            RoleHistoryComponent hist = RoleHistoryComponent.KEY.get(world.getScoreboard());
+            int window = gameComponent.getRoleHistoryWindow();
+            for (ServerPlayerEntity player : players) {
+                Role role = gameComponent.getRole(player);
+                RoleCategory cat = RoleHistoryComponent.categoryOf(role);
+                String roleId = role != null ? role.identifier().toString() : WatheRoles.CIVILIAN.identifier().toString();
+                hist.record(player.getUuid(), new GameEntry(ks, vs, ns, cat, roleId), window);
+            }
         }
         return total;
     }

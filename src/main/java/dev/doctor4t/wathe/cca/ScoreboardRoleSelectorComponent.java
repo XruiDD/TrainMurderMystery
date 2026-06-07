@@ -5,6 +5,9 @@ import dev.doctor4t.wathe.api.Faction;
 import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.api.RoleSelectionContext;
 import dev.doctor4t.wathe.api.WatheRoles;
+import dev.doctor4t.wathe.game.rotation.RoleCategory;
+import dev.doctor4t.wathe.game.rotation.RoleRotation;
+import dev.doctor4t.wathe.game.rotation.RotationStrength;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
@@ -19,6 +22,7 @@ import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 
 import java.util.*;
+import java.util.function.DoubleSupplier;
 
 import static net.minecraft.util.Util.shuffle;
 
@@ -123,20 +127,13 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
     }
 
     public int assignKillers(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int killerCount) {
-        // Collect already assigned killer roles (from forced roles)
+        // Collect already-assigned killer roles (from forced roles) and count them
         Set<Role> assignedKillerRoles = new HashSet<>();
-        for (ServerPlayerEntity player : players) {
-            Role role = gameComponent.getRole(player);
-            if (role != null && role.getFaction() == Faction.KILLER) {
-                assignedKillerRoles.add(role);
-            }
-        }
-
-        // Count already assigned killers (from forced roles)
         int existingKillerCount = 0;
         for (ServerPlayerEntity player : players) {
             Role role = gameComponent.getRole(player);
             if (role != null && role.getFaction() == Faction.KILLER) {
+                assignedKillerRoles.add(role);
                 existingKillerCount++;
             }
         }
@@ -145,89 +142,77 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         killerCount = Math.max(0, killerCount - existingKillerCount);
 
         ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
-
-        // Create selection context for checking role appearance conditions
         RoleSelectionContext context = createSelectionContext(world, gameComponent, players);
 
         // Collect available non-vanilla killer faction roles (each can only be assigned once)
-        // Filter out roles that are already assigned or don't meet appearance conditions
         ArrayList<Role> availableSpecialKillerRoles = new ArrayList<>();
         for (Role role : WatheRoles.ROLES) {
             if (role.getFaction() == Faction.KILLER && !WatheRoles.VANILLA_ROLES.contains(role) && gameComponent.isRoleEnabled(role) && !assignedKillerRoles.contains(role) && role.shouldAppear(context)) {
                 availableSpecialKillerRoles.add(role);
             }
         }
-        shuffle(availableSpecialKillerRoles, world.getRandom());
+
+        RoleHistoryComponent hist = RoleHistoryComponent.KEY.get(this.scoreboard);
+        RotationStrength strength = gameComponent.getRoleRotationStrength();
+        boolean avoid = gameComponent.isRoleSpecificRoleAvoidance();
+        DoubleSupplier rng = () -> world.getRandom().nextDouble();
+
+        // Pick WHO becomes killer by KILLER-debt weighting (replaces shuffle)
+        List<ServerPlayerEntity> chosen = selectByDebt(availablePlayers, killerCount, hist, RoleCategory.KILLER, strength, rng);
 
         int assignedCount = existingKillerCount;
-        // Assign killers randomly
-        for (ServerPlayerEntity player : availablePlayers) {
-            if (killerCount <= 0) break;
-
-            Role assignedRole;
-            if (!availableSpecialKillerRoles.isEmpty()) {
-                // Assign a special non-vanilla killer role
-                assignedRole = availableSpecialKillerRoles.removeFirst();
-            } else {
-                // No special roles left, assign basic KILLER
-                assignedRole = WatheRoles.KILLER;
+        for (ServerPlayerEntity player : chosen) {
+            Role assignedRole = pickSpecialRole(player, availableSpecialKillerRoles, hist, avoid, rng);
+            if (assignedRole == null) {
+                assignedRole = WatheRoles.KILLER; // no special role left -> base killer
             }
-
             gameComponent.addRole(player, assignedRole);
             assignedCount++;
-            killerCount--;
         }
-
         return assignedCount;
     }
 
     public void assignVigilantes(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int vigilanteCount) {
-        // Count already assigned vigilantes and veterans (from forced roles)
+        // Count already-assigned vigilantes and veterans (from forced roles)
         int existingVigilanteCount = 0;
         int existingVeteranCount = 0;
         for (ServerPlayerEntity player : players) {
             Role role = gameComponent.getRole(player);
-            if (role != null && role == WatheRoles.VIGILANTE) {
+            if (role == WatheRoles.VIGILANTE) {
                 existingVigilanteCount++;
-            } else if (role != null && role == WatheRoles.VETERAN) {
+            } else if (role == WatheRoles.VETERAN) {
                 existingVeteranCount++;
             }
         }
 
-        // Calculate total vigilante-type roles needed (vigilante + veteran)
-        int totalVigilanteTypeCount = vigilanteCount;
         int existingTotal = existingVigilanteCount + existingVeteranCount;
-        int remainingToAssign = Math.max(0, totalVigilanteTypeCount - existingTotal);
+        int remainingToAssign = Math.max(0, vigilanteCount - existingTotal);
 
-        // Get available players
         ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
+        RoleHistoryComponent hist = RoleHistoryComponent.KEY.get(this.scoreboard);
+        RotationStrength strength = gameComponent.getRoleRotationStrength();
+        DoubleSupplier rng = () -> world.getRandom().nextDouble();
 
-        // Assign alternating: vigilante, veteran, vigilante, veteran...
-        // Track how many of each we've assigned so far (including existing forced roles)
+        // Pick WHO becomes a vigilante-type by VIGILANTE-debt weighting (replaces shuffle)
+        List<ServerPlayerEntity> chosen = selectByDebt(availablePlayers, remainingToAssign, hist, RoleCategory.VIGILANTE, strength, rng);
+
+        // Keep the existing 2 vigilantes : 1 veteran alternation
         int vigilanteAssigned = existingVigilanteCount;
         int veteranAssigned = existingVeteranCount;
-
-        for (ServerPlayerEntity player : availablePlayers) {
-            if (remainingToAssign <= 0) break;
-
-            // Assign based on ratio: 2 vigilantes per 1 veteran
-            // Pattern: 1st vigilante, 2nd vigilante, 3rd veteran, 4th vigilante, 5th vigilante, 6th veteran...
+        for (ServerPlayerEntity player : chosen) {
             int totalAssigned = vigilanteAssigned + veteranAssigned;
             if (totalAssigned % 3 != 2) {
-                // Index 0, 1, 3, 4, 6, 7... -> assign vigilante
                 gameComponent.addRole(player, WatheRoles.VIGILANTE);
                 vigilanteAssigned++;
             } else {
-                // Index 2, 5, 8... -> assign veteran
                 gameComponent.addRole(player, WatheRoles.VETERAN);
                 veteranAssigned++;
             }
-            remainingToAssign--;
         }
     }
 
     public int assignNeutrals(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int neutralCount) {
-        // Collect already assigned neutral roles (from forced roles)
+        // Collect already-assigned neutral roles (from forced roles)
         Set<Role> assignedNeutralRoles = new HashSet<>();
         for (ServerPlayerEntity player : players) {
             Role role = gameComponent.getRole(player);
@@ -243,7 +228,6 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         RoleSelectionContext context = createSelectionContext(world, gameComponent, players);
 
         // Collect available non-vanilla neutral faction roles (each can only be assigned once)
-        // Filter out roles that are already assigned or don't meet appearance conditions
         ArrayList<Role> availableNeutralRoles = new ArrayList<>();
         for (Role role : WatheRoles.ROLES) {
             if (role.getFaction() == Faction.NEUTRAL && !WatheRoles.VANILLA_ROLES.contains(role) && gameComponent.isRoleEnabled(role) && !assignedNeutralRoles.contains(role) && role.shouldAppear(context)) {
@@ -256,31 +240,31 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
             return assignedNeutralRoles.size();
         }
 
-        shuffle(availableNeutralRoles, world.getRandom());
-
-        // Get available players
         ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
+        RoleHistoryComponent hist = RoleHistoryComponent.KEY.get(this.scoreboard);
+        RotationStrength strength = gameComponent.getRoleRotationStrength();
+        boolean avoid = gameComponent.isRoleSpecificRoleAvoidance();
+        DoubleSupplier rng = () -> world.getRandom().nextDouble();
+
+        // One role per player & one player per role -> cap by available roles
+        int toAssign = Math.min(neutralCount, availableNeutralRoles.size());
+        List<ServerPlayerEntity> chosen = selectByDebt(availablePlayers, toAssign, hist, RoleCategory.NEUTRAL, strength, rng);
 
         int assignedCount = assignedNeutralRoles.size();
-        // Assign neutral roles randomly (one role per player, one player per role)
-        for (ServerPlayerEntity player : availablePlayers) {
-            if (neutralCount <= 0) break;
+        for (ServerPlayerEntity player : chosen) {
             if (availableNeutralRoles.isEmpty()) break;
-
-            Role assignedRole = availableNeutralRoles.removeFirst();
+            Role assignedRole = pickSpecialRole(player, availableNeutralRoles, hist, avoid, rng);
+            if (assignedRole == null) break;
             gameComponent.addRole(player, assignedRole);
             assignedCount++;
-            neutralCount--;
         }
-
         return assignedCount;
     }
 
     public int assignCivilians(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players) {
-        // Get available players
         ArrayList<ServerPlayerEntity> availablePlayers = getAvailablePlayers(world, gameComponent, players);
 
-        // Collect already assigned civilian roles (from forced roles)
+        // Collect already-assigned civilian roles (from forced roles)
         Set<Role> assignedCivilianRoles = new HashSet<>();
         for (ServerPlayerEntity player : players) {
             Role role = gameComponent.getRole(player);
@@ -293,31 +277,27 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         RoleSelectionContext context = createSelectionContext(world, gameComponent, players);
 
         // Collect available non-vanilla civilian faction roles (each can only be assigned once)
-        // Filter out roles that are already assigned or don't meet appearance conditions
         ArrayList<Role> availableSpecialCivilianRoles = new ArrayList<>();
         for (Role role : WatheRoles.ROLES) {
             if (role.getFaction() == Faction.CIVILIAN && !WatheRoles.VANILLA_ROLES.contains(role) && gameComponent.isRoleEnabled(role) && !assignedCivilianRoles.contains(role) && role.shouldAppear(context)) {
                 availableSpecialCivilianRoles.add(role);
             }
         }
-        shuffle(availableSpecialCivilianRoles, world.getRandom());
+
+        RoleHistoryComponent hist = RoleHistoryComponent.KEY.get(this.scoreboard);
+        boolean avoid = gameComponent.isRoleSpecificRoleAvoidance();
+        DoubleSupplier rng = () -> world.getRandom().nextDouble();
 
         int assignedCount = 0;
-        // Assign civilians to all remaining players
+        // Assign civilians to all remaining players (no weighting; civilian is the fallback bucket)
         for (ServerPlayerEntity player : availablePlayers) {
-            Role assignedRole;
-            if (!availableSpecialCivilianRoles.isEmpty()) {
-                // Assign a special non-vanilla civilian role
-                assignedRole = availableSpecialCivilianRoles.removeFirst();
-            } else {
-                // No special roles left, assign basic CIVILIAN
-                assignedRole = WatheRoles.CIVILIAN;
+            Role assignedRole = pickSpecialRole(player, availableSpecialCivilianRoles, hist, avoid, rng);
+            if (assignedRole == null) {
+                assignedRole = WatheRoles.CIVILIAN; // no special role left -> base civilian
             }
-
             gameComponent.addRole(player, assignedRole);
             assignedCount++;
         }
-
         return assignedCount;
     }
 
@@ -330,6 +310,25 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         }
         shuffle(availablePlayers, world.getRandom());
         return availablePlayers;
+    }
+
+    /** 按某阵营债务对玩家加权，无放回抽 count 个。OFF 档权重恒等 = 均匀随机。 */
+    private List<ServerPlayerEntity> selectByDebt(List<ServerPlayerEntity> pool, int count,
+                                                  RoleHistoryComponent hist, RoleCategory cat,
+                                                  RotationStrength strength, DoubleSupplier rng) {
+        return RoleRotation.selectWeighted(pool,
+                p -> RoleRotation.weight(hist.debt(p.getUuid(), cat), strength),
+                count, rng);
+    }
+
+    /** 为玩家从可用特殊角色里挑一个(尽量没玩过)；avoid=false 时纯随机。命中后从 available 移除。 */
+    private Role pickSpecialRole(ServerPlayerEntity player, List<Role> available,
+                                 RoleHistoryComponent hist, boolean avoid, DoubleSupplier rng) {
+        Set<String> recent = avoid ? hist.recentRoleIds(player.getUuid()) : Collections.emptySet();
+        Role role = RoleRotation.pickAvoidingRecent(available,
+                r -> recent.contains(r.identifier().toString()), rng);
+        if (role != null) available.remove(role);
+        return role;
     }
 
     @Override

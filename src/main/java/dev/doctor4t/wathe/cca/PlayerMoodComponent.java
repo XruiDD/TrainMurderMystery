@@ -3,6 +3,7 @@ package dev.doctor4t.wathe.cca;
 import dev.doctor4t.wathe.Wathe;
 import dev.doctor4t.wathe.api.Role;
 import dev.doctor4t.wathe.client.WatheClient;
+import dev.doctor4t.wathe.api.event.MoodVisualEvents;
 import dev.doctor4t.wathe.api.event.TaskComplete;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
@@ -124,8 +125,9 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
             return;
         if (!this.tasks.isEmpty()) this.setMood(this.mood - this.tasks.size() * GameConstants.MOOD_DRAIN);
 
-        if (this.isLowerThanMid()) {
+        if (this.isLowerThanMid() && !MoodVisualEvents.isPsychosisSuppressed()) {
             // imagine random items for players
+            // 被抑制时（如小丑时刻）走 else 分支清空 psychosisItems，使外观让位给附属模组
             for (PlayerEntity playerEntity : this.player.getWorld().getPlayers()) {
                 if (!playerEntity.equals(this.player) && this.player.getWorld().getRandom().nextInt(GameConstants.ITEM_PSYCHOSIS_REROLL_TIME) == 0) {
                     ItemStack psychosisStack;

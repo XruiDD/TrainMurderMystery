@@ -157,19 +157,11 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         boolean avoid = gameComponent.isRoleSpecificRoleAvoidance();
         DoubleSupplier rng = () -> world.getRandom().nextDouble();
 
-        // Pick WHO becomes killer by KILLER-debt weighting (replaces shuffle)
-        List<ServerPlayerEntity> chosen = selectByDebt(availablePlayers, killerCount, hist, RoleCategory.KILLER, strength, rng);
-
-        int assignedCount = existingKillerCount;
-        for (ServerPlayerEntity player : chosen) {
-            Role assignedRole = pickSpecialRole(player, availableSpecialKillerRoles, hist, avoid, rng);
-            if (assignedRole == null) {
-                assignedRole = WatheRoles.KILLER; // no special role left -> base killer
-            }
-            gameComponent.addRole(player, assignedRole);
-            assignedCount++;
-        }
-        return assignedCount;
+        // Pick WHO becomes killer by KILLER-debt weighting (replaces shuffle)；成组角色预留额外人数
+        int playersNeeded = Math.min(availablePlayers.size(), killerCount + extraPlayersForGroups(availableSpecialKillerRoles));
+        List<ServerPlayerEntity> chosen = selectByDebt(availablePlayers, playersNeeded, hist, RoleCategory.KILLER, strength, rng);
+        // 兜底基础杀手，统一处理 成组/槽位/互斥
+        return existingKillerCount + assignSpecialRolesBySlots(gameComponent, chosen, availableSpecialKillerRoles, killerCount, hist, avoid, rng, WatheRoles.KILLER);
     }
 
     public void assignVigilantes(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players, int vigilanteCount) {
@@ -246,19 +238,77 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         boolean avoid = gameComponent.isRoleSpecificRoleAvoidance();
         DoubleSupplier rng = () -> world.getRandom().nextDouble();
 
-        // One role per player & one player per role -> cap by available roles
-        int toAssign = Math.min(neutralCount, availableNeutralRoles.size());
-        List<ServerPlayerEntity> chosen = selectByDebt(availablePlayers, toAssign, hist, RoleCategory.NEUTRAL, strength, rng);
+        // 中立名额(槽位)预算：成组角色按 slotCost 占槽，但一槽可多名玩家，故额外多选备用人数
+        int playersNeeded = Math.min(availablePlayers.size(), neutralCount + extraPlayersForGroups(availableNeutralRoles));
+        List<ServerPlayerEntity> chosen = selectByDebt(availablePlayers, playersNeeded, hist, RoleCategory.NEUTRAL, strength, rng);
+        // 不兜底：剩余中立槽位留空，对应玩家由后续平民阶段接管
+        return assignedNeutralRoles.size() + assignSpecialRolesBySlots(gameComponent, chosen, availableNeutralRoles, neutralCount, hist, avoid, rng, null);
+    }
 
-        int assignedCount = assignedNeutralRoles.size();
-        for (ServerPlayerEntity player : chosen) {
-            if (availableNeutralRoles.isEmpty()) break;
-            Role assignedRole = pickSpecialRole(player, availableNeutralRoles, hist, avoid, rng);
-            if (assignedRole == null) break;
-            gameComponent.addRole(player, assignedRole);
-            assignedCount++;
+    /** 移除与已分配角色互斥的候选角色（立即生效，保证互斥与分配顺序无关）。 */
+    private void removeExcludedRoles(Role assigned, List<Role> available) {
+        if (assigned.getMutualExclusions().isEmpty()) return;
+        available.removeIf(assigned::excludes);
+    }
+
+    /** 成组角色比其槽位多需要的玩家数之和：用于按槽位选人时预留额外名额。 */
+    private int extraPlayersForGroups(List<Role> roles) {
+        int extra = 0;
+        for (Role role : roles) extra += Math.max(0, role.getSpawnGroupSize() - role.getSlotCost());
+        return extra;
+    }
+
+    /**
+     * 按「槽位预算」为已选玩家分配特殊角色，统一处理三种通用能力：
+     * 成组生成({@link Role#getSpawnGroupSize()} 一次给多名玩家)、
+     * 槽位占用({@link Role#getSlotCost()} 占用阵营名额数)、
+     * 互斥({@link Role#getMutualExclusions()} 选中即把互斥角色移出候选)。
+     *
+     * @param chosen     已按债务选好的玩家（应已用 {@link #extraPlayersForGroups} 预留成组额外人数）
+     * @param available  候选特殊角色（可变，会被消耗）
+     * @param slotBudget 槽位预算
+     * @param fallback   候选耗尽/凑不齐时的兜底角色（占 1 槽 1 人）；为 null 表示不兜底（剩余槽位留空）
+     * @return 实际分配到角色的玩家数
+     */
+    private int assignSpecialRolesBySlots(GameWorldComponent gameComponent, List<ServerPlayerEntity> chosen,
+                                          List<Role> available, int slotBudget, RoleHistoryComponent hist,
+                                          boolean avoid, DoubleSupplier rng, Role fallback) {
+        int assigned = 0;
+        int slotsRemaining = slotBudget;
+        int i = 0;
+        while (slotsRemaining > 0 && i < chosen.size()) {
+            ServerPlayerEntity player = chosen.get(i);
+            Role role = pickSpecialRole(player, available, hist, avoid, rng);
+            if (role == null) {
+                if (fallback == null) break; // 不兜底：剩余槽位留空，玩家交由后续阶段处理
+                gameComponent.addRole(player, fallback);
+                assigned++;
+                i++;
+                slotsRemaining--;
+                continue;
+            }
+            int groupSize = Math.max(1, role.getSpawnGroupSize());
+            int cost = Math.max(1, role.getSlotCost());
+            if (cost > slotsRemaining || chosen.size() - i < groupSize) {
+                // 槽位或玩家凑不齐该角色：放弃它（已被 pickSpecialRole 移除，故不应用其互斥）
+                if (fallback != null) {
+                    gameComponent.addRole(player, fallback);
+                    assigned++;
+                    i++;
+                    slotsRemaining--;
+                }
+                // 无兜底则不推进 i，下一轮用同一玩家试下一个候选；候选耗尽后 role==null 退出，不会死循环
+                continue;
+            }
+            for (int g = 0; g < groupSize; g++) {
+                gameComponent.addRole(chosen.get(i + g), role);
+                assigned++;
+            }
+            i += groupSize;
+            slotsRemaining -= cost;
+            removeExcludedRoles(role, available);
         }
-        return assignedCount;
+        return assigned;
     }
 
     public int assignCivilians(ServerWorld world, GameWorldComponent gameComponent, @NotNull List<ServerPlayerEntity> players) {
@@ -288,15 +338,32 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
         boolean avoid = gameComponent.isRoleSpecificRoleAvoidance();
         DoubleSupplier rng = () -> world.getRandom().nextDouble();
 
+        // 平民是兜底桶：给所有剩余玩家分配（无权重）。支持 成组生成 + 互斥；slotCost 不适用(人人都要分到)
         int assignedCount = 0;
-        // Assign civilians to all remaining players (no weighting; civilian is the fallback bucket)
-        for (ServerPlayerEntity player : availablePlayers) {
-            Role assignedRole = pickSpecialRole(player, availableSpecialCivilianRoles, hist, avoid, rng);
-            if (assignedRole == null) {
-                assignedRole = WatheRoles.CIVILIAN; // no special role left -> base civilian
+        int i = 0;
+        while (i < availablePlayers.size()) {
+            ServerPlayerEntity player = availablePlayers.get(i);
+            Role role = pickSpecialRole(player, availableSpecialCivilianRoles, hist, avoid, rng);
+            if (role == null) {
+                gameComponent.addRole(player, WatheRoles.CIVILIAN); // 无特殊角色 → 基础平民
+                assignedCount++;
+                i++;
+                continue;
             }
-            gameComponent.addRole(player, assignedRole);
-            assignedCount++;
+            int groupSize = Math.max(1, role.getSpawnGroupSize());
+            if (availablePlayers.size() - i < groupSize) {
+                // 剩余玩家凑不齐整组 → 该玩家给基础平民（放弃该特殊角色，不应用其互斥）
+                gameComponent.addRole(player, WatheRoles.CIVILIAN);
+                assignedCount++;
+                i++;
+                continue;
+            }
+            for (int g = 0; g < groupSize; g++) {
+                gameComponent.addRole(availablePlayers.get(i + g), role);
+                assignedCount++;
+            }
+            i += groupSize;
+            removeExcludedRoles(role, availableSpecialCivilianRoles);
         }
         return assignedCount;
     }

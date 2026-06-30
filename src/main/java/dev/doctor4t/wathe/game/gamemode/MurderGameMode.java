@@ -141,8 +141,15 @@ public class MurderGameMode extends GameMode {
             GameEvents.ON_WIN_DETERMINED.invoker().onWinDetermined(serverWorld, gameWorldComponent, winStatus, neutralWinner);
 
             if (winStatus == GameFunctions.WinStatus.NEUTRAL && neutralWinner != null) {
-                // use single winner method for neutral wins
-                GameRoundEndComponent.KEY.get(serverWorld.getScoreboard()).setRoundEndData(serverWorld, neutralWinner.getUuid());
+                // 中立胜利：主赢家 + 共同赢家（如命运绑定的二人组）全部计入
+                java.util.LinkedHashSet<UUID> winnerUuids = new java.util.LinkedHashSet<>();
+                winnerUuids.add(neutralWinner.getUuid());
+                if (eventResult != null) {
+                    for (ServerPlayerEntity coWinner : eventResult.coWinners()) {
+                        if (coWinner != null) winnerUuids.add(coWinner.getUuid());
+                    }
+                }
+                GameRoundEndComponent.KEY.get(serverWorld.getScoreboard()).setRoundEndData(serverWorld, winnerUuids);
             } else {
                 GameRoundEndComponent.KEY.get(serverWorld.getScoreboard()).setRoundEndData(serverWorld, winStatus);
             }

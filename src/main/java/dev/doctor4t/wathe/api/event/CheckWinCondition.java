@@ -7,6 +7,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 import static net.fabricmc.fabric.api.event.EventFactory.createArrayBacked;
 
 /**
@@ -49,26 +51,34 @@ public interface CheckWinCondition {
     /**
      * Result of a win condition check.
      */
-    record WinResult(GameFunctions.WinStatus status, @Nullable ServerPlayerEntity winner) {
+    record WinResult(GameFunctions.WinStatus status, @Nullable ServerPlayerEntity winner, List<ServerPlayerEntity> coWinners) {
         /**
          * Creates a result where a specific neutral player wins.
          */
         public static WinResult neutralWin(ServerPlayerEntity winner) {
-            return new WinResult(GameFunctions.WinStatus.NEUTRAL, winner);
+            return new WinResult(GameFunctions.WinStatus.NEUTRAL, winner, List.of());
+        }
+
+        /**
+         * Creates a result where multiple neutral players win together (e.g. a fate-bound duo).
+         * The primary {@code winner} plus every player in {@code coWinners} are all marked as winners.
+         */
+        public static WinResult neutralWin(ServerPlayerEntity winner, List<ServerPlayerEntity> coWinners) {
+            return new WinResult(GameFunctions.WinStatus.NEUTRAL, winner, coWinners != null ? coWinners : List.of());
         }
 
         /**
          * Creates a result that blocks the current win condition (game continues).
          */
         public static WinResult block() {
-            return new WinResult(GameFunctions.WinStatus.NONE, null);
+            return new WinResult(GameFunctions.WinStatus.NONE, null, List.of());
         }
 
         /**
          * Creates a result that allows the specified faction to win.
          */
         public static WinResult allow(GameFunctions.WinStatus status) {
-            return new WinResult(status, null);
+            return new WinResult(status, null, List.of());
         }
     }
 }

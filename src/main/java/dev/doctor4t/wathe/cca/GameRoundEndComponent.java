@@ -92,8 +92,13 @@ public class GameRoundEndComponent implements AutoSyncedComponent {
         this.sync();
     }
 
-    // 中立胜利重载
+    // 中立胜利重载（单个赢家）
     public void setRoundEndData(ServerWorld serverWorld, UUID winnerUuid) {
+        setRoundEndData(serverWorld, java.util.List.of(winnerUuid));
+    }
+
+    // 中立胜利重载（多个共同赢家，如命运绑定的二人组）
+    public void setRoundEndData(ServerWorld serverWorld, java.util.Collection<UUID> winnerUuids) {
         this.players.clear();
         GameWorldComponent game = GameWorldComponent.KEY.get(serverWorld);
         this.gameMode = game.getGameMode() != null ? game.getGameMode().identifier : null;
@@ -115,7 +120,7 @@ public class GameRoundEndComponent implements AutoSyncedComponent {
                 endStatus = isOnline ? PlayerEndStatus.ALIVE : PlayerEndStatus.LEFT;
             }
 
-            boolean isWinner = uuid.equals(winnerUuid);
+            boolean isWinner = winnerUuids.contains(uuid);
             this.players.add(new RoundEndData(profile, role.identifier(), endStatus, isWinner));
         }
         this.winStatus = GameFunctions.WinStatus.NEUTRAL;

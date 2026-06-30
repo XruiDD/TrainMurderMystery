@@ -2,6 +2,9 @@ package dev.doctor4t.wathe.api;
 
 import net.minecraft.util.Identifier;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public final class Role {
     private final Identifier identifier;
     private final int color;
@@ -12,6 +15,9 @@ public final class Role {
     private final boolean canSeeTime;
     private RoleAppearanceCondition appearanceCondition = RoleAppearanceCondition.ALWAYS;
     private boolean mapSpecific = false;
+    private int spawnGroupSize = 1;
+    private int slotCost = 1;
+    private final Set<Identifier> mutualExclusions = new HashSet<>();
 
     public enum MoodType {
         NONE, REAL, FAKE
@@ -146,5 +152,76 @@ public final class Role {
      */
     public boolean shouldAppear(RoleSelectionContext context) {
         return appearanceCondition.shouldAppear(context);
+    }
+
+    /**
+     * 设置此角色被选中时一次性生成的玩家数量（成组生成）。
+     * <p>默认 1（普通角色一局至多一人）。设为 N 时，分配阶段一旦选中此角色，
+     * 会把同一角色分配给 N 名玩家、占用 N 个对应阵营名额。
+     *
+     * @param size 组内人数，最小为 1
+     * @return this role for method chaining
+     */
+    public Role setSpawnGroupSize(int size) {
+        this.spawnGroupSize = Math.max(1, size);
+        return this;
+    }
+
+    /**
+     * @return 此角色被选中时一次性生成的玩家数量（默认 1）
+     */
+    public int getSpawnGroupSize() {
+        return spawnGroupSize;
+    }
+
+    /**
+     * 设置此角色被选中时占用的阵营名额(槽位)数量。
+     * <p>默认 1。与 {@link #setSpawnGroupSize} 相互独立：例如「成组生成 2 人但只占 1 个名额」=
+     * {@code setSpawnGroupSize(2).setSlotCost(1)}。
+     *
+     * @param cost 占用的槽位数，最小为 1
+     * @return this role for method chaining
+     */
+    public Role setSlotCost(int cost) {
+        this.slotCost = Math.max(1, cost);
+        return this;
+    }
+
+    /**
+     * @return 此角色被选中时占用的阵营名额(槽位)数量（默认 1）
+     */
+    public int getSlotCost() {
+        return slotCost;
+    }
+
+    /**
+     * 将此角色与另一角色设为互斥（一局中至多出现其中一个）。
+     * <p>关系是对称的：调用后两个角色互相排除。分配阶段一旦其中一个被选中，
+     * 另一个会立即从候选池移除，因此与分配顺序无关。
+     *
+     * @param other 互斥的另一角色
+     * @return this role for method chaining
+     */
+    public Role addMutualExclusion(Role other) {
+        if (other != null && other != this) {
+            this.mutualExclusions.add(other.identifier());
+            other.mutualExclusions.add(this.identifier());
+        }
+        return this;
+    }
+
+    /**
+     * @return 与此角色互斥的角色标识集合
+     */
+    public Set<Identifier> getMutualExclusions() {
+        return mutualExclusions;
+    }
+
+    /**
+     * @param other 另一角色
+     * @return true 如果此角色与 other 互斥
+     */
+    public boolean excludes(Role other) {
+        return other != null && this.mutualExclusions.contains(other.identifier());
     }
 }

@@ -33,7 +33,7 @@ public class PlayerEntityRendererMixin {
                 return ItemStack.EMPTY;
             }
 
-            if (WatheClient.moodComponent != null && WatheClient.moodComponent.isLowerThanMid()) { // make sure it's only the main hand item that's being replaced
+            if (WatheClient.moodComponent != null && WatheClient.moodComponent.shouldShowPsychosisItems()) { // make sure it's only the main hand item that's being replaced
                 HashMap<UUID, ItemStack> psychosisItems = WatheClient.moodComponent.getPsychosisItems();
                 UUID uuid = player.getUuid();
                 if (psychosisItems.containsKey(uuid)) {

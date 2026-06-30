@@ -125,7 +125,7 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
             return;
         if (!this.tasks.isEmpty()) this.setMood(this.mood - this.tasks.size() * GameConstants.MOOD_DRAIN);
 
-        if (this.isLowerThanMid() && !MoodVisualEvents.isPsychosisSuppressed()) {
+        if (this.shouldShowPsychosisItems() && !MoodVisualEvents.isPsychosisSuppressed()) {
             // imagine random items for players
             // 被抑制时（如小丑时刻）走 else 分支清空 psychosisItems，使外观让位给附属模组
             for (PlayerEntity playerEntity : this.player.getWorld().getPlayers()) {
@@ -268,6 +268,17 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
 
     public boolean isLowerThanMid() {
         return this.getMood() < GameConstants.MID_MOOD_THRESHOLD;
+    }
+
+    /**
+     * 是否应向本地玩家展示手持物品幻觉。
+     * <p>
+     * 触发条件为「低心情」或「处于中毒状态」。低心情幻觉仅对 {@link Role.MoodType#REAL}
+     * 角色生效（{@link #getMood()} 对其他角色恒返回 1）；而中毒幻觉不区分角色——任何被
+     * 下毒的玩家都会眼花。复用同一套 {@link #psychosisItems} 生成与渲染逻辑。
+     */
+    public boolean shouldShowPsychosisItems() {
+        return this.isLowerThanMid() || PlayerPoisonComponent.KEY.get(this.player).poisonTicks > 0;
     }
 
     public boolean isLowerThanDepressed() {

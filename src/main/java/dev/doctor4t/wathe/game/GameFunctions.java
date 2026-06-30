@@ -21,6 +21,7 @@ import dev.doctor4t.wathe.entity.NoteEntity;
 import dev.doctor4t.wathe.entity.PlayerBodyEntity;
 import dev.doctor4t.wathe.api.event.KillPlayer;
 import dev.doctor4t.wathe.api.event.ShouldDropOnDeath;
+import dev.doctor4t.wathe.api.event.ShouldPiercePsychoArmour;
 import dev.doctor4t.wathe.index.WatheDataComponentTypes;
 import dev.doctor4t.wathe.index.WatheEntities;
 import dev.doctor4t.wathe.index.WatheItems;
@@ -520,7 +521,9 @@ public class GameFunctions {
             spawnBody = beforeResult.spawnBody();
         }
 
-        if (!force && component.getPsychoTicks() > 0) {
+        // 疯魔盾：默认吸收一次死亡；但允许特定死因（如巫毒诅咒）穿透而不被吸收
+        boolean piercesArmour = ShouldPiercePsychoArmour.EVENT.invoker().pierces(victim, deathReason);
+        if (!force && !piercesArmour && component.getPsychoTicks() > 0) {
             if (component.getArmour() > 0) {
                 component.setArmour(component.getArmour() - 1);
                 component.sync();
@@ -540,7 +543,7 @@ public class GameFunctions {
                 component.stopPsycho();
             }
         }
-        if(force && component.getPsychoTicks() > 0){
+        if ((force || piercesArmour) && component.getPsychoTicks() > 0) {
             component.stopPsycho();
         }
 

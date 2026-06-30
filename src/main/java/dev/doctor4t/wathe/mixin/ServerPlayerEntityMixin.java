@@ -5,8 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
-import dev.doctor4t.wathe.index.WatheItems;
-import dev.doctor4t.wathe.util.InteractionSwingTracker;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -22,21 +20,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayerEntity.class)
 public class ServerPlayerEntityMixin {
-
-    // 阻止"右键交互（开门等）"重置球棒攻击冷却，但保留左键挥击的冷却。
-    // 原版 ServerPlayerEntity.swingHand() 每次挥手都会调用 resetLastAttackedTicks()，
-    // 而左键攻击/空挥与右键交互在服务端都通过单参 swingHand 触发，无法直接区分。
-    // 这里借助 InteractionSwingTracker：右键交互成功时服务端会先调用 swingHand(hand, true)
-    // 打上"本 tick 交互挥手"时间戳，仅在该时间戳命中当前 tick 时跳过重置（即右键交互）；
-    // 左键攻击/空挥不会打戳，照常重置攻击冷却。
-    @WrapOperation(method = "swingHand", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;resetLastAttackedTicks()V"))
-    private void wathe$preventSwingCooldownReset(ServerPlayerEntity instance, Operation<Void> original) {
-        boolean isInteractionSwing = ((InteractionSwingTracker) instance).wathe$lastInteractionSwingTick() == instance.getWorld().getTime();
-        if (instance.getMainHandStack().isOf(WatheItems.BAT) && isInteractionSwing) {
-            return;
-        }
-        original.call(instance);
-    }
 
     @Inject(method = "canBeSpectated", at = @At("HEAD"), cancellable = true)
     private void wathe$hideInvisibleFromDeadSpectators(ServerPlayerEntity spectator, CallbackInfoReturnable<Boolean> cir) {

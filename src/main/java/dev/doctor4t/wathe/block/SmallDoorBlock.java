@@ -166,7 +166,7 @@ public class SmallDoorBlock extends DoorPartBlock {
                 } else if (interactionType == DoorInteraction.DoorInteractionType.USE_LOCKPICK) {
                     world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, WatheSounds.ITEM_LOCKPICK_DOOR, SoundCategory.BLOCKS, 1f, 1f);
                 }
-                return open(state, world, entity, lowerPos);
+                return open(state, world, player, entity, lowerPos);
             } else if (eventResult == DoorInteraction.DoorInteractionResult.DENY) {
                 return ActionResult.FAIL;
             } else if (eventResult == DoorInteraction.DoorInteractionResult.HANDLED) {
@@ -181,14 +181,14 @@ public class SmallDoorBlock extends DoorPartBlock {
             }
 
             if (player.isCreative()) {
-                return open(state, world, entity, lowerPos);
+                return open(state, world, player, entity, lowerPos);
             } else {
                 boolean requiresKey = !entity.getKeyName().isEmpty();
                 boolean hasLockpick = player.getMainHandStack().isOf(WatheItems.LOCKPICK);
                 boolean jammed = entity.isJammed();
 
                 if (entity.isOpen()) {
-                    return open(state, world, entity, lowerPos);
+                    return open(state, world, player, entity, lowerPos);
                 } else if (requiresKey && !jammed) {
                     if (player.getMainHandStack().isOf(WatheItems.CROWBAR)) return ActionResult.FAIL;
                     if (player.getMainHandStack().isOf(WatheItems.KEY) || hasLockpick) {
@@ -199,7 +199,7 @@ public class SmallDoorBlock extends DoorPartBlock {
                                 world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, WatheSounds.ITEM_KEY_DOOR, SoundCategory.BLOCKS, 1f, 1f);
                             if (hasLockpick)
                                 world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, WatheSounds.ITEM_LOCKPICK_DOOR, SoundCategory.BLOCKS, 1f, 1f);
-                            return open(state, world, entity, lowerPos);
+                            return open(state, world, player, entity, lowerPos);
                         } else {
                             if (!world.isClient) {
                                 world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, WatheSounds.BLOCK_DOOR_LOCKED, SoundCategory.BLOCKS, 1f, 1f);
@@ -222,7 +222,7 @@ public class SmallDoorBlock extends DoorPartBlock {
                         }
                     } else {
                         // open the door freely
-                        return open(state, world, entity, lowerPos);
+                        return open(state, world, player, entity, lowerPos);
                     }
                 }
             }
@@ -273,8 +273,13 @@ public class SmallDoorBlock extends DoorPartBlock {
         return DoorInteraction.DoorInteractionType.OPEN;
     }
 
-    static @NotNull ActionResult open(BlockState state, World world, SmallDoorBlockEntity entity, BlockPos lowerPos) {
-        if (world.isClient) return ActionResult.SUCCESS;
+    static @NotNull ActionResult open(BlockState state, World world, PlayerEntity player, SmallDoorBlockEntity entity, BlockPos lowerPos) {
+        if (world.isClient) {
+            // 仅手持球棒（疯魔专属道具）时客户端返回 CONSUME：吞掉本地挥手，避免额外发出的
+            // HandSwingC2SPacket 在服务端重置球棒攻击冷却（lastAttackedTicks）。
+            // 其它物品/空手照常返回 SUCCESS，保留正常开门挥手动画。
+            return player.getMainHandStack().isOf(WatheItems.BAT) ? ActionResult.CONSUME : ActionResult.SUCCESS;
+        }
         toggleDoor(state, world, entity, lowerPos);
         return ActionResult.CONSUME;
     }

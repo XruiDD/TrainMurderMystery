@@ -57,7 +57,7 @@ public class PoisonUtils {
             );
         } else {
             PlayerPoisonComponent.KEY.get(target).setPoisonTicks(
-                    MathHelper.clamp(poisonTicks - world.getRandom().nextBetween(100, 300), 0, PlayerPoisonComponent.clampTime.getRight()),
+                    MathHelper.clamp(poisonTicks - world.getRandom().nextBetween(100, 300), 1, PlayerPoisonComponent.clampTime.getRight()),
                     UUID.fromString(poisoner),
                     GameConstants.PoisonSources.FOOD,
                     recordExtra
@@ -121,7 +121,7 @@ public class PoisonUtils {
                 );
             } else {
                 PlayerPoisonComponent.KEY.get(player).setPoisonTicks(
-                        MathHelper.clamp(poisonTicks - world.getRandom().nextBetween(100, 300), 0, PlayerPoisonComponent.clampTime.getRight()),
+                        MathHelper.clamp(poisonTicks - world.getRandom().nextBetween(100, 300), 1, PlayerPoisonComponent.clampTime.getRight()),
                         poisoner,
                         GameConstants.PoisonSources.BED,
                         recordExtra
